@@ -30,7 +30,6 @@ var assetDir = "./BuildAssets";
 var localPackagesDir = "../LocalPackages";
 var globalAssemblyFile = "./source/Octo/Properties/AssemblyInfo.cs";
 var projectToPublish = "./source/Octo/Octo.csproj";
-var octopusClientFolder = "./source/Octopus.Client";
 var octoPublishFolder = $"{publishDir}/Octo";
 var octoMergedFolder =  $"{publishDir}/OctoMerged";
 var octopusCliFolder = "./source/Octopus.Cli";
@@ -55,7 +54,7 @@ Setup(context =>
     if(BuildSystem.IsRunningOnTeamCity)
         BuildSystem.TeamCity.SetBuildNumber(nugetVersion);
 
-    Information("Building OctopusClients v{0}", nugetVersion);
+    Information("Building OctopusCli v{0}", nugetVersion);
     Information("Informational Version {0}", gitVersionInfo.InformationalVersion);
     Verbose("GitVersion:\n{0}", gitVersionInfo.Dump());
 });
@@ -210,40 +209,6 @@ Task("Zip")
     });
 
 
-Task("PackClientNuget")
-    .IsDependentOn("Test")
-    .Does(() => {
-        var inputFolder = $"{octopusClientFolder}/bin/{configuration}/net45";
-        var outputFolder = $"{octopusClientFolder}/bin/{configuration}/net45Merged";
-        CreateDirectory(outputFolder);
-
-        ILRepack(
-            $"{outputFolder}/Octopus.Client.dll",
-            $"{inputFolder}/Octopus.Client.dll",
-            System.IO.Directory.EnumerateFiles(inputFolder, "NewtonSoft.Json.dll").Select(f => (FilePath) f),
-            new ILRepackSettings {
-                Internalize = true,
-                Parallel = false,
-                XmlDocs = true,
-                Libs = new List<DirectoryPath>() { inputFolder }
-            }
-        );
-
-        DeleteDirectory(inputFolder, true);
-        MoveDirectory(outputFolder, inputFolder);
-
-        SignBinaries($"{octopusClientFolder}/bin/{configuration}");
-
-        DotNetCorePack(octopusClientFolder, new DotNetCorePackSettings {
-            ArgumentCustomization = args => args.Append($"/p:Version={nugetVersion}"),
-            Configuration = configuration,
-            OutputDirectory = artifactsDir,
-            NoBuild = true,
-            IncludeSymbols = false,
-        });
-    });
-
-
 Task("PackOctopusToolsNuget")
     .IsDependentOn("MergeOctoExe")
     .Does(() => {
@@ -291,14 +256,12 @@ Task("PackDotNetOctoNuget")
 
 Task("CopyToLocalPackages")
     .WithCriteria(BuildSystem.IsLocalBuild)
-    .IsDependentOn("PackClientNuget")
     .IsDependentOn("PackOctopusToolsNuget")
     .IsDependentOn("PackDotNetOctoNuget")
     .IsDependentOn("Zip")
     .Does(() =>
 {
     CreateDirectory(localPackagesDir);
-    CopyFileToDirectory($"{artifactsDir}/Octopus.Client.{nugetVersion}.nupkg", localPackagesDir);
     CopyFileToDirectory($"{artifactsDir}/Octopus.Cli.{nugetVersion}.nupkg", localPackagesDir);
     CopyFileToDirectory($"{artifactsDir}/Octopus.DotNet.Cli.{nugetVersion}.nupkg", localPackagesDir);
 });

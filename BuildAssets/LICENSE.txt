@@ -1,4 +1,4 @@
-From: https://github.com/OctopusDeploy/OctopusClients/blob/master/LICENSE.txt
+From: https://github.com/OctopusDeploy/OctopusCLI/blob/master/LICENSE.txt
 
 LICENSE
 
