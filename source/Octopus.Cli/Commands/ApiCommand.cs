@@ -69,11 +69,9 @@ namespace Octopus.Cli.Commands
             options.Add("proxy=", $"[Optional] The URI of the proxy to use, eg http://example.com:8080.", v => clientOptions.Proxy = v);
             options.Add("proxyUser=", $"[Optional] The username for the proxy.", v => clientOptions.ProxyUsername = v);
             options.Add("proxyPass=", $"[Optional] The password for the proxy. If both the username and password are omitted and proxyAddress is specified, the default credentials are used. ", v => clientOptions.ProxyPassword = v);
-            options.Add("space=", $"[Optional] The name of a space within which this command will be executed. The default space will be used if it is omitted. ", v => spaceName = v);
+            options.Add("space=", $"[Optional] The name or ID of a space within which this command will be executed. The default space will be used if it is omitted. ", v => spaceName = v);
             options.AddLogLevelOptions();
         }
-
-        protected ILogger Log { get; }
 
         protected string ServerBaseUrl => string.IsNullOrWhiteSpace(serverBaseUrl)
                     ? System.Environment.GetEnvironmentVariable(ServerUrlEnvVar)
@@ -150,12 +148,7 @@ namespace Octopus.Cli.Commands
                     throw new CommandException($"The server {endpoint.OctopusServer} has no spaces. Try invoking the Octo tool without specifying the space name as an argument");
                 }
 
-                commandOutputProvider.Debug("Finding space: {Space:l}", spaceName);
-                var space = await client.ForSystem().Spaces.FindByName(spaceName).ConfigureAwait(false);
-                if (space == null)
-                {
-                    throw new CommandException($"Cannot find the space with name '{spaceName}'. Please check the spelling and that the account has sufficient access to that space. Please use Configuration > Test Permissions to confirm.");
-                }
+                var space = await client.ForSystem().Spaces.FindByNameOrIdOrFail(spaceName).ConfigureAwait(false);
 
                 Repository = repositoryFactory.CreateRepository(client, RepositoryScope.ForSpace(space));
                 commandOutputProvider.Debug("Space name specified, process is now running in the context of space: {space:l}", spaceName);
