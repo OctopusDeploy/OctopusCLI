@@ -21,7 +21,7 @@ namespace Octopus.Cli.Commands.Releases
             : base(repositoryFactory, fileSystem, clientFactory, commandOutputProvider)
         {
             var options = Options.For("Release Promotion");
-            options.Add("project=", "Name of the project", v => ProjectName = v);
+            options.Add("project=", "Name or ID of the project", v => ProjectName = v);
             options.Add("from=", "Name of the environment to get the current deployment from, e.g., Staging", v => FromEnvironmentName = v);
             options.Add("to=|deployto=", "Environment to deploy to, e.g., Production", v => DeployToEnvironmentNames.Add(v));
             options.Add("updateVariables", "Overwrite the variable snapshot for the release by re-importing the variables from the project", v => UpdateVariableSnapshot = true);
@@ -40,11 +40,7 @@ namespace Octopus.Cli.Commands.Releases
 
         public async Task Request()
         {
-            commandOutputProvider.Debug("Finding project: {Project:l}", ProjectName);
-            
-            project = await Repository.Projects.FindByName(ProjectName).ConfigureAwait(false);
-            if (project == null)
-                throw new CouldNotFindException("a project named", ProjectName);
+            project = await Repository.Projects.FindByNameOrIdOrFail(ProjectName).ConfigureAwait(false);
 
             commandOutputProvider.Debug("Finding environment: {Environment:l}", FromEnvironmentName);
             

@@ -32,7 +32,7 @@ namespace Octopus.Cli.Commands.Releases
             this.releasePlanBuilder = releasePlanBuilder;
 
             var options = Options.For("Release creation");
-            options.Add("project=", "Name of the project", v => ProjectName = v);
+            options.Add("project=", "Name or ID of the project", v => ProjectName = v);
             options.Add("defaultpackageversion=|packageversion=", "Default version number of all packages to use for this release. Override per-package using --package.", versionResolver.Default);
             options.Add("version=|releaseNumber=", "[Optional] Release number to use for the new release.", v => VersionNumber = v);
             options.Add("channel=", "[Optional] Channel to use for the new release. Omit this argument to automatically select the best channel.", v => ChannelName = v);
@@ -70,11 +70,7 @@ namespace Octopus.Cli.Commands.Releases
             var serverSupportsChannels = await ServerSupportsChannels();
             commandOutputProvider.Debug(serverSupportsChannels ? "This Octopus Server supports channels" : "This Octopus Server does not support channels");
 
-            commandOutputProvider.Debug("Finding project: {Project:l}", ProjectName);
-            
-            project = await Repository.Projects.FindByName(ProjectName).ConfigureAwait(false);
-            if (project == null)
-                throw new CouldNotFindException("a project named", ProjectName);
+            project = await Repository.Projects.FindByNameOrIdOrFail(ProjectName).ConfigureAwait(false);
 
             plan = await BuildReleasePlan(project).ConfigureAwait(false);
 

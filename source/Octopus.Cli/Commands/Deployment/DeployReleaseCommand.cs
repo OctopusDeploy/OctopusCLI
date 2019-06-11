@@ -21,7 +21,7 @@ namespace Octopus.Cli.Commands.Deployment
             : base(repositoryFactory, fileSystem, clientFactory, commandOutputProvider)
         {
             var options = Options.For("Deployment");
-            options.Add("project=", "Name of the project", v => ProjectName = v);
+            options.Add("project=", "Name or ID of the project", v => ProjectName = v);
             options.Add("deployto=", "Environment to deploy to, e.g., Production; specify this argument multiple times to deploy to multiple environments", v => DeployToEnvironmentNames.Add(v));
             options.Add("releaseNumber=|version=", "Version number of the release to deploy. Or specify --version=latest for the latest release.", v => VersionNumber = v);
             options.Add("channel=", "[Optional] Channel to use when getting the release to deploy", v => ChannelName = v);
@@ -44,7 +44,7 @@ namespace Octopus.Cli.Commands.Deployment
 
         public async Task Request()
         {
-            project = await RepositoryCommonQueries.GetProjectByName(ProjectName).ConfigureAwait(false);
+            project = await Repository.Projects.FindByNameOrIdOrFail(ProjectName).ConfigureAwait(false);
             channel = await GetChannel(project).ConfigureAwait(false);
             releaseToPromote = await RepositoryCommonQueries.GetReleaseByVersion(VersionNumber, project, channel).ConfigureAwait(false);
 
