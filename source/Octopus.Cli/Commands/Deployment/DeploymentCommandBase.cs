@@ -141,18 +141,8 @@ namespace Octopus.Cli.Commands.Deployment
             } 
             
             // Make sure environment is valid
-            var environments = await Repository.Environments.FindByNames(DeployToEnvironmentNames).ConfigureAwait(false);
-            var missingEnvironment = DeployToEnvironmentNames
-                .Where(env => environments.All(env2 => !env2.Name.Equals(env, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
-            if (missingEnvironment.Count != 0)
-            {
-                throw new CommandException(
-                    $"The environment{(missingEnvironment.Count == 1 ? "" : "s")} {string.Join(", ", missingEnvironment)} " +
-                    $"do{(missingEnvironment.Count == 1 ? "es" : "")} not exist or {(missingEnvironment.Count == 1 ? "is" : "are")} misspelled");
-            }
-            
-            
+            await Repository.Environments.FindByNamesOrIdsOrFail(DeployToEnvironmentNames).ConfigureAwait(false);
+
             // Make sure the machines are valid
             await GetSpecificMachines();
 
