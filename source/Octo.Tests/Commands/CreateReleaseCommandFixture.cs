@@ -1,3 +1,7 @@
+using System;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
 using Octopus.Cli.Commands.Releases;
@@ -45,10 +49,10 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--releaseNumber=1.0.0");
             CommandLineArgs.Add("--tenantTag=bad");
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
-            Assert.ThrowsAsync<CommandException>(async delegate
-            {
-                await createReleaseCommand.Execute(CommandLineArgs.ToArray());
-            });
+
+            Func<Task> func = async () => await createReleaseCommand.Execute(CommandLineArgs.ToArray());
+            func.ShouldThrow<CommandException>()
+                .Where(ex => Regex.IsMatch(ex.Message, @"\btag\b", RegexOptions.IgnoreCase));
         }
         
         [Test]
@@ -60,12 +64,12 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--apikey=API-test");
             CommandLineArgs.Add("--project=Test Project");
             CommandLineArgs.Add("--releaseNumber=1.0.0");
-            CommandLineArgs.Add("--tenant=bad");
+            CommandLineArgs.Add("--tenant=badTenant");
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
-            Assert.ThrowsAsync<CommandException>(async delegate
-            {
-                await createReleaseCommand.Execute(CommandLineArgs.ToArray());
-            });
+
+            Func<Task> func = async () => await createReleaseCommand.Execute(CommandLineArgs.ToArray());
+            func.ShouldThrow<CommandException>()
+                .Where(ex => Regex.IsMatch(ex.Message, @"tenant.*badTenant", RegexOptions.IgnoreCase));
         }
         
         [Test]
@@ -77,12 +81,12 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--apikey=API-test");
             CommandLineArgs.Add("--project=Test Project");
             CommandLineArgs.Add("--releaseNumber=1.0.0");
-            CommandLineArgs.Add("--specificmachines=bad");
+            CommandLineArgs.Add("--specificmachines=badMach");
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
-            Assert.ThrowsAsync<CommandException>(async delegate
-            {
-                await createReleaseCommand.Execute(CommandLineArgs.ToArray());
-            });
+
+            Func<Task> func = async () => await createReleaseCommand.Execute(CommandLineArgs.ToArray());
+            func.ShouldThrow<CommandException>()
+                .Where(ex => Regex.IsMatch(ex.Message, @"machine.*badMach", RegexOptions.IgnoreCase));
         }
         
                 
@@ -95,11 +99,11 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--apikey=API-test");
             CommandLineArgs.Add("--project=Test Project");
             CommandLineArgs.Add("--releaseNumber=1.0.0");
-            CommandLineArgs.Add("--deployto=bad");
-            Assert.ThrowsAsync<CommandException>(async delegate
-            {
-                await createReleaseCommand.Execute(CommandLineArgs.ToArray());
-            });
+            CommandLineArgs.Add("--deployto=badEnv");
+
+            Func<Task> func = async () => await createReleaseCommand.Execute(CommandLineArgs.ToArray());
+            func.ShouldThrow<CommandException>().Where(ex =>
+                Regex.IsMatch(ex.Message, @"environment.*badEnv", RegexOptions.IgnoreCase));
         }
         
     }
