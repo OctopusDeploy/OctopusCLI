@@ -50,7 +50,7 @@ namespace Octopus.Cli.Commands.Deployment
             options.Add("v|variable=", "[Optional] Values for any prompted variables in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.", ParseVariable);
             options.Add("deployat=", "[Optional] Time at which deployment should start (scheduled deployment), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => DeployAt = ParseDateTimeOffset(v));
             options.Add("nodeployafter=", "[Optional] Time at which scheduled deployment should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => NoDeployAfter = ParseDateTimeOffset(v));
-            options.Add("tenant=", "Create a deployment for this tenant; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).", t => Tenants.Add(t));
+            options.Add("tenant=", "Create a deployment for the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).", t => Tenants.Add(t));
             options.Add("tenanttag=", "Create a deployment for tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.", tt => TenantTags.Add(tt));
         }
 
@@ -127,19 +127,12 @@ namespace Octopus.Cli.Commands.Deployment
             }
 
             // Make sure the tenants are valid
-            foreach (var tenantName in Tenants)
+            var tenantNamesOrIds = Tenants.Where(tn => tn != "*").ToArray();
+            if (tenantNamesOrIds.Any())
             {
-                if (tenantName != "*")
-                {
-                    var tenant = await Repository.Tenants.FindByName(tenantName).ConfigureAwait(false);
-                    if (tenant == null)
-                    {
-                        throw new CommandException(
-                            $"Could not find the tenant {tenantName} on the Octopus Server");
-                    }
-                }
-            } 
-            
+                await Repository.Tenants.FindByNamesOrIdsOrFail(tenantNamesOrIds).ConfigureAwait(false);
+            }
+
             // Make sure environment is valid
             await Repository.Environments.FindByNamesOrIdsOrFail(DeployToEnvironmentNames).ConfigureAwait(false);
 
@@ -306,23 +299,8 @@ namespace Octopus.Cli.Commands.Deployment
             {
                 if (Tenants.Any())
                 {
-                    var tenantsByName = await Repository.Tenants.FindByNames(Tenants).ConfigureAwait(false);
-                    var missing = tenantsByName == null || !tenantsByName.Any()
-                        ? Tenants.ToArray()
-                        : Tenants.Except(tenantsByName.Select(e => e.Name), StringComparer.OrdinalIgnoreCase).ToArray();
-
-                    var tenantsById = await Repository.Tenants.Get(missing).ConfigureAwait(false);
-
-                    missing = tenantsById == null || !tenantsById.Any()
-                        ? missing
-                        : missing.Except(tenantsById.Select(e => e.Id), StringComparer.OrdinalIgnoreCase).ToArray();
-
-                    if (missing.Any())
-                        throw new ArgumentException(
-                            $"Could not find the {"tenant" + (missing.Length == 1 ? "" : "s")} {string.Join(", ", missing)} on the Octopus Server.");
-
-                    deployableTenants.AddRange(tenantsByName);
-                    deployableTenants.AddRange(tenantsById);
+                    var tenantsByNameOrId = await Repository.Tenants.FindByNamesOrIdsOrFail(Tenants);
+                    deployableTenants.AddRange(tenantsByNameOrId);
 
                     var unDeployableTenants =
                         deployableTenants.Where(dt => !dt.ProjectEnvironments.ContainsKey(project.Id))
