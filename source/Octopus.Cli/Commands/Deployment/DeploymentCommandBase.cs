@@ -159,10 +159,10 @@ namespace Octopus.Cli.Commands.Deployment
             if (DeployToEnvironmentNames.Count != 1)
                 return new List<DeploymentResource>();
 
-            var environment = DeployToEnvironmentNames[0];
+            var environment = await Repository.Environments.FindByNameOrIdOrFail(DeployToEnvironmentNames[0]).ConfigureAwait(false);
             var releaseTemplate = await Repository.Releases.GetTemplate(release).ConfigureAwait(false);
             
-            deploymentTenants = await GetTenants(project, environment, release, releaseTemplate).ConfigureAwait(false);
+            deploymentTenants = await GetTenants(project, environment.Name, release, releaseTemplate).ConfigureAwait(false);
             var specificMachineIds = await GetSpecificMachines().ConfigureAwait(false);
             var excludedMachineIds = await GetExcludedMachines().ConfigureAwait(false);
 
@@ -173,7 +173,7 @@ namespace Octopus.Cli.Commands.Deployment
                 var promotion =
                     releaseTemplate.TenantPromotions
                         .First(t => t.Id == tenant.Id).PromoteTo
-                        .First(tt => tt.Name.Equals(environment, StringComparison.CurrentCultureIgnoreCase));
+                        .First(tt => tt.Name.Equals(environment.Name, StringComparison.CurrentCultureIgnoreCase));
                 promotionTargets.Add(promotion);
                 return CreateDeploymentTask(project, release, promotion, specificMachineIds, excludedMachineIds, tenant);
             });
@@ -247,9 +247,9 @@ namespace Octopus.Cli.Commands.Deployment
             var releaseTemplate = await Repository.Releases.GetTemplate(release).ConfigureAwait(false);
 
             var promotingEnvironments =
-                (from environment in DeployToEnvironmentNames.Distinct(StringComparer.CurrentCultureIgnoreCase)
-                    let promote = releaseTemplate.PromoteTo.FirstOrDefault(p => string.Equals(p.Name, environment, StringComparison.CurrentCultureIgnoreCase))
-                    select new {Name = environment, Promotion = promote}).ToList();
+                (from environment in await Repository.Environments.FindByNamesOrIdsOrFail(DeployToEnvironmentNames.Distinct(StringComparer.CurrentCultureIgnoreCase)).ConfigureAwait(false)
+                    let promote = releaseTemplate.PromoteTo.FirstOrDefault(p => string.Equals(p.Name, environment.Name, StringComparison.CurrentCultureIgnoreCase))
+                    select new {environment.Name, Promotion = promote}).ToList();
 
             var unknownEnvironments = promotingEnvironments.Where(p => p.Promotion == null).ToList();
             if (unknownEnvironments.Count > 0)
