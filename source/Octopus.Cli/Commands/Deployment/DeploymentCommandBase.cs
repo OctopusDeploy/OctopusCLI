@@ -28,7 +28,7 @@ namespace Octopus.Cli.Commands.Deployment
             SpecificMachineNames = new List<string>();
             ExcludedMachineNames = new List<string>();
             SkipStepNames = new List<string>();
-            DeployToEnvironmentNames = new List<string>();
+            DeployToEnvironmentNamesOrIds = new List<string>();
             TenantTags = new List<string>();
             Tenants = new List<string>();
             promotionTargets = new List<DeploymentPromotionTarget>();
@@ -67,7 +67,7 @@ namespace Octopus.Cli.Commands.Deployment
         protected DateTimeOffset? DeployAt { get; set; }
         protected DateTimeOffset? NoDeployAfter { get; set; }
         public string ProjectName { get; set; }
-        public List<string> DeployToEnvironmentNames { get; set; }
+        public List<string> DeployToEnvironmentNamesOrIds { get; set; }
         public List<string> Tenants { get; set; }
         public List<string> TenantTags { get; set; }
 
@@ -81,7 +81,7 @@ namespace Octopus.Cli.Commands.Deployment
         protected override async Task ValidateParameters()
         {
             if (string.IsNullOrWhiteSpace(ProjectName)) throw new CommandException("Please specify a project name or ID using the parameter: --project=XYZ");
-            if (IsTenantedDeployment && DeployToEnvironmentNames.Count > 1) throw new CommandException("Please specify only one environment at a time when deploying to tenants.");
+            if (IsTenantedDeployment && DeployToEnvironmentNamesOrIds.Count > 1) throw new CommandException("Please specify only one environment at a time when deploying to tenants.");
             if (Tenants.Contains("*") && (Tenants.Count > 1 || TenantTags.Count > 0)) throw new CommandException("When deploying to all tenants using --tenant=* wildcard no other tenant filters can be provided");
             if (IsTenantedDeployment && !await Repository.SupportsTenants().ConfigureAwait(false))
                 throw new CommandException("Your Octopus Server does not support tenants, which was introduced in Octopus 3.4. Please upgrade your Octopus Server, enable the multi-tenancy feature or remove the --tenant and --tenanttag arguments.");
@@ -134,7 +134,7 @@ namespace Octopus.Cli.Commands.Deployment
             }
 
             // Make sure environment is valid
-            await Repository.Environments.FindByNamesOrIdsOrFail(DeployToEnvironmentNames).ConfigureAwait(false);
+            await Repository.Environments.FindByNamesOrIdsOrFail(DeployToEnvironmentNamesOrIds).ConfigureAwait(false);
 
             // Make sure the machines are valid
             await GetSpecificMachines();
@@ -156,10 +156,10 @@ namespace Octopus.Cli.Commands.Deployment
 
         private async Task<IReadOnlyList<DeploymentResource>> DeployTenantedRelease(ProjectResource project, ReleaseResource release)
         {
-            if (DeployToEnvironmentNames.Count != 1)
+            if (DeployToEnvironmentNamesOrIds.Count != 1)
                 return new List<DeploymentResource>();
 
-            var environment = await Repository.Environments.FindByNameOrIdOrFail(DeployToEnvironmentNames[0]).ConfigureAwait(false);
+            var environment = await Repository.Environments.FindByNameOrIdOrFail(DeployToEnvironmentNamesOrIds[0]).ConfigureAwait(false);
             var releaseTemplate = await Repository.Releases.GetTemplate(release).ConfigureAwait(false);
             
             deploymentTenants = await GetTenants(project, environment.Name, release, releaseTemplate).ConfigureAwait(false);
@@ -241,13 +241,13 @@ namespace Octopus.Cli.Commands.Deployment
 
         private async Task<IReadOnlyList<DeploymentResource>> DeployToEnvironments(ProjectResource project, ReleaseResource release)
         {
-            if (DeployToEnvironmentNames.Count == 0)
+            if (DeployToEnvironmentNamesOrIds.Count == 0)
                 return new List<DeploymentResource>();
 
             var releaseTemplate = await Repository.Releases.GetTemplate(release).ConfigureAwait(false);
 
             var promotingEnvironments =
-                (from environment in await Repository.Environments.FindByNamesOrIdsOrFail(DeployToEnvironmentNames.Distinct(StringComparer.CurrentCultureIgnoreCase)).ConfigureAwait(false)
+                (from environment in await Repository.Environments.FindByNamesOrIdsOrFail(DeployToEnvironmentNamesOrIds.Distinct(StringComparer.CurrentCultureIgnoreCase)).ConfigureAwait(false)
                     let promote = releaseTemplate.PromoteTo.FirstOrDefault(p => string.Equals(p.Name, environment.Name, StringComparison.CurrentCultureIgnoreCase))
                     select new {environment.Name, Promotion = promote}).ToList();
 

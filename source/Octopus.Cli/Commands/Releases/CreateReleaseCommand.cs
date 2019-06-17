@@ -45,7 +45,7 @@ namespace Octopus.Cli.Commands.Releases
             options.Add("whatif", "[Optional, Flag] Perform a dry run but don't actually create/deploy release.", v => WhatIf = true);
 
             options = Options.For("Deployment");
-            options.Add("deployto=", "[Optional] Name or ID of the environment to automatically deploy to, e.g., Production; specify this argument multiple times to deploy to multiple environments", v => DeployToEnvironmentNames.Add(v));
+            options.Add("deployto=", "[Optional] Name or ID of the environment to automatically deploy to, e.g., Production; specify this argument multiple times to deploy to multiple environments", v => DeployToEnvironmentNamesOrIds.Add(v));
         }
 
         public string ChannelName { get; set; }
@@ -153,8 +153,8 @@ namespace Octopus.Cli.Commands.Releases
             if (WhatIf)
             {
                 // We were just doing a dry run - bail out here
-                if (DeployToEnvironmentNames.Any())
-                    commandOutputProvider.Information("[WhatIf] This release would have been created using the release plan and deployed to {Environments:l}", DeployToEnvironmentNames.CommaSeperate());
+                if (DeployToEnvironmentNamesOrIds.Any())
+                    commandOutputProvider.Information("[WhatIf] This release would have been created using the release plan and deployed to {Environments:l}", DeployToEnvironmentNamesOrIds.CommaSeperate());
                 else
                     commandOutputProvider.Information("[WhatIf] This release would have been created using the release plan");
             }
