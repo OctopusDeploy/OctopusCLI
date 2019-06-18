@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
 using Octopus.Client.Exceptions;
+using Octopus.Client.Extensibility;
 using Octopus.Client.Logging;
 using Octopus.Client.Model;
 using Octopus.Client.Repositories.Async;
@@ -18,13 +19,8 @@ namespace Octopus.Cli.Util
         private static async Task<TResource> FindByNameOrIdOrFail<T, TResource>(this T repository,
             Func<string, Task<TResource>> findByNameFunc, string fixedIdPrefix, string typeDescription, string nameOrId,
             string inDescription = "", bool skipLog = false)
-            where T : IGet<TResource> where TResource : Resource
+            where T : IGet<TResource> where TResource : Resource, INamedResource
         {
-            if (!skipLog)
-            {
-                Logger.Debug($"Finding {typeDescription}: {nameOrId}");
-            }
-
             TResource resourceById;
             if (!Regex.IsMatch(nameOrId, $@"^{Regex.Escape(fixedIdPrefix)}-\d+$",
                 RegexOptions.Compiled | RegexOptions.IgnoreCase))
@@ -60,13 +56,20 @@ namespace Octopus.Cli.Util
                     $"Ambiguous {typeDescription} reference '{nameOrId}' matches one {typeDescription} by name and another by id.");
             }
 
-            return resourceById ?? resourceByName;
+            var found = resourceById ?? resourceByName;
+
+            if (!skipLog)
+            {
+                Logger.Debug($"Found {typeDescription}: {found.Name} ({found.Id})");
+            }
+
+            return found;
         }
 
         private static async Task<TResource[]> FindByNamesOrIdsOrFail<T, TResource>(this T repository,
             Func<string, Task<TResource>> findByNameFunc, string fixedIdPrefix, string typeDescription,
-            IEnumerable<string> namesOrIds, string inDescription = "")
-            where T : IGet<TResource> where TResource : Resource
+            IEnumerable<string> namesOrIds, string inDescription = "", bool skipLog = false)
+            where T : IGet<TResource> where TResource : Resource, INamedResource
         {
             var results = await Task.WhenAll(namesOrIds.Select<string, Task<(string missing, TResource resource)>>(
                 async nameOrId =>
@@ -91,6 +94,12 @@ namespace Octopus.Cli.Util
                 throw new CommandException(
                     $"The {typeDescription}{(missing.Length == 1 ? "" : "s")} {missingStr} "
                     + $"do{(missing.Length == 1 ? "es" : "")} not exist{inDescription} or the account does not have access.");
+            }
+
+            if (!skipLog)
+            {
+                Logger.Debug($"Found {typeDescription}{(results.Length == 1 ? "" : "s")}: "
+                             + $"{string.Join(", ", results.Select(r => $"{r.resource.Name} ({r.resource.Id})"))}");
             }
 
             return results.Select(r => r.resource).ToArray();
