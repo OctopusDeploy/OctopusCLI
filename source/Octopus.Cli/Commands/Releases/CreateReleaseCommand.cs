@@ -98,7 +98,7 @@ namespace Octopus.Cli.Commands.Releases
             commandOutputProvider.Write(
                 plan.IsViableReleasePlan() ? LogEventLevel.Information : LogEventLevel.Warning,
                 "Release plan for {Project:l} {Version:l}" + System.Environment.NewLine + "{Plan:l}",
-                ProjectName, versionNumber, plan.FormatAsTable()
+                project.Name, versionNumber, plan.FormatAsTable()
             );
             if (plan.HasUnresolvedSteps())
             {
@@ -132,14 +132,14 @@ namespace Octopus.Cli.Commands.Releases
 
             if (IgnoreIfAlreadyExists)
             {
-                commandOutputProvider.Debug("Checking for existing release for {Project:l} {Version:l} because you specified --ignoreexisting...", ProjectName, versionNumber);
+                commandOutputProvider.Debug("Checking for existing release for {Project:l} {Version:l} because you specified --ignoreexisting...", project.Name, versionNumber);
                 try
                 {
                     var found = await Repository.Projects.GetReleaseByVersion(project, versionNumber)
                         .ConfigureAwait(false);
                     if (found != null)
                     {
-                        commandOutputProvider.Information("A release of {Project:l} with the number {Version:l} already exists, and you specified --ignoreexisting, so we won't even attempt to create the release.", ProjectName, versionNumber);
+                        commandOutputProvider.Information("A release of {Project:l} with the number {Version:l} already exists, and you specified --ignoreexisting, so we won't even attempt to create the release.", project.Name, versionNumber);
                         return;
                     }
                 }

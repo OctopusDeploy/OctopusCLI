@@ -157,7 +157,7 @@ namespace Octopus.Cli.Commands
                 var space = await client.ForSystem().Spaces.FindByNameOrIdOrFail(spaceName).ConfigureAwait(false);
 
                 Repository = repositoryFactory.CreateRepository(client, RepositoryScope.ForSpace(space));
-                commandOutputProvider.Debug("Space name specified, process is now running in the context of space: {space:l}", spaceName);
+                commandOutputProvider.Debug("Space name specified, process is now running in the context of space: {space:l}", space.Name);
             }
             else
             {
