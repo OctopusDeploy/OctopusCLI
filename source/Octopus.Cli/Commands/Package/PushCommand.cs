@@ -22,16 +22,20 @@ namespace Octopus.Cli.Commands.Package
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Package pushing");
-            options.Add("package=", "Package file to push. Specify multiple packages by specifying this argument multiple times: \n--package package1 --package package2", package => Packages.Add(EnsurePackageExists(fileSystem, package)));
-            options.Add("replace-existing", "If the package already exists in the repository, the default behavior is to reject the new package being pushed. You can pass this flag to overwrite the existing package.", replace => ReplaceExisting = true);
-
+            options.Add("package=", "Package file to push. Specify multiple packages by specifying this argument multiple times: \n--package package1 --package package2", 
+                package => Packages.Add(EnsurePackageExists(fileSystem, package)));
+            options.Add("replace-existing", "If the package already exists in the repository, the default behavior is to reject the new package being pushed. You can pass this flag to overwrite the existing package.", 
+                replace => ReplaceExisting = true);
+            options.Add<bool>("use-delta-compression", "Allows disabling of delta compression. Defaults to enabled.",
+                enabled => UseDeltaCompression = enabled);
             pushedPackages = new List<string>();
             failedPackages = new List<Tuple<string, Exception>>();
         }
 
         public HashSet<string> Packages { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase); 
         public bool ReplaceExisting { get; set; }
-
+        public bool UseDeltaCompression { get; set; } = true;
+ 
         public async Task Request()
         {
             if (Packages.Count == 0) throw new CommandException("Please specify a package to push");
@@ -45,7 +49,8 @@ namespace Octopus.Cli.Commands.Package
                     using (var fileStream = FileSystem.OpenFile(package, FileAccess.Read))
                     {
                         await Repository.BuiltInPackageRepository
-                            .PushPackage(Path.GetFileName(package), fileStream, ReplaceExisting).ConfigureAwait(false);
+                            .PushPackage(Path.GetFileName(package), fileStream, ReplaceExisting, UseDeltaCompression)
+                            .ConfigureAwait(false);
                     }
 
                     pushedPackages.Add(package);
