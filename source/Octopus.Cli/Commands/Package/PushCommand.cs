@@ -26,8 +26,13 @@ namespace Octopus.Cli.Commands.Package
                 package => Packages.Add(EnsurePackageExists(fileSystem, package)));
             options.Add("replace-existing", "If the package already exists in the repository, the default behavior is to reject the new package being pushed. You can pass this flag to overwrite the existing package.", 
                 replace => ReplaceExisting = true);
-            options.Add<bool>("use-delta-compression", "Allows disabling of delta compression. Defaults to enabled.",
-                enabled => UseDeltaCompression = enabled);
+            options.Add("use-delta-compression=", "Allows disabling of delta compression when uploading packages to the Octopus Server. Defaults to enabled.",
+                v =>
+                {
+                    if (!bool.TryParse(v, out var desiredValue))
+                        throw new CommandException($"The value '{v}' is not valid. Valid values are true or false.");
+                    UseDeltaCompression = desiredValue;
+                });
             pushedPackages = new List<string>();
             failedPackages = new List<Tuple<string, Exception>>();
         }
