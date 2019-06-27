@@ -247,10 +247,15 @@ namespace Octopus.Cli.Commands.Deployment
 
             var releaseTemplate = await Repository.Releases.GetTemplate(release).ConfigureAwait(false);
 
-            var promotingEnvironments =
-                (from environment in await Repository.Environments.FindByNamesOrIdsOrFail(DeployToEnvironmentNamesOrIds.Distinct(StringComparer.OrdinalIgnoreCase)).ConfigureAwait(false)
-                    let promote = releaseTemplate.PromoteTo.FirstOrDefault(p => string.Equals(p.Name, environment.Name, StringComparison.OrdinalIgnoreCase))
-                    select new {environment.Name, Promotion = promote}).ToList();
+            var deployToEnvironments = await Repository.Environments
+                .FindByNamesOrIdsOrFail(DeployToEnvironmentNamesOrIds.Distinct(StringComparer.OrdinalIgnoreCase))
+                .ConfigureAwait(false);
+            var promotingEnvironments = deployToEnvironments.Select(environment => new
+            {
+                environment.Name,
+                Promotion = releaseTemplate.PromoteTo
+                    .FirstOrDefault(p => string.Equals(p.Name, environment.Name, StringComparison.OrdinalIgnoreCase))
+            }).ToList();
 
             var unknownEnvironments = promotingEnvironments.Where(p => p.Promotion == null).ToList();
             if (unknownEnvironments.Count > 0)
