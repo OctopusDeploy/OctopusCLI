@@ -12,9 +12,10 @@
         {
         }
 
-        public CouldNotFindException(string typeDescription, string nameOrId, string inDescription) : base(
-            $"Cannot find the {typeDescription} with name or id '{nameOrId}'{inDescription}. "
-            + $"Please check the spelling and that the account has sufficient access to that {typeDescription}. Please use Configuration > Test Permissions to confirm.")
+        public CouldNotFindException(string resourceTypeDisplayName, string nameOrId,
+            string enclosingContextDescription) : base(
+            $"Cannot find the {resourceTypeDisplayName} with name or id '{nameOrId}'{enclosingContextDescription}. "
+            + $"Please check the spelling and that the account has sufficient access to that {resourceTypeDisplayName}. Please use Configuration > Test Permissions to confirm.")
         {
         }
     }

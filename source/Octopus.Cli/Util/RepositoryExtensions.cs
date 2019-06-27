@@ -17,12 +17,13 @@ namespace Octopus.Cli.Util
         private static readonly ILog Logger = LogProvider.GetLogger(typeof(RepositoryExtensions));
 
         private static async Task<TResource> FindByNameOrIdOrFail<T, TResource>(this T repository,
-            Func<string, Task<TResource>> findByNameFunc, string fixedIdPrefix, string typeDescription, string nameOrId,
-            string inDescription = "", bool skipLog = false)
-            where T : IGet<TResource> where TResource : Resource, INamedResource
+            Func<string, Task<TResource>> findByNameFunc, string resourceTypeIdPrefix, string resourceTypeDisplayName,
+            string nameOrId, string enclosingContextDescription = "", bool skipLog = false)
+            where T : IGet<TResource>
+            where TResource : Resource, INamedResource
         {
             TResource resourceById;
-            if (!Regex.IsMatch(nameOrId, $@"^{Regex.Escape(fixedIdPrefix)}-\d+$",
+            if (!Regex.IsMatch(nameOrId, $@"^{Regex.Escape(resourceTypeIdPrefix)}-\d+$",
                 RegexOptions.Compiled | RegexOptions.IgnoreCase))
             {
                 resourceById = null;
@@ -45,7 +46,7 @@ namespace Octopus.Cli.Util
 
             if (resourceById == null && resourceByName == null)
             {
-                throw new CouldNotFindException(typeDescription, nameOrId, inDescription);
+                throw new CouldNotFindException(resourceTypeDisplayName, nameOrId, enclosingContextDescription);
             }
 
             if (resourceById != null
@@ -53,52 +54,55 @@ namespace Octopus.Cli.Util
                 && !string.Equals(resourceById.Id, resourceByName.Id, StringComparison.OrdinalIgnoreCase))
             {
                 throw new CommandException(
-                    $"Ambiguous {typeDescription} reference '{nameOrId}' matches one {typeDescription} by name and another by id.");
+                    $"Ambiguous {resourceTypeDisplayName} reference '{nameOrId}' matches one {resourceTypeDisplayName} by name and another by id.");
             }
 
             var found = resourceById ?? resourceByName;
 
             if (!skipLog)
             {
-                Logger.Debug($"Found {typeDescription}: {found.Name} ({found.Id})");
+                Logger.Debug($"Found {resourceTypeDisplayName}: {found.Name} ({found.Id})");
             }
 
             return found;
         }
 
         private static async Task<TResource[]> FindByNamesOrIdsOrFail<T, TResource>(this T repository,
-            Func<string, Task<TResource>> findByNameFunc, string fixedIdPrefix, string typeDescription,
-            IEnumerable<string> namesOrIds, string inDescription = "", bool skipLog = false)
-            where T : IGet<TResource> where TResource : Resource, INamedResource
+            Func<string, Task<TResource>> findByNameFunc, string resourceTypeIdPrefix, string resourceTypeDisplayName,
+            IEnumerable<string> namesOrIds, string enclosingContextDescription = "", bool skipLog = false)
+            where T : IGet<TResource>
+            where TResource : Resource, INamedResource
         {
             var results = await Task.WhenAll(namesOrIds.Select<string, Task<(string missing, TResource resource)>>(
                 async nameOrId =>
                 {
                     try
                     {
-                        return (null, await repository.FindByNameOrIdOrFail(findByNameFunc, fixedIdPrefix,
-                                typeDescription, nameOrId, skipLog: true, inDescription: inDescription)
-                            .ConfigureAwait(false));
+                        return (null,
+                            await repository.FindByNameOrIdOrFail(findByNameFunc, resourceTypeIdPrefix,
+                                    resourceTypeDisplayName, nameOrId, skipLog: true,
+                                    enclosingContextDescription: enclosingContextDescription)
+                                .ConfigureAwait(false));
                     }
                     catch (CouldNotFindException)
                     {
                         return (nameOrId, null);
                     }
                 })).ConfigureAwait(false);
-            var missing = results.Select(r => r.missing)
+            var missingNamesOrIds = results.Select(r => r.missing)
                 .Where(m => m != null)
                 .ToArray();
-            if (missing.Any())
+            if (missingNamesOrIds.Any())
             {
-                var missingStr = string.Join(", ", missing.Select(m => '"' + m + '"'));
+                var missingStr = string.Join(", ", missingNamesOrIds.Select(m => '"' + m + '"'));
                 throw new CommandException(
-                    $"The {typeDescription}{(missing.Length == 1 ? "" : "s")} {missingStr} "
-                    + $"do{(missing.Length == 1 ? "es" : "")} not exist{inDescription} or the account does not have access.");
+                    $"The {resourceTypeDisplayName}{(missing.Length == 1 ? "" : "s")} {missingStr} "
+                    + $"do{(missing.Length == 1 ? "es" : "")} not exist{enclosingContextDescription} or the account does not have access.");
             }
 
             if (!skipLog)
             {
-                Logger.Debug($"Found {typeDescription}{(results.Length == 1 ? "" : "s")}: "
+                Logger.Debug($"Found {resourceTypeDisplayName}{(results.Length == 1 ? "" : "s")}: "
                              + $"{string.Join(", ", results.Select(r => $"{r.resource.Name} ({r.resource.Id})"))}");
             }
 
@@ -118,12 +122,12 @@ namespace Octopus.Cli.Util
         public static Task<ChannelResource> FindByNameOrIdOrFail(this IChannelRepository repo, ProjectResource project,
             string nameOrId)
             => repo.FindByNameOrIdOrFail(n => repo.FindByName(project, n), "Channels", "channel",
-                nameOrId, inDescription: $" in {project.Name}");
+                nameOrId, enclosingContextDescription: $" in {project.Name}");
 
         public static Task<ChannelResource[]> FindByNamesOrIdsOrFail(this IChannelRepository repo,
             ProjectResource project, IEnumerable<string> namesOrIds)
             => repo.FindByNamesOrIdsOrFail(n => repo.FindByName(project, n), "Channels", "channel",
-                namesOrIds, inDescription: $" in {project.Name}");
+                namesOrIds, enclosingContextDescription: $" in {project.Name}");
 
         public static Task<EnvironmentResource> FindByNameOrIdOrFail(this IEnvironmentRepository repo, string nameOrId)
             => repo.FindByNameOrIdOrFail(n => repo.FindByName(n), "Environments", "environment", nameOrId);
