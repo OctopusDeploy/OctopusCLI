@@ -58,18 +58,8 @@ namespace Octo.Tests.Commands
             Repository.Machines.FindByNames(Arg.Any<IEnumerable<string>>(), Arg.Any<string>(), Arg.Any<object>())
                 .Returns(new List<MachineResource>());
 
-            var environmentResource = new EnvironmentResource() {Name = ValidEnvironment};
-            Repository.Environments.FindByNames(
-                    Arg.Is<List<string>>(arg => arg.TrueForAll(arg2 => arg2 == ValidEnvironment)),
-                    Arg.Any<string>(),
-                    Arg.Any<object>())
-                .Returns(new List<EnvironmentResource>() {environmentResource});
-            Repository.Environments.FindByNames(
-                    Arg.Is<List<string>>(arg => arg.TrueForAll(arg2 => arg2 != ValidEnvironment)), 
-                    Arg.Any<string>(), 
-                    Arg.Any<object>())
-                .Returns(new List<EnvironmentResource>());
-            Repository.Environments.FindByName(ValidEnvironment).Returns(environmentResource);
+            Repository.Environments.FindByName(ValidEnvironment)
+                .Returns(new EnvironmentResource() {Name = ValidEnvironment});
 
             ClientFactory = Substitute.For<IOctopusClientFactory>();
 
