@@ -66,7 +66,7 @@ namespace Octopus.Cli.Commands.Deployment
         protected List<string> SkipStepNames { get; set; }
         protected DateTimeOffset? DeployAt { get; set; }
         protected DateTimeOffset? NoDeployAfter { get; set; }
-        public string ProjectName { get; set; }
+        public string ProjectNameOrId { get; set; }
         public List<string> DeployToEnvironmentNamesOrIds { get; set; }
         public List<string> Tenants { get; set; }
         public List<string> TenantTags { get; set; }
@@ -80,7 +80,7 @@ namespace Octopus.Cli.Commands.Deployment
 
         protected override async Task ValidateParameters()
         {
-            if (string.IsNullOrWhiteSpace(ProjectName)) throw new CommandException("Please specify a project name or ID using the parameter: --project=XYZ");
+            if (string.IsNullOrWhiteSpace(ProjectNameOrId)) throw new CommandException("Please specify a project name or ID using the parameter: --project=XYZ");
             if (IsTenantedDeployment && DeployToEnvironmentNamesOrIds.Count > 1) throw new CommandException("Please specify only one environment at a time when deploying to tenants.");
             if (Tenants.Contains("*") && (Tenants.Count > 1 || TenantTags.Count > 0)) throw new CommandException("When deploying to all tenants using --tenant=* wildcard no other tenant filters can be provided");
             if (IsTenantedDeployment && !await Repository.SupportsTenants().ConfigureAwait(false))
