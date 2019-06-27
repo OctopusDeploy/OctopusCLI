@@ -41,8 +41,16 @@ namespace Octopus.Cli.Util
                 }
             }
 
-            var resourceByName = await findByNameFunc(nameOrId)
-                .ConfigureAwait(false);
+            TResource resourceByName;
+            try
+            {
+                resourceByName = await findByNameFunc(nameOrId)
+                    .ConfigureAwait(false);
+            }
+            catch (OctopusResourceNotFoundException)
+            {
+                resourceByName = null;
+            }
 
             if (resourceById == null && resourceByName == null)
             {
