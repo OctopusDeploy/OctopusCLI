@@ -62,7 +62,7 @@ namespace Octopus.Cli.Util
                 && !string.Equals(resourceById.Id, resourceByName.Id, StringComparison.OrdinalIgnoreCase))
             {
                 throw new CommandException(
-                    $"Ambiguous {resourceTypeDisplayName} reference '{nameOrId}' matches one {resourceTypeDisplayName} by name and another by id.");
+                    $"Ambiguous {resourceTypeDisplayName} reference '{nameOrId}' matches both '{resourceById.Name}' ({resourceById.Id}) and '{resourceByName.Name}' ({resourceByName.Id}).");
             }
 
             var found = resourceById ?? resourceByName;
