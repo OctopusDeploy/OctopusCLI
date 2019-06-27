@@ -172,7 +172,8 @@ namespace Octopus.Cli.Commands.Deployment
             {
                 var promotion =
                     releaseTemplate.TenantPromotions
-                        .First(t => t.Id == tenant.Id).PromoteTo
+                        .First(t => t.Id == tenant.Id)
+                        .PromoteTo
                         .First(tt => tt.Name.Equals(environment.Name, StringComparison.CurrentCultureIgnoreCase));
                 promotionTargets.Add(promotion);
                 return CreateDeploymentTask(project, release, promotion, specificMachineIds, excludedMachineIds, tenant);
