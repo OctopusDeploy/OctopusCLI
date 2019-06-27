@@ -50,9 +50,8 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--tenantTag=badset/badtag");
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
 
-            Func<Task> func = async () => await createReleaseCommand.Execute(CommandLineArgs.ToArray());
-            func.ShouldThrow<CommandException>()
-                .Where(ex => Regex.IsMatch(ex.Message, @"\btag\b", RegexOptions.IgnoreCase));
+            var ex = Assert.ThrowsAsync<CommandException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("Unable to find matching tag from canonical tag name `badset/badtag`");
         }
         
         [Test]
@@ -67,9 +66,8 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--tenant=badTenant");
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
 
-            Func<Task> func = async () => await createReleaseCommand.Execute(CommandLineArgs.ToArray());
-            func.ShouldThrow<CommandException>()
-                .Where(ex => Regex.IsMatch(ex.Message, @"tenant.*badTenant", RegexOptions.IgnoreCase));
+            var ex = Assert.ThrowsAsync<CommandException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("The tenant \"badTenant\" does not exist or the account does not have access.");
         }
         
         [Test]
@@ -84,9 +82,8 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--specificmachines=badMach");
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
 
-            Func<Task> func = async () => await createReleaseCommand.Execute(CommandLineArgs.ToArray());
-            func.ShouldThrow<CommandException>()
-                .Where(ex => Regex.IsMatch(ex.Message, @"machine.*badMach", RegexOptions.IgnoreCase));
+            var ex = Assert.ThrowsAsync<CommandException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("The following specific machines could not be found: badMach");
         }
         
                 
@@ -101,9 +98,8 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--releaseNumber=1.0.0");
             CommandLineArgs.Add("--deployto=badEnv");
 
-            Func<Task> func = async () => await createReleaseCommand.Execute(CommandLineArgs.ToArray());
-            func.ShouldThrow<CommandException>().Where(ex =>
-                Regex.IsMatch(ex.Message, @"environment.*badEnv", RegexOptions.IgnoreCase));
+            var ex = Assert.ThrowsAsync<CommandException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("The environment \"badEnv\" does not exist or the account does not have access.");
         }
         
     }
