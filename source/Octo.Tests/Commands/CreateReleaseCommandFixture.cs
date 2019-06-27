@@ -66,8 +66,8 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--tenant=badTenant");
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
 
-            var ex = Assert.ThrowsAsync<CommandException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
-            ex.Message.Should().Be("The tenant \"badTenant\" does not exist or the account does not have access.");
+            var ex = Assert.ThrowsAsync<CouldNotFindException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("The tenant 'badTenant' does not exist or the account does not have access.");
         }
         
         [Test]
@@ -98,9 +98,25 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--releaseNumber=1.0.0");
             CommandLineArgs.Add("--deployto=badEnv");
 
-            var ex = Assert.ThrowsAsync<CommandException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
-            ex.Message.Should().Be("The environment \"badEnv\" does not exist or the account does not have access.");
+            var ex = Assert.ThrowsAsync<CouldNotFindException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("The environment 'badEnv' does not exist or the account does not have access.");
         }
-        
+
+        [Test]
+        public void ShouldThrowForBadEnvironments()
+        {
+            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory, new OctopusPhysicalFileSystem(Log), versionResolver, releasePlanBuilder, ClientFactory, CommandOutputProvider);
+
+            CommandLineArgs.Add("--server=https://test-server-url/api/");
+            CommandLineArgs.Add("--apikey=API-test");
+            CommandLineArgs.Add("--project=Test Project");
+            CommandLineArgs.Add("--releaseNumber=1.0.0");
+            CommandLineArgs.Add($"--deployto=badEnv1");
+            CommandLineArgs.Add($"--deployto={ValidEnvironment}");
+            CommandLineArgs.Add($"--deployto=badEnv2");
+
+            var ex = Assert.ThrowsAsync<CouldNotFindException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("The environments 'badEnv1', 'badEnv2' do not exist or the account does not have access.");
+        }
     }
 }

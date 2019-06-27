@@ -102,10 +102,7 @@ namespace Octopus.Cli.Util
                 .ToArray();
             if (missingNamesOrIds.Any())
             {
-                var missingStr = string.Join(", ", missingNamesOrIds.Select(m => '"' + m + '"'));
-                throw new CommandException(
-                    $"The {resourceTypeDisplayName}{(missing.Length == 1 ? "" : "s")} {missingStr} "
-                    + $"do{(missing.Length == 1 ? "es" : "")} not exist{enclosingContextDescription} or the account does not have access.");
+                throw new CouldNotFindException(resourceTypeDisplayName, missingNamesOrIds, enclosingContextDescription);
             }
 
             if (!skipLog)
