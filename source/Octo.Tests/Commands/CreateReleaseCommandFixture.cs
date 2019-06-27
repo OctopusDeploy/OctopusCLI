@@ -47,7 +47,7 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--apikey=API-test");
             CommandLineArgs.Add("--project=Test Project");
             CommandLineArgs.Add("--releaseNumber=1.0.0");
-            CommandLineArgs.Add("--tenantTag=bad");
+            CommandLineArgs.Add("--tenantTag=badset/badtag");
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
 
             Func<Task> func = async () => await createReleaseCommand.Execute(CommandLineArgs.ToArray());
