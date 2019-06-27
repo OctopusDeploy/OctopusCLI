@@ -174,7 +174,7 @@ namespace Octopus.Cli.Commands.Deployment
                     releaseTemplate.TenantPromotions
                         .First(t => t.Id == tenant.Id)
                         .PromoteTo
-                        .First(tt => tt.Name.Equals(environment.Name, StringComparison.CurrentCultureIgnoreCase));
+                        .First(tt => tt.Name.Equals(environment.Name, StringComparison.OrdinalIgnoreCase));
                 promotionTargets.Add(promotion);
                 return CreateDeploymentTask(project, release, promotion, specificMachineIds, excludedMachineIds, tenant);
             });
@@ -248,8 +248,8 @@ namespace Octopus.Cli.Commands.Deployment
             var releaseTemplate = await Repository.Releases.GetTemplate(release).ConfigureAwait(false);
 
             var promotingEnvironments =
-                (from environment in await Repository.Environments.FindByNamesOrIdsOrFail(DeployToEnvironmentNamesOrIds.Distinct(StringComparer.CurrentCultureIgnoreCase)).ConfigureAwait(false)
-                    let promote = releaseTemplate.PromoteTo.FirstOrDefault(p => string.Equals(p.Name, environment.Name, StringComparison.CurrentCultureIgnoreCase))
+                (from environment in await Repository.Environments.FindByNamesOrIdsOrFail(DeployToEnvironmentNamesOrIds.Distinct(StringComparer.OrdinalIgnoreCase)).ConfigureAwait(false)
+                    let promote = releaseTemplate.PromoteTo.FirstOrDefault(p => string.Equals(p.Name, environment.Name, StringComparison.OrdinalIgnoreCase))
                     select new {environment.Name, Promotion = promote}).ToList();
 
             var unknownEnvironments = promotingEnvironments.Where(p => p.Promotion == null).ToList();
@@ -289,7 +289,7 @@ namespace Octopus.Cli.Commands.Deployment
             {
                 var tenantPromotions = releaseTemplate.TenantPromotions.Where(
                     tp => tp.PromoteTo.Any(
-                        promo => promo.Name.Equals(environmentName, StringComparison.CurrentCultureIgnoreCase))).Select(tp => tp.Id).ToArray();
+                        promo => promo.Name.Equals(environmentName, StringComparison.OrdinalIgnoreCase))).Select(tp => tp.Id).ToArray();
 
                 var tentats = await Repository.Tenants.Get(tenantPromotions).ConfigureAwait(false);
                 deployableTenants.AddRange(tentats);
@@ -323,7 +323,7 @@ namespace Octopus.Cli.Commands.Deployment
                         var tenantPromo = releaseTemplate.TenantPromotions.FirstOrDefault(tp => tp.Id == dt.Id);
                         return tenantPromo == null ||
                                !tenantPromo.PromoteTo.Any(
-                                   tdt => tdt.Name.Equals(environmentName, StringComparison.CurrentCultureIgnoreCase));
+                                   tdt => tdt.Name.Equals(environmentName, StringComparison.OrdinalIgnoreCase));
                     }).Select(dt => $"'{dt.Name}'").ToList();
                     if (unDeployableTenants.Any())
                     {
@@ -347,7 +347,7 @@ namespace Octopus.Cli.Commands.Deployment
                     var deployableByTag = tenantsByTag.Where(dt =>
                     {
                         var tenantPromo = releaseTemplate.TenantPromotions.FirstOrDefault(tp => tp.Id == dt.Id);
-                        return tenantPromo != null && tenantPromo.PromoteTo.Any(tdt => tdt.Name.Equals(environmentName, StringComparison.CurrentCultureIgnoreCase));
+                        return tenantPromo != null && tenantPromo.PromoteTo.Any(tdt => tdt.Name.Equals(environmentName, StringComparison.OrdinalIgnoreCase));
                     }).Where(tenant => !deployableTenants.Any(deployable => deployable.Id == tenant.Id));
                     deployableTenants.AddRange(deployableByTag);
                 }
