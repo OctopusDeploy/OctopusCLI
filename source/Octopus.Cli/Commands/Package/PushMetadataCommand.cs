@@ -18,7 +18,7 @@ namespace Octopus.Cli.Commands.Package
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Package metadata pushing");
-            options.Add("package-id=", "The ID of the package; e.g. MyCompany.MyApp", v => PackageId = v);
+            options.Add("package-id=", "The ID of the package, e.g., 'MyCompany.MyApp'.", v => PackageId = v);
             options.Add("version=", "The version of the package; defaults to a timestamp-based version", v => Version = v);
             options.Add("metadata-file=", "Octopus Package metadata Json file.", file => MetadataFile = file);
             options.Add("replace-existing", "If the package metadata already exists in the repository, the default behavior is to reject the new package metadata being pushed. You can pass this flag to overwrite the existing package.", replace => ReplaceExisting = true);
