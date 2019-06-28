@@ -122,7 +122,7 @@ namespace Octopus.Cli.Commands.Deployment
                 if (tagSetResources[parts[0]]?.Tags?.All(tag => parts[1] != tag.Name) ?? true)
                 {
                     throw new CommandException(
-                        $"Unable to find matching tag from canonical tag name `{tenantTag}`");
+                        $"Unable to find matching tag from canonical tag name '{tenantTag}'.");
                 }
             }
 
@@ -201,7 +201,7 @@ namespace Octopus.Cli.Commands.Deployment
                     SpecificMachineNames.Except(machines.Select(m => m.Name), StringComparer.OrdinalIgnoreCase).ToList();
                 if (missing.Any())
                 {
-                    throw new CommandException("The following specific machines could not be found: " + missing.ReadableJoin());
+                    throw new CouldNotFindException("machine", missing);
                 }
 
                 specificMachineIds.AddRange(machines.Select(m => m.Id));

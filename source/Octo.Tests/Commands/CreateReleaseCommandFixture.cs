@@ -51,7 +51,7 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
 
             var ex = Assert.ThrowsAsync<CommandException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
-            ex.Message.Should().Be("Unable to find matching tag from canonical tag name `badset/badtag`");
+            ex.Message.Should().Be("Unable to find matching tag from canonical tag name 'badset/badtag'.");
         }
         
         [Test]
@@ -79,11 +79,11 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--apikey=API-test");
             CommandLineArgs.Add("--project=Test Project");
             CommandLineArgs.Add("--releaseNumber=1.0.0");
-            CommandLineArgs.Add("--specificmachines=badMach");
+            CommandLineArgs.Add("--specificmachines=badMach,badMachB");
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
 
-            var ex = Assert.ThrowsAsync<CommandException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
-            ex.Message.Should().Be("The following specific machines could not be found: badMach");
+            var ex = Assert.ThrowsAsync<CouldNotFindException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("The machines 'badMach', 'badMachB' do not exist or you do not have permissions to view them.");
         }
         
                 
