@@ -107,7 +107,8 @@ namespace Octopus.Cli.Commands.Deployment
                     // If a customer writes custom TeamCity service messages in their scripts we should output it as-is,
                     // otherwise they won't be treated as a service message in TeamCity.
                     // https://github.com/OctopusDeploy/OctopusCLI/issues/7
-                    if (IsTeamCityServiceMessage(line))
+                    var isAlreadyTeamCityServiceMessage = line.StartsWith("##teamcity", StringComparison.OrdinalIgnoreCase);
+                    if (isAlreadyTeamCityServiceMessage)
                     {
                         commandOutputProvider.Information(line);
                     }
@@ -153,11 +154,6 @@ namespace Octopus.Cli.Commands.Deployment
                 case "Warning": return "WARNING";
             }
             return "NORMAL";
-        }
-
-        static bool IsTeamCityServiceMessage(string line)
-        {
-            return line.StartsWith("##teamcity", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
