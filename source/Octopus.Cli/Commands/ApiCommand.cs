@@ -56,7 +56,7 @@ namespace Octopus.Cli.Commands
             this.FileSystem = fileSystem;
 
             var options = Options.For("Common options");
-            options.Add("server=", $"[Optional] The base URL for your Octopus Server, e.g., 'http://your-octopus/'. This URL can also be set in the {ServerUrlEnvVar} environment variable.", v => serverBaseUrl = v);
+            options.Add("server=", $"[Optional] The base URL for your Octopus Server, e.g., 'https://octopus.example.com/'. This URL can also be set in the {ServerUrlEnvVar} environment variable.", v => serverBaseUrl = v);
             options.Add("apiKey=", $"[Optional] Your API key. Get this from the user profile page. Your must provide an apiKey or username and password. If the guest account is enabled, a key of API-GUEST can be used. This key can also be set in the {ApiKeyEnvVar} environment variable.", v => apiKey = v);
             options.Add("user=", $"[Optional] Username to use when authenticating with the server. Your must provide an apiKey or username and password. This Username can also be set in the {UsernameEnvVar} environment variable.", v => username = v);
             options.Add("pass=", $"[Optional] Password to use when authenticating with the server. This Password can also be set in the {PasswordEnvVar} environment variable.", v => password = v);
