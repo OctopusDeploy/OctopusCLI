@@ -104,7 +104,18 @@ namespace Octopus.Cli.Commands.Deployment
                 var lines = logEntry.MessageText.Split('\n').Where(l => !string.IsNullOrWhiteSpace(l)).ToArray();
                 foreach (var line in lines)
                 {
-                    commandOutputProvider.ServiceMessage("message", new { text = line, status = ConvertToTeamCityMessageStatus(logEntry.Category) });
+                    // If a customer writes custom TeamCity service messages in their scripts we should output it as-is,
+                    // otherwise they won't be treated as a service message in TeamCity.
+                    // https://github.com/OctopusDeploy/OctopusCLI/issues/7
+                    var isAlreadyTeamCityServiceMessage = line.StartsWith("##teamcity", StringComparison.OrdinalIgnoreCase);
+                    if (isAlreadyTeamCityServiceMessage)
+                    {
+                        commandOutputProvider.Information(line);
+                    }
+                    else
+                    {
+                        commandOutputProvider.ServiceMessage("message", new { text = line, status = ConvertToTeamCityMessageStatus(logEntry.Category) });
+                    }
                 }
             }
 
