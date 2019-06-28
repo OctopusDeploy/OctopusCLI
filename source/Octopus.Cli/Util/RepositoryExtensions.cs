@@ -75,43 +75,54 @@ namespace Octopus.Cli.Util
             return found;
         }
 
+        private class FindResourceResult<T>
+        {
+            public T Resource { get; set; }
+            public string MissingNameOrId { get; set; }
+        }
+
         private static async Task<TResource[]> FindByNamesOrIdsOrFail<T, TResource>(this T repository,
             Func<string, Task<TResource>> findByNameFunc, string resourceTypeIdPrefix, string resourceTypeDisplayName,
             IEnumerable<string> namesOrIds, string enclosingContextDescription = "", bool skipLog = false)
             where T : IGet<TResource>
             where TResource : Resource, INamedResource
         {
-            var results = await Task.WhenAll(namesOrIds.Select<string, Task<(string missing, TResource resource)>>(
-                async nameOrId =>
+            var findTasks = namesOrIds.Select(async nameOrId =>
+            {
+                try
                 {
-                    try
+                    return new FindResourceResult<TResource>
                     {
-                        return (null,
-                            await repository.FindByNameOrIdOrFail(findByNameFunc, resourceTypeIdPrefix,
-                                    resourceTypeDisplayName, nameOrId, skipLog: true,
-                                    enclosingContextDescription: enclosingContextDescription)
-                                .ConfigureAwait(false));
-                    }
-                    catch (CouldNotFindException)
-                    {
-                        return (nameOrId, null);
-                    }
-                })).ConfigureAwait(false);
-            var missingNamesOrIds = results.Select(r => r.missing)
+                        Resource = await repository.FindByNameOrIdOrFail(findByNameFunc, resourceTypeIdPrefix,
+                                resourceTypeDisplayName, nameOrId, skipLog: true,
+                                enclosingContextDescription: enclosingContextDescription)
+                            .ConfigureAwait(false)
+                    };
+                }
+                catch (CouldNotFindException)
+                {
+                    return new FindResourceResult<TResource> {MissingNameOrId = nameOrId};
+                }
+            });
+            var results = await Task.WhenAll(findTasks)
+                .ConfigureAwait(false);
+
+            var missingNamesOrIds = results.Select(r => r.MissingNameOrId)
                 .Where(m => m != null)
                 .ToArray();
             if (missingNamesOrIds.Any())
             {
-                throw new CouldNotFindException(resourceTypeDisplayName, missingNamesOrIds, enclosingContextDescription);
+                throw new CouldNotFindException(resourceTypeDisplayName, missingNamesOrIds,
+                    enclosingContextDescription);
             }
 
             if (!skipLog)
             {
                 Logger.Debug($"Found {resourceTypeDisplayName}{(results.Length == 1 ? "" : "s")}: "
-                             + $"{string.Join(", ", results.Select(r => $"{r.resource.Name} ({r.resource.Id})"))}");
+                             + $"{string.Join(", ", results.Select(r => $"{r.Resource.Name} ({r.Resource.Id})"))}");
             }
 
-            return results.Select(r => r.resource).ToArray();
+            return results.Select(r => r.Resource).ToArray();
         }
 
         public static Task<SpaceResource> FindByNameOrIdOrFail(this ISpaceRepository repo, string nameOrId)
