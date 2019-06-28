@@ -66,7 +66,7 @@ namespace Octopus.Cli.Commands
             options.Add("ignoreSslErrors", "[Optional] Set this flag if your Octopus Server uses HTTPS but the certificate is not trusted on this machine. Any certificate errors will be ignored. WARNING: this option may create a security vulnerability.", v => ignoreSslErrors = true);
             options.Add("enableServiceMessages", "[Optional] Enable TeamCity or Team Foundation Build service messages when logging.", v => commandOutputProvider.EnableServiceMessages());
             options.Add("timeout=", $"[Optional] Timeout in seconds for network operations. Default is {ApiConstants.DefaultClientRequestTimeout/1000}.", v => clientOptions.Timeout = TimeSpan.FromSeconds(int.Parse(v)));
-            options.Add("proxy=", $"[Optional] The URI of the proxy to use, e.g., 'http://example.com:8080'.", v => clientOptions.Proxy = v);
+            options.Add("proxy=", $"[Optional] The URL of the proxy to use, e.g., 'https://proxy.example.com'.", v => clientOptions.Proxy = v);
             options.Add("proxyUser=", $"[Optional] The username for the proxy.", v => clientOptions.ProxyUsername = v);
             options.Add("proxyPass=", $"[Optional] The password for the proxy. If both the username and password are omitted and proxyAddress is specified, the default credentials are used. ", v => clientOptions.ProxyPassword = v);
             options.Add("space=", $"[Optional] The name or ID of a space within which this command will be executed. The default space will be used if it is omitted. ", v => spaceNameOrId = v);
