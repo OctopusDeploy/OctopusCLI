@@ -67,7 +67,7 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
 
             var ex = Assert.ThrowsAsync<CouldNotFindException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
-            ex.Message.Should().Be("The tenant 'badTenant' does not exist or the account does not have access.");
+            ex.Message.Should().Be("The tenant 'badTenant' does not exist or you do not have permissions to view it.");
         }
         
         [Test]
@@ -99,7 +99,7 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--deployto=badEnv");
 
             var ex = Assert.ThrowsAsync<CouldNotFindException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
-            ex.Message.Should().Be("The environment 'badEnv' does not exist or the account does not have access.");
+            ex.Message.Should().Be("The environment 'badEnv' does not exist or you do not have permissions to view it.");
         }
 
         [Test]
@@ -116,7 +116,7 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add($"--deployto=badEnv2");
 
             var ex = Assert.ThrowsAsync<CouldNotFindException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
-            ex.Message.Should().Be("The environments 'badEnv1', 'badEnv2' do not exist or the account does not have access.");
+            ex.Message.Should().Be("The environments 'badEnv1', 'badEnv2' do not exist or you do not have permissions to view them.");
         }
     }
 }
