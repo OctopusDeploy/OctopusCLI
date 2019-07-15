@@ -21,36 +21,28 @@ namespace Octopus.Cli.Commands.Releases
             : base(repositoryFactory, fileSystem, clientFactory, commandOutputProvider)
         {
             var options = Options.For("Release Promotion");
-            options.Add("project=", "Name of the project", v => ProjectName = v);
-            options.Add("from=", "Name of the environment to get the current deployment from, e.g., Staging", v => FromEnvironmentName = v);
-            options.Add("to=|deployto=", "Environment to deploy to, e.g., Production", v => DeployToEnvironmentNames.Add(v));
+            options.Add("project=", "Name or ID of the project", v => ProjectNameOrId = v);
+            options.Add("from=", "Name or ID of the environment to get the current deployment from, e.g., 'Staging' or 'Environments-2'.", v => FromEnvironmentNameOrId = v);
+            options.Add("to=|deployto=", "Name or ID of the environment to deploy to, e.g., 'Production' or 'Environments-1'.", v => DeployToEnvironmentNamesOrIds.Add(v));
             options.Add("updateVariables", "Overwrite the variable snapshot for the release by re-importing the variables from the project", v => UpdateVariableSnapshot = true);
         }
 
-        public string FromEnvironmentName { get; set; }
+        public string FromEnvironmentNameOrId { get; set; }
         public bool UpdateVariableSnapshot { get; set; }
 
         protected override async Task ValidateParameters()
         {
-            if (DeployToEnvironmentNames.Count == 0) throw new CommandException("Please specify an environment using the parameter: --deployto=XYZ");
-            if (string.IsNullOrWhiteSpace(FromEnvironmentName)) throw new CommandException("Please specify a source environment name using the parameter: --from=XYZ");
+            if (DeployToEnvironmentNamesOrIds.Count == 0) throw new CommandException("Please specify an environment name or ID using the parameter: --deployto=XYZ");
+            if (string.IsNullOrWhiteSpace(FromEnvironmentNameOrId)) throw new CommandException("Please specify a source environment name or ID using the parameter: --from=XYZ");
 
             await base.ValidateParameters().ConfigureAwait(false);
         }
 
         public async Task Request()
         {
-            commandOutputProvider.Debug("Finding project: {Project:l}", ProjectName);
-            
-            project = await Repository.Projects.FindByName(ProjectName).ConfigureAwait(false);
-            if (project == null)
-                throw new CouldNotFindException("a project named", ProjectName);
+            project = await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
 
-            commandOutputProvider.Debug("Finding environment: {Environment:l}", FromEnvironmentName);
-            
-            environment = await Repository.Environments.FindByName(FromEnvironmentName).ConfigureAwait(false);
-            if (environment == null)
-                throw new CouldNotFindException("an environment named", FromEnvironmentName);
+            environment = await Repository.Environments.FindByNameOrIdOrFail(FromEnvironmentNameOrId).ConfigureAwait(false);
 
             var dashboard = await Repository.Dashboards.GetDynamicDashboard(new[] {project.Id}, new[] {environment.Id}).ConfigureAwait(false);
             var dashboardItem = dashboard.Items.Where(e => e.EnvironmentId == environment.Id && e.ProjectId == project.Id)

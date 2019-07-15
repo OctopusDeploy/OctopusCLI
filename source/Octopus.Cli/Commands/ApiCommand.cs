@@ -47,7 +47,7 @@ namespace Octopus.Cli.Commands
         string password;
         string username;
         readonly OctopusClientOptions clientOptions = new OctopusClientOptions();
-        string spaceName;
+        string spaceNameOrId;
 
         protected ApiCommand(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
@@ -56,7 +56,7 @@ namespace Octopus.Cli.Commands
             this.FileSystem = fileSystem;
 
             var options = Options.For("Common options");
-            options.Add("server=", $"[Optional] The base URL for your Octopus Server - e.g., http://your-octopus/. This URL can also be set in the {ServerUrlEnvVar} environment variable.", v => serverBaseUrl = v);
+            options.Add("server=", $"[Optional] The base URL for your Octopus Server, e.g., 'https://octopus.example.com/'. This URL can also be set in the {ServerUrlEnvVar} environment variable.", v => serverBaseUrl = v);
             options.Add("apiKey=", $"[Optional] Your API key. Get this from the user profile page. Your must provide an apiKey or username and password. If the guest account is enabled, a key of API-GUEST can be used. This key can also be set in the {ApiKeyEnvVar} environment variable.", v => apiKey = v);
             options.Add("user=", $"[Optional] Username to use when authenticating with the server. Your must provide an apiKey or username and password. This Username can also be set in the {UsernameEnvVar} environment variable.", v => username = v);
             options.Add("pass=", $"[Optional] Password to use when authenticating with the server. This Password can also be set in the {PasswordEnvVar} environment variable.", v => password = v);
@@ -66,14 +66,12 @@ namespace Octopus.Cli.Commands
             options.Add("ignoreSslErrors", "[Optional] Set this flag if your Octopus Server uses HTTPS but the certificate is not trusted on this machine. Any certificate errors will be ignored. WARNING: this option may create a security vulnerability.", v => ignoreSslErrors = true);
             options.Add("enableServiceMessages", "[Optional] Enable TeamCity or Team Foundation Build service messages when logging.", v => commandOutputProvider.EnableServiceMessages());
             options.Add("timeout=", $"[Optional] Timeout in seconds for network operations. Default is {ApiConstants.DefaultClientRequestTimeout/1000}.", v => clientOptions.Timeout = TimeSpan.FromSeconds(int.Parse(v)));
-            options.Add("proxy=", $"[Optional] The URI of the proxy to use, eg http://example.com:8080.", v => clientOptions.Proxy = v);
+            options.Add("proxy=", $"[Optional] The URL of the proxy to use, e.g., 'https://proxy.example.com'.", v => clientOptions.Proxy = v);
             options.Add("proxyUser=", $"[Optional] The username for the proxy.", v => clientOptions.ProxyUsername = v);
             options.Add("proxyPass=", $"[Optional] The password for the proxy. If both the username and password are omitted and proxyAddress is specified, the default credentials are used. ", v => clientOptions.ProxyPassword = v);
-            options.Add("space=", $"[Optional] The name of a space within which this command will be executed. The default space will be used if it is omitted. ", v => spaceName = v);
+            options.Add("space=", $"[Optional] The name or ID of a space within which this command will be executed. The default space will be used if it is omitted. ", v => spaceNameOrId = v);
             options.AddLogLevelOptions();
         }
-
-        protected ILogger Log { get; }
 
         protected string ServerBaseUrl => string.IsNullOrWhiteSpace(serverBaseUrl)
                     ? System.Environment.GetEnvironmentVariable(ServerUrlEnvVar)
@@ -149,22 +147,17 @@ namespace Octopus.Cli.Commands
 
             var serverHasSpaces = await client.ForSystem().HasLink("Spaces").ConfigureAwait(false);
 
-            if (!string.IsNullOrEmpty(spaceName))
+            if (!string.IsNullOrEmpty(spaceNameOrId))
             {
                 if (!serverHasSpaces)
                 {
                     throw new CommandException($"The server {endpoint.OctopusServer} has no spaces. Try invoking the Octo tool without specifying the space name as an argument");
                 }
 
-                commandOutputProvider.Debug("Finding space: {Space:l}", spaceName);
-                var space = await client.ForSystem().Spaces.FindByName(spaceName).ConfigureAwait(false);
-                if (space == null)
-                {
-                    throw new CommandException($"Cannot find the space with name '{spaceName}'. Please check the spelling and that the account has sufficient access to that space. Please use Configuration > Test Permissions to confirm.");
-                }
+                var space = await client.ForSystem().Spaces.FindByNameOrIdOrFail(spaceNameOrId).ConfigureAwait(false);
 
                 Repository = repositoryFactory.CreateRepository(client, RepositoryScope.ForSpace(space));
-                commandOutputProvider.Debug("Space name specified, process is now running in the context of space: {space:l}", spaceName);
+                commandOutputProvider.Debug("Space name specified, process is now running in the context of space: {space:l}", space.Name);
             }
             else
             {

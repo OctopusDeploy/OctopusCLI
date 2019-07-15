@@ -515,7 +515,7 @@ namespace Octopus.Cli.Importers
                 }
                 else
                 {
-                    Log.Debug($"Channel `{channel.Name}` does not exist, a new channel will be created");
+                    Log.Debug($"Channel '{channel.Name}' does not exist, a new channel will be created");
                     channel.ProjectId = importedProject.Id;
                     if (channel.LifecycleId != null)
                     {

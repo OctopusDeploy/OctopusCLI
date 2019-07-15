@@ -121,8 +121,8 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--progress");
             CommandLineArgs.Add("--cancelontimeout");
 
-            var environments = new List<EnvironmentResource> {new EnvironmentResource { Name = targetEnvironment}};
-            Repository.Environments.FindByNames(Arg.Any<IEnumerable<string>>()).Returns(environments);
+            var environment = new EnvironmentResource {Name = targetEnvironment};
+            Repository.Environments.FindByName(Arg.Any<string>()).Returns(environment);
             Repository.Releases.GetTemplate(Arg.Any<ReleaseResource>()).Returns(new DeploymentTemplateResource
                 {PromoteTo = new List<DeploymentPromotionTarget>() {new DeploymentPromotionTarget{Name = targetEnvironment}}});
             Repository.Releases.GetPreview(Arg.Any<DeploymentPromotionTarget>())

@@ -28,7 +28,7 @@ namespace Octopus.Cli.Commands.Deployment
             SpecificMachineNames = new List<string>();
             ExcludedMachineNames = new List<string>();
             SkipStepNames = new List<string>();
-            DeployToEnvironmentNames = new List<string>();
+            DeployToEnvironmentNamesOrIds = new List<string>();
             TenantTags = new List<string>();
             Tenants = new List<string>();
             promotionTargets = new List<DeploymentPromotionTarget>();
@@ -50,7 +50,7 @@ namespace Octopus.Cli.Commands.Deployment
             options.Add("v|variable=", "[Optional] Values for any prompted variables in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.", ParseVariable);
             options.Add("deployat=", "[Optional] Time at which deployment should start (scheduled deployment), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => DeployAt = ParseDateTimeOffset(v));
             options.Add("nodeployafter=", "[Optional] Time at which scheduled deployment should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => NoDeployAfter = ParseDateTimeOffset(v));
-            options.Add("tenant=", "Create a deployment for this tenant; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).", t => Tenants.Add(t));
+            options.Add("tenant=", "Create a deployment for the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).", t => Tenants.Add(t));
             options.Add("tenanttag=", "Create a deployment for tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.", tt => TenantTags.Add(tt));
         }
 
@@ -66,8 +66,8 @@ namespace Octopus.Cli.Commands.Deployment
         protected List<string> SkipStepNames { get; set; }
         protected DateTimeOffset? DeployAt { get; set; }
         protected DateTimeOffset? NoDeployAfter { get; set; }
-        public string ProjectName { get; set; }
-        public List<string> DeployToEnvironmentNames { get; set; }
+        public string ProjectNameOrId { get; set; }
+        public List<string> DeployToEnvironmentNamesOrIds { get; set; }
         public List<string> Tenants { get; set; }
         public List<string> TenantTags { get; set; }
 
@@ -80,8 +80,8 @@ namespace Octopus.Cli.Commands.Deployment
 
         protected override async Task ValidateParameters()
         {
-            if (string.IsNullOrWhiteSpace(ProjectName)) throw new CommandException("Please specify a project name using the parameter: --project=XYZ");
-            if (IsTenantedDeployment && DeployToEnvironmentNames.Count > 1) throw new CommandException("Please specify only one environment at a time when deploying to tenants.");
+            if (string.IsNullOrWhiteSpace(ProjectNameOrId)) throw new CommandException("Please specify a project name or ID using the parameter: --project=XYZ");
+            if (IsTenantedDeployment && DeployToEnvironmentNamesOrIds.Count > 1) throw new CommandException("Please specify only one environment at a time when deploying to tenants.");
             if (Tenants.Contains("*") && (Tenants.Count > 1 || TenantTags.Count > 0)) throw new CommandException("When deploying to all tenants using --tenant=* wildcard no other tenant filters can be provided");
             if (IsTenantedDeployment && !await Repository.SupportsTenants().ConfigureAwait(false))
                 throw new CommandException("Your Octopus Server does not support tenants, which was introduced in Octopus 3.4. Please upgrade your Octopus Server, enable the multi-tenancy feature or remove the --tenant and --tenanttag arguments.");
@@ -122,37 +122,20 @@ namespace Octopus.Cli.Commands.Deployment
                 if (tagSetResources[parts[0]]?.Tags?.All(tag => parts[1] != tag.Name) ?? true)
                 {
                     throw new CommandException(
-                        $"Unable to find matching tag from canonical tag name `{tenantTag}`");
+                        $"Unable to find matching tag from canonical tag name '{tenantTag}'.");
                 }
             }
 
             // Make sure the tenants are valid
-            foreach (var tenantName in Tenants)
+            var tenantNamesOrIds = Tenants.Where(tn => tn != "*").ToArray();
+            if (tenantNamesOrIds.Any())
             {
-                if (tenantName != "*")
-                {
-                    var tenant = await Repository.Tenants.FindByName(tenantName).ConfigureAwait(false);
-                    if (tenant == null)
-                    {
-                        throw new CommandException(
-                            $"Could not find the tenant {tenantName} on the Octopus Server");
-                    }
-                }
-            } 
-            
-            // Make sure environment is valid
-            var environments = await Repository.Environments.FindByNames(DeployToEnvironmentNames).ConfigureAwait(false);
-            var missingEnvironment = DeployToEnvironmentNames
-                .Where(env => environments.All(env2 => !env2.Name.Equals(env, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
-            if (missingEnvironment.Count != 0)
-            {
-                throw new CommandException(
-                    $"The environment{(missingEnvironment.Count == 1 ? "" : "s")} {string.Join(", ", missingEnvironment)} " +
-                    $"do{(missingEnvironment.Count == 1 ? "es" : "")} not exist or {(missingEnvironment.Count == 1 ? "is" : "are")} misspelled");
+                await Repository.Tenants.FindByNamesOrIdsOrFail(tenantNamesOrIds).ConfigureAwait(false);
             }
-            
-            
+
+            // Make sure environment is valid
+            await Repository.Environments.FindByNamesOrIdsOrFail(DeployToEnvironmentNamesOrIds).ConfigureAwait(false);
+
             // Make sure the machines are valid
             await GetSpecificMachines();
 
@@ -173,13 +156,13 @@ namespace Octopus.Cli.Commands.Deployment
 
         private async Task<IReadOnlyList<DeploymentResource>> DeployTenantedRelease(ProjectResource project, ReleaseResource release)
         {
-            if (DeployToEnvironmentNames.Count != 1)
+            if (DeployToEnvironmentNamesOrIds.Count != 1)
                 return new List<DeploymentResource>();
 
-            var environment = DeployToEnvironmentNames[0];
+            var environment = await Repository.Environments.FindByNameOrIdOrFail(DeployToEnvironmentNamesOrIds[0]).ConfigureAwait(false);
             var releaseTemplate = await Repository.Releases.GetTemplate(release).ConfigureAwait(false);
             
-            deploymentTenants = await GetTenants(project, environment, release, releaseTemplate).ConfigureAwait(false);
+            deploymentTenants = await GetTenants(project, environment.Name, release, releaseTemplate).ConfigureAwait(false);
             var specificMachineIds = await GetSpecificMachines().ConfigureAwait(false);
             var excludedMachineIds = await GetExcludedMachines().ConfigureAwait(false);
 
@@ -189,8 +172,9 @@ namespace Octopus.Cli.Commands.Deployment
             {
                 var promotion =
                     releaseTemplate.TenantPromotions
-                        .First(t => t.Id == tenant.Id).PromoteTo
-                        .First(tt => tt.Name.Equals(environment, StringComparison.CurrentCultureIgnoreCase));
+                        .First(t => t.Id == tenant.Id)
+                        .PromoteTo
+                        .First(tt => tt.Name.Equals(environment.Name, StringComparison.OrdinalIgnoreCase));
                 promotionTargets.Add(promotion);
                 return CreateDeploymentTask(project, release, promotion, specificMachineIds, excludedMachineIds, tenant);
             });
@@ -217,7 +201,7 @@ namespace Octopus.Cli.Commands.Deployment
                     SpecificMachineNames.Except(machines.Select(m => m.Name), StringComparer.OrdinalIgnoreCase).ToList();
                 if (missing.Any())
                 {
-                    throw new CommandException("The following specific machines could not be found: " + missing.ReadableJoin());
+                    throw new CouldNotFindException("machine", missing);
                 }
 
                 specificMachineIds.AddRange(machines.Select(m => m.Id));
@@ -258,15 +242,20 @@ namespace Octopus.Cli.Commands.Deployment
 
         private async Task<IReadOnlyList<DeploymentResource>> DeployToEnvironments(ProjectResource project, ReleaseResource release)
         {
-            if (DeployToEnvironmentNames.Count == 0)
+            if (DeployToEnvironmentNamesOrIds.Count == 0)
                 return new List<DeploymentResource>();
 
             var releaseTemplate = await Repository.Releases.GetTemplate(release).ConfigureAwait(false);
 
-            var promotingEnvironments =
-                (from environment in DeployToEnvironmentNames.Distinct(StringComparer.CurrentCultureIgnoreCase)
-                    let promote = releaseTemplate.PromoteTo.FirstOrDefault(p => string.Equals(p.Name, environment, StringComparison.CurrentCultureIgnoreCase))
-                    select new {Name = environment, Promotion = promote}).ToList();
+            var deployToEnvironments = await Repository.Environments
+                .FindByNamesOrIdsOrFail(DeployToEnvironmentNamesOrIds.Distinct(StringComparer.OrdinalIgnoreCase))
+                .ConfigureAwait(false);
+            var promotingEnvironments = deployToEnvironments.Select(environment => new
+            {
+                environment.Name,
+                Promotion = releaseTemplate.PromoteTo
+                    .FirstOrDefault(p => string.Equals(p.Name, environment.Name, StringComparison.OrdinalIgnoreCase))
+            }).ToList();
 
             var unknownEnvironments = promotingEnvironments.Where(p => p.Promotion == null).ToList();
             if (unknownEnvironments.Count > 0)
@@ -305,7 +294,7 @@ namespace Octopus.Cli.Commands.Deployment
             {
                 var tenantPromotions = releaseTemplate.TenantPromotions.Where(
                     tp => tp.PromoteTo.Any(
-                        promo => promo.Name.Equals(environmentName, StringComparison.CurrentCultureIgnoreCase))).Select(tp => tp.Id).ToArray();
+                        promo => promo.Name.Equals(environmentName, StringComparison.OrdinalIgnoreCase))).Select(tp => tp.Id).ToArray();
 
                 var tentats = await Repository.Tenants.Get(tenantPromotions).ConfigureAwait(false);
                 deployableTenants.AddRange(tentats);
@@ -316,23 +305,8 @@ namespace Octopus.Cli.Commands.Deployment
             {
                 if (Tenants.Any())
                 {
-                    var tenantsByName = await Repository.Tenants.FindByNames(Tenants).ConfigureAwait(false);
-                    var missing = tenantsByName == null || !tenantsByName.Any()
-                        ? Tenants.ToArray()
-                        : Tenants.Except(tenantsByName.Select(e => e.Name), StringComparer.OrdinalIgnoreCase).ToArray();
-
-                    var tenantsById = await Repository.Tenants.Get(missing).ConfigureAwait(false);
-
-                    missing = tenantsById == null || !tenantsById.Any()
-                        ? missing
-                        : missing.Except(tenantsById.Select(e => e.Id), StringComparer.OrdinalIgnoreCase).ToArray();
-
-                    if (missing.Any())
-                        throw new ArgumentException(
-                            $"Could not find the {"tenant" + (missing.Length == 1 ? "" : "s")} {string.Join(", ", missing)} on the Octopus Server.");
-
-                    deployableTenants.AddRange(tenantsByName);
-                    deployableTenants.AddRange(tenantsById);
+                    var tenantsByNameOrId = await Repository.Tenants.FindByNamesOrIdsOrFail(Tenants);
+                    deployableTenants.AddRange(tenantsByNameOrId);
 
                     var unDeployableTenants =
                         deployableTenants.Where(dt => !dt.ProjectEnvironments.ContainsKey(project.Id))
@@ -354,7 +328,7 @@ namespace Octopus.Cli.Commands.Deployment
                         var tenantPromo = releaseTemplate.TenantPromotions.FirstOrDefault(tp => tp.Id == dt.Id);
                         return tenantPromo == null ||
                                !tenantPromo.PromoteTo.Any(
-                                   tdt => tdt.Name.Equals(environmentName, StringComparison.CurrentCultureIgnoreCase));
+                                   tdt => tdt.Name.Equals(environmentName, StringComparison.OrdinalIgnoreCase));
                     }).Select(dt => $"'{dt.Name}'").ToList();
                     if (unDeployableTenants.Any())
                     {
@@ -378,7 +352,7 @@ namespace Octopus.Cli.Commands.Deployment
                     var deployableByTag = tenantsByTag.Where(dt =>
                     {
                         var tenantPromo = releaseTemplate.TenantPromotions.FirstOrDefault(tp => tp.Id == dt.Id);
-                        return tenantPromo != null && tenantPromo.PromoteTo.Any(tdt => tdt.Name.Equals(environmentName, StringComparison.CurrentCultureIgnoreCase));
+                        return tenantPromo != null && tenantPromo.PromoteTo.Any(tdt => tdt.Name.Equals(environmentName, StringComparison.OrdinalIgnoreCase));
                     }).Where(tenant => !deployableTenants.Any(deployable => deployable.Id == tenant.Id));
                     deployableTenants.AddRange(deployableByTag);
                 }
