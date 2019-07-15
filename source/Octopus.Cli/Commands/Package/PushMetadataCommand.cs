@@ -23,7 +23,7 @@ namespace Octopus.Cli.Commands.Package
             options.Add("version=", "The version of the package; defaults to a timestamp-based version", v => Version = v);
             options.Add("metadata-file=", "Octopus Package metadata Json file.", file => MetadataFile = file);
             options.Add("overwrite-mode=", "If the package metadata already exists in the repository, the default behavior is to reject the new package metadata being pushed (FailIfExists). You can use the overwrite mode to OverwriteExisting or IgnoreIfExists.", mode => OverwriteMode = (OverwriteMode)Enum.Parse(typeof(OverwriteMode), mode, true));
-            options.Add("replace-existing", "If the package metadata already exists in the repository, the default behavior is to reject the new package metadata being pushed. You can pass this flag to overwrite the existing package. This flag may be deprecated in a future version, passing it is the same as using the OverwriteExisting overwrite-mode.", replace => OverwriteMode = OverwriteMode.OverwriteExisting);
+            options.Add("replace-existing", "If the package metadata already exists in the repository, the default behavior is to reject the new package metadata being pushed. You can pass this flag to overwrite the existing package metadata. This flag may be deprecated in a future version; passing it is the same as using the OverwriteExisting overwrite-mode.", replace => OverwriteMode = OverwriteMode.OverwriteExisting);
         }
 
         public string PackageId { get; set; }
