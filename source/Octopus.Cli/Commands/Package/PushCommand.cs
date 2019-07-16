@@ -35,7 +35,7 @@ namespace Octopus.Cli.Commands.Package
                         throw new CommandException($"The value '{v}' is not valid. Valid values are true or false.");
                     UseDeltaCompression = desiredValue;
                 });
-            options.Add("keepalive=", "How frequently (in seconds) to send a TCP keepalive packet while transferring files.", input => KeepAlive = int.TryParse(input, out var keepAlive) ? keepAlive : 0);
+            options.Add("keepalive=", "How frequently (in seconds) to send a TCP keepalive packet while transferring files.", input => KeepAlive = int.Parse(input));
             pushedPackages = new List<string>();
             failedPackages = new List<Tuple<string, Exception>>();
         }
@@ -50,6 +50,13 @@ namespace Octopus.Cli.Commands.Package
         {
             if (Packages.Count == 0) throw new CommandException("Please specify a package to push");
 
+            /*
+             * There may be a delay between the completion of a large file upload and when Octopus responds
+             * to finish the HTTP connection. This delay can be several minutes. During this time, no traffic is
+             * sent, and some networking infrastructure will close the connection. For example, Azure VMs will
+             * close idle connections after 4 minutes, and AWS VMs will close them after 350 seconds. The
+             * TCP keepalive option will ensure that the connection is not idle at the end of the file upload.
+             */
             if (KeepAlive > 0)
             {
                 ServicePointManager.SetTcpKeepAlive(true, KeepAlive, KeepAlive);
