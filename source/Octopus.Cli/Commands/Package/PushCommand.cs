@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Model;
@@ -34,6 +35,7 @@ namespace Octopus.Cli.Commands.Package
                         throw new CommandException($"The value '{v}' is not valid. Valid values are true or false.");
                     UseDeltaCompression = desiredValue;
                 });
+            options.Add("keepalive=", "How frequently (in seconds) to send a TCP keepalive packet while transferring files.", input => KeepAlive = int.TryParse(input, out var keepAlive) ? keepAlive : 0);
             pushedPackages = new List<string>();
             failedPackages = new List<Tuple<string, Exception>>();
         }
@@ -41,10 +43,17 @@ namespace Octopus.Cli.Commands.Package
         public HashSet<string> Packages { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase); 
         public OverwriteMode OverwriteMode { get; set; }
         public bool UseDeltaCompression { get; set; } = true;
+
+        public int KeepAlive { get; set; }
  
         public async Task Request()
         {
             if (Packages.Count == 0) throw new CommandException("Please specify a package to push");
+
+            if (KeepAlive > 0)
+            {
+                ServicePointManager.SetTcpKeepAlive(true, KeepAlive, KeepAlive);
+            }
 
             foreach (var package in Packages)
             {
