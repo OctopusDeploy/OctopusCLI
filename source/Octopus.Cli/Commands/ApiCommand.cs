@@ -139,7 +139,7 @@ namespace Octopus.Cli.Commands
              */
             if (keepAlive > 0)
             {
-                ServicePointManager.SetTcpKeepAlive(true, keepAlive, keepAlive);
+                ServicePointManager.FindServicePoint(new Uri(ServerBaseUrl)).SetTcpKeepAlive(true, keepAlive, keepAlive);
             }
 
 #if HTTP_CLIENT_SUPPORTS_SSL_OPTIONS
