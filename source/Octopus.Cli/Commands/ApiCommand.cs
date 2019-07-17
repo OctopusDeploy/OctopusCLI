@@ -71,7 +71,7 @@ namespace Octopus.Cli.Commands
             options.Add("proxyUser=", $"[Optional] The username for the proxy.", v => clientOptions.ProxyUsername = v);
             options.Add("proxyPass=", $"[Optional] The password for the proxy. If both the username and password are omitted and proxyAddress is specified, the default credentials are used. ", v => clientOptions.ProxyPassword = v);
             options.Add("space=", $"[Optional] The name or ID of a space within which this command will be executed. The default space will be used if it is omitted. ", v => spaceNameOrId = v);
-            options.Add("keepalive=", "How frequently (in seconds) to send a TCP keepalive packet. Note: this setting has no effect when running a DotNET Core build of the Octopus CLI.", input => keepAlive = int.Parse(input) * 1000);
+            options.Add("keepalive=", "[Optional] How frequently (in seconds) to send a TCP keepalive packet. Note: this setting has no effect when running a DotNET Core build of the Octopus CLI.", input => keepAlive = int.Parse(input) * 1000);
             options.AddLogLevelOptions();
         }
 
