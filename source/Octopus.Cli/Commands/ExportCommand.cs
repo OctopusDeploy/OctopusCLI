@@ -8,7 +8,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands
 {
-    [Command("export", Description = "Exports an object to a JSON file. Deprecated. Please see https://g.octopus.com/DataMigration for alternative options.")]
+    [Command("export", Description = "Exports an object to a JSON file. Deprecated. Please see https://g.octopushq.com/DataMigration for alternative options.")]
     public class ExportCommand : ApiCommand
     {
         readonly IExporterLocator exporterLocator;
@@ -34,7 +34,7 @@ namespace Octopus.Cli.Commands
 
         protected override Task Execute()
         {
-            commandOutputProvider.Warning("The octo.exe import/export commands have been deprecated. See https://g.octopus.com/DataMigration for alternative options.");
+            commandOutputProvider.Warning("The octo.exe import/export commands have been deprecated. See https://g.octopushq.com/DataMigration for alternative options.");
         
             if (string.IsNullOrWhiteSpace(Type)) throw new CommandException("Please specify the type to export using the parameter: --type=XYZ");
             if (string.IsNullOrWhiteSpace(FilePath)) throw new CommandException("Please specify the full path and name of the export file using the parameter: --filePath=XYZ");
