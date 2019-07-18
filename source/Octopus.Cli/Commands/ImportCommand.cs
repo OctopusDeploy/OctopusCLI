@@ -8,7 +8,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands
 {
-    [Command("import", Description = "Imports an Octopus object from an export file")]
+    [Command("import", Description = "Imports an Octopus object from an export file. Deprecated. Please see https://g.octopus.com/DataMigration for alternative options.")]
     public class ImportCommand : ApiCommand
     {
         readonly IImporterLocator importerLocator;
@@ -32,7 +32,9 @@ namespace Octopus.Cli.Commands
 
         protected override async Task Execute()
         {
-            if (string.IsNullOrWhiteSpace(Type)) throw new CommandException("Please specify the type of object to import using the paramter: --type=XYZ");
+            commandOutputProvider.Warning("The octo.exe import/export commands have been deprecated. See https://g.octopus.com/DataMigration for alternative options.");
+
+            if (string.IsNullOrWhiteSpace(Type)) throw new CommandException("Please specify the type of object to import using the parameter: --type=XYZ");
             if (string.IsNullOrWhiteSpace(FilePath)) throw new CommandException("Please specify the full path and name of the export file to import using the parameter: --filePath=XYZ");
 
             commandOutputProvider.Debug("Finding importer '{Type:l}'", Type);
