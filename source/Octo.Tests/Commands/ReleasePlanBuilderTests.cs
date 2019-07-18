@@ -30,7 +30,6 @@ namespace Octo.Tests.Commands
         
         private ProjectResource projectResource;
         private ChannelResource channelResource;
-        private string preReleaseTag;
 
         private DeploymentProcessResource deploymentProcessResource;
         private ReleaseTemplateResource releaseTemplateResource;
@@ -306,7 +305,7 @@ namespace Octo.Tests.Commands
 
         private async Task<ReleasePlan> ExecuteBuildAsync()
         {
-            return await builder.Build(repository, projectResource, channelResource, preReleaseTag);
+            return await builder.Build(repository, projectResource, channelResource, versionPreReleaseTag: string.Empty);
         }
     }
 
