@@ -136,6 +136,9 @@ namespace Octopus.Cli.Commands
              * sent, and some networking infrastructure will close the connection. For example, Azure VMs will
              * close idle connections after 4 minutes, and AWS VMs will close them after 350 seconds. The
              * TCP keepalive option will ensure that the connection is not idle at the end of the file upload.
+             *
+             * This is the bug that explains why this doesn't work with .NET Core:
+             * https://github.com/dotnet/corefx/issues/26013
              */
             if (keepAlive > 0)
             {
