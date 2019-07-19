@@ -19,7 +19,7 @@ namespace Octopus.Cli.Commands.Package
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Package metadata pushing");
-            options.Add("package-id=", "The ID of the package; e.g. MyCompany.MyApp", v => PackageId = v);
+            options.Add("package-id=", "The ID of the package, e.g., 'MyCompany.MyApp'.", v => PackageId = v);
             options.Add("version=", "The version of the package; defaults to a timestamp-based version", v => Version = v);
             options.Add("metadata-file=", "Octopus Package metadata Json file.", file => MetadataFile = file);
             options.Add("overwrite-mode=", "If the package metadata already exists in the repository, the default behavior is to reject the new package metadata being pushed (FailIfExists). You can use the overwrite mode to OverwriteExisting or IgnoreIfExists.", mode => OverwriteMode = (OverwriteMode)Enum.Parse(typeof(OverwriteMode), mode, true));

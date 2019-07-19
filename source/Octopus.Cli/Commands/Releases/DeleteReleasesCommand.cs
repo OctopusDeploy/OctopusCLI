@@ -104,10 +104,10 @@ namespace Octopus.Cli.Commands.Releases
 
             var firstChannelPage = await Repository.Projects.GetChannels(project).ConfigureAwait(false);
             var allChannels = await firstChannelPage.GetAllPages(Repository).ConfigureAwait(false);
-            var channels = allChannels.Where(c => ChannelNames.Contains(c.Name, StringComparer.CurrentCultureIgnoreCase))
+            var channels = allChannels.Where(c => ChannelNames.Contains(c.Name, StringComparer.OrdinalIgnoreCase))
                 .ToArray();
 
-            var notFoundChannels = ChannelNames.Except(channels.Select(c => c.Name), StringComparer.CurrentCultureIgnoreCase).ToArray();
+            var notFoundChannels = ChannelNames.Except(channels.Select(c => c.Name), StringComparer.OrdinalIgnoreCase).ToArray();
             if (notFoundChannels.Any())
                 throw new CouldNotFindException("the channels named", notFoundChannels.CommaSeperate());
 

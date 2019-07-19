@@ -127,7 +127,7 @@ namespace Octo.Tests.Commands
             var argsWithSpaceName = CommandLineArgs.Concat(new[] { "--space=nonExistent" });
 
             Func<Task> action = async () => await apiCommand.Execute(argsWithSpaceName.ToArray()).ConfigureAwait(false);
-            action.ShouldThrow<CommandException>().WithMessage("Cannot find the space with name 'nonExistent'. Please check the spelling and that the account has sufficient access to that space. Please use Configuration > Test Permissions to confirm.");
+            action.ShouldThrow<CommandException>().WithMessage("Cannot find the space with name or id 'nonExistent'. Please check the spelling and that you have permissions to view it. Please use Configuration > Test Permissions to confirm.");
         }
     }
 }

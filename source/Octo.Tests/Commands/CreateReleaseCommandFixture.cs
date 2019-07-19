@@ -1,3 +1,7 @@
+using System;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
 using Octopus.Cli.Commands.Releases;
@@ -29,7 +33,7 @@ namespace Octo.Tests.Commands
                 createReleaseCommand.Execute("--configfile=Commands/Resources/CreateRelease.config.txt");
             });
             
-            Assert.AreEqual("Test Project", createReleaseCommand.ProjectName);
+            Assert.AreEqual("Test Project", createReleaseCommand.ProjectNameOrId);
             Assert.AreEqual("1.0.0", createReleaseCommand.VersionNumber);
             Assert.AreEqual("Test config file.", createReleaseCommand.ReleaseNotes);
         }
@@ -43,12 +47,11 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--apikey=API-test");
             CommandLineArgs.Add("--project=Test Project");
             CommandLineArgs.Add("--releaseNumber=1.0.0");
-            CommandLineArgs.Add("--tenantTag=bad");
+            CommandLineArgs.Add("--tenantTag=badset/badtag");
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
-            Assert.ThrowsAsync<CommandException>(async delegate
-            {
-                await createReleaseCommand.Execute(CommandLineArgs.ToArray());
-            });
+
+            var ex = Assert.ThrowsAsync<CommandException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("Unable to find matching tag from canonical tag name 'badset/badtag'.");
         }
         
         [Test]
@@ -60,12 +63,11 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--apikey=API-test");
             CommandLineArgs.Add("--project=Test Project");
             CommandLineArgs.Add("--releaseNumber=1.0.0");
-            CommandLineArgs.Add("--tenant=bad");
+            CommandLineArgs.Add("--tenant=badTenant");
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
-            Assert.ThrowsAsync<CommandException>(async delegate
-            {
-                await createReleaseCommand.Execute(CommandLineArgs.ToArray());
-            });
+
+            var ex = Assert.ThrowsAsync<CouldNotFindException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("The tenant 'badTenant' does not exist or you do not have permissions to view it.");
         }
         
         [Test]
@@ -77,12 +79,11 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--apikey=API-test");
             CommandLineArgs.Add("--project=Test Project");
             CommandLineArgs.Add("--releaseNumber=1.0.0");
-            CommandLineArgs.Add("--specificmachines=bad");
+            CommandLineArgs.Add("--specificmachines=badMach,badMachB");
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
-            Assert.ThrowsAsync<CommandException>(async delegate
-            {
-                await createReleaseCommand.Execute(CommandLineArgs.ToArray());
-            });
+
+            var ex = Assert.ThrowsAsync<CouldNotFindException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("The machines 'badMach', 'badMachB' do not exist or you do not have permissions to view them.");
         }
         
                 
@@ -95,12 +96,27 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--apikey=API-test");
             CommandLineArgs.Add("--project=Test Project");
             CommandLineArgs.Add("--releaseNumber=1.0.0");
-            CommandLineArgs.Add("--deployto=bad");
-            Assert.ThrowsAsync<CommandException>(async delegate
-            {
-                await createReleaseCommand.Execute(CommandLineArgs.ToArray());
-            });
+            CommandLineArgs.Add("--deployto=badEnv");
+
+            var ex = Assert.ThrowsAsync<CouldNotFindException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("The environment 'badEnv' does not exist or you do not have permissions to view it.");
         }
-        
+
+        [Test]
+        public void ShouldThrowForBadEnvironments()
+        {
+            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory, new OctopusPhysicalFileSystem(Log), versionResolver, releasePlanBuilder, ClientFactory, CommandOutputProvider);
+
+            CommandLineArgs.Add("--server=https://test-server-url/api/");
+            CommandLineArgs.Add("--apikey=API-test");
+            CommandLineArgs.Add("--project=Test Project");
+            CommandLineArgs.Add("--releaseNumber=1.0.0");
+            CommandLineArgs.Add($"--deployto=badEnv1");
+            CommandLineArgs.Add($"--deployto={ValidEnvironment}");
+            CommandLineArgs.Add($"--deployto=badEnv2");
+
+            var ex = Assert.ThrowsAsync<CouldNotFindException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("The environments 'badEnv1', 'badEnv2' do not exist or you do not have permissions to view them.");
+        }
     }
 }
