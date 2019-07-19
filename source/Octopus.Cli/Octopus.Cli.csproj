@@ -36,5 +36,9 @@
     <PackageReference Include="Autofac" Version="4.6.0" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
+  
+  <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(TargetFramework)', '^net\d'))">
+  	<DefineConstants>NETFRAMEWORK</DefineConstants>
+  </PropertyGroup>
 
 </Project>
