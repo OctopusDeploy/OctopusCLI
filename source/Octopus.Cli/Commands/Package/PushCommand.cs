@@ -41,6 +41,8 @@ namespace Octopus.Cli.Commands.Package
         public HashSet<string> Packages { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase); 
         public OverwriteMode OverwriteMode { get; set; }
         public bool UseDeltaCompression { get; set; } = true;
+
+        public int KeepAlive { get; set; } = 0;
  
         public async Task Request()
         {

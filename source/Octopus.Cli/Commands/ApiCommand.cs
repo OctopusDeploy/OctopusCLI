@@ -48,6 +48,7 @@ namespace Octopus.Cli.Commands
         string username;
         readonly OctopusClientOptions clientOptions = new OctopusClientOptions();
         string spaceNameOrId;
+        int keepAlive;
 
         protected ApiCommand(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
@@ -70,6 +71,9 @@ namespace Octopus.Cli.Commands
             options.Add("proxyUser=", $"[Optional] The username for the proxy.", v => clientOptions.ProxyUsername = v);
             options.Add("proxyPass=", $"[Optional] The password for the proxy. If both the username and password are omitted and proxyAddress is specified, the default credentials are used. ", v => clientOptions.ProxyPassword = v);
             options.Add("space=", $"[Optional] The name or ID of a space within which this command will be executed. The default space will be used if it is omitted. ", v => spaceNameOrId = v);
+#if NETFRAMEWORK
+            options.Add("keepalive=", "[Optional] How frequently (in seconds) to send a TCP keepalive packet.", input => keepAlive = int.Parse(input) * 1000);
+#endif
             options.AddLogLevelOptions();
         }
 
@@ -127,6 +131,21 @@ namespace Octopus.Cli.Commands
             var endpoint = string.IsNullOrWhiteSpace(ApiKey)
                 ? new OctopusServerEndpoint(ServerBaseUrl)
                 : new OctopusServerEndpoint(ServerBaseUrl, ApiKey);
+            
+            /*
+             * There may be a delay between the completion of a large file upload and when Octopus responds
+             * to finish the HTTP connection. This delay can be several minutes. During this time, no traffic is
+             * sent, and some networking infrastructure will close the connection. For example, Azure VMs will
+             * close idle connections after 4 minutes, and AWS VMs will close them after 350 seconds. The
+             * TCP keepalive option will ensure that the connection is not idle at the end of the file upload.
+             *
+             * This is the bug that explains why this doesn't work with .NET Core:
+             * https://github.com/dotnet/corefx/issues/26013
+             */
+            if (keepAlive > 0)
+            {
+                ServicePointManager.FindServicePoint(new Uri(ServerBaseUrl)).SetTcpKeepAlive(true, keepAlive, keepAlive);
+            }
 
 #if HTTP_CLIENT_SUPPORTS_SSL_OPTIONS
             clientOptions.IgnoreSslErrors = ignoreSslErrors;
