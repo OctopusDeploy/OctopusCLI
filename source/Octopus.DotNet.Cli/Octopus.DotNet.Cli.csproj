@@ -13,7 +13,7 @@
     <PackageProjectUrl>http://octopusdeploy.com/</PackageProjectUrl>
     <PackageLicenseUrl>http://octopusdeploy.com/pricing</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/OctopusDeploy/OctopusClients</RepositoryUrl>
+    <RepositoryUrl>https://github.com/OctopusDeploy/OctopusCli</RepositoryUrl>
     <Description>Octopus Deploy is an automated release management tool for modern developers and DevOps teams.
 
       This package contains the client library for the HTTP API in Octopus.</Description>
