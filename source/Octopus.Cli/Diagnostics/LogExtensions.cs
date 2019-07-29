@@ -14,7 +14,7 @@ namespace Octopus.Cli.Diagnostics
         static readonly Dictionary<string, string> Escapes;
         static bool serviceMessagesEnabled;
         static AutomationEnvironment buildEnvironment;
-        internal static IAutomationEnvironmentProvider automationEnvironmentProvider = new AutomationEnvironmentProvider();
+        internal static AutomationEnvironmentProvider automationEnvironmentProvider = new AutomationEnvironmentProvider();
 
         static LogExtensions()
         {
@@ -44,7 +44,7 @@ namespace Octopus.Cli.Diagnostics
         public static void EnableServiceMessages(this ILogger log)
         {
             serviceMessagesEnabled = true;
-            
+
             buildEnvironment = automationEnvironmentProvider.DetermineAutomationEnvironment();
         }
 

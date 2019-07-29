@@ -28,7 +28,7 @@ namespace Octopus.Cli.Importers
 
             log.Debug("Export file successfully loaded");
 
-            var expando = JsonConvert.DeserializeObject<ExpandoObject>(export, JsonSerialization.GetDefaultSerializerSettings());
+            var expando = Serializer.Deserialize<ExpandoObject>(export);
             var importedObject = expando as IDictionary<string, object>;
             if (importedObject == null ||
                 !importedObject.ContainsKey("$Meta") ||
@@ -44,8 +44,8 @@ namespace Octopus.Cli.Importers
                 exportedObject = importedObject["Items"];
             }
 
-            var serializedObject = JsonConvert.SerializeObject(exportedObject ?? expando);
-            return JsonConvert.DeserializeObject<T>(serializedObject, JsonSerialization.GetDefaultSerializerSettings());
+            var serializedObject = Serializer.Serialize(exportedObject ?? importedObject);
+            return (T)Serializer.Deserialize<T>(serializedObject);
         }
     }
 }
