@@ -2,7 +2,7 @@
 using NUnit.Framework;
 using Octopus.Cli.Util;
 
-namespace Octopus.Cli.Tests.Util
+namespace Octo.Tests.Util
 {
     [TestFixture]
     public class UriExtensionsFixture

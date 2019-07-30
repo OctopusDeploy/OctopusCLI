@@ -1,15 +1,13 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Nancy;
 using NUnit.Framework;
 using Octopus.Client.Extensibility;
-using Serilog;
-using Octopus.Client.Extensions;
 using Octopus.Client.Model;
+using Serilog;
 
-namespace Octopus.Cli.Tests.Integration
+namespace Octo.Tests.Integration
 {
     public class PushTests : IntegrationTestBase
     {

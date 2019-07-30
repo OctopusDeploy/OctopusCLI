@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Octopus.Cli.Util;
 
-namespace Octopus.Cli.Tests.Util
+namespace Octo.Tests.Util
 {
     public class FakeOctopusFileSystem : IOctopusFileSystem
     {

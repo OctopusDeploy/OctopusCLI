@@ -6,10 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using Nancy;
 using Nancy.Extensions;
 using Nancy.IO;
@@ -18,12 +16,13 @@ using Nancy.Owin;
 using Nancy.Responses.Negotiation;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using Octopus.Cli;
 using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
-using Serilog;
 using Octopus.Client.Serialization;
+using Serilog;
 
-namespace Octopus.Cli.Tests.Integration
+namespace Octo.Tests.Integration
 {
 
     public abstract class IntegrationTestBase : NancyModule

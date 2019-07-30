@@ -1,7 +1,7 @@
 ﻿using Nancy;
 using Serilog;
 
-namespace Octopus.Cli.Tests.Integration
+namespace Octo.Tests.Integration
 {
     public class CatchAllModule : NancyModule
     {
