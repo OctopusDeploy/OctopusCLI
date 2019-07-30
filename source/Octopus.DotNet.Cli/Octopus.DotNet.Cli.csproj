@@ -19,6 +19,7 @@
       This package contains the client library for the HTTP API in Octopus.</Description>
 
     <PackageType>DotnetCliTool</PackageType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

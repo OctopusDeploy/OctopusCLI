@@ -13,6 +13,7 @@
     <Description>Octopus Deploy is an automated release management tool for modern developers and DevOps teams.
 
       This package contains the .NET CLI library for interacting with the HTTP API in Octopus.</Description>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

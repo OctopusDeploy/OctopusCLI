@@ -48,7 +48,9 @@ namespace Octopus.Cli.Commands
         string username;
         readonly OctopusClientOptions clientOptions = new OctopusClientOptions();
         string spaceNameOrId;
+#if NETFRAMEWORK
         int keepAlive;
+#endif
 
         protected ApiCommand(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
@@ -132,6 +134,7 @@ namespace Octopus.Cli.Commands
                 ? new OctopusServerEndpoint(ServerBaseUrl)
                 : new OctopusServerEndpoint(ServerBaseUrl, ApiKey);
             
+#if NETFRAMEWORK
             /*
              * There may be a delay between the completion of a large file upload and when Octopus responds
              * to finish the HTTP connection. This delay can be several minutes. During this time, no traffic is
@@ -146,6 +149,7 @@ namespace Octopus.Cli.Commands
             {
                 ServicePointManager.FindServicePoint(new Uri(ServerBaseUrl)).SetTcpKeepAlive(true, keepAlive, keepAlive);
             }
+#endif
 
 #if HTTP_CLIENT_SUPPORTS_SSL_OPTIONS
             clientOptions.IgnoreSslErrors = ignoreSslErrors;
