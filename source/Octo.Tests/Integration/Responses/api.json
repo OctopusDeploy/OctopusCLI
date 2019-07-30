@@ -1,0 +1,12 @@
+{
+  "Application": null,
+  "Version": null,
+  "ApiVersion": "3.0.0",
+  "InstallationId": "00000000-0000-0000-0000-000000000000",
+  "Links": {
+    "CurrentUser": "/{TestRootPath}/api/users/me",
+    "Environments": "/{TestRootPath}/api/environments{/id}{?skip,ids}",
+    "PackageUpload": "/{TestRootPath}/api/packages/raw{?replace}",
+    "SpaceHome": "/{TestRootPath}/api/{spaceId}"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "ItemType": "Environment",
+  "IsStale": false,
+  "TotalResults": 0,
+  "ItemsPerPage": 0,
+  "Items": [
+    {
+      "Name": "Foo Environment",
+      "Description": null,
+      "SortOrder": 0,
+      "UseGuidedFailure": false,
+      "AllowDynamicInfrastructure": false,
+      "SpaceId": null,
+      "ExtensionSettings": [],
+      "Links": {}
+    }
+  ],
+  "Links": {}
+}

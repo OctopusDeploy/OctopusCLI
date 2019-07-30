@@ -20,10 +20,7 @@ namespace Octopus.Cli.Exporters
 
         public void Export<T>(string filePath, ExportMetadata metadata, T exportObject)
         {
-            var x = exportObject.ToDynamic(metadata);
-
-            var serializerSettings = JsonSerialization.GetDefaultSerializerSettings();
-            var serializedObject = JsonConvert.SerializeObject(x, serializerSettings);
+            var serializedObject = Serializer.Serialize(exportObject.ToDynamic(metadata));
 
             fileSystem.WriteAllBytes(filePath, Encoding.UTF8.GetBytes(serializedObject));
 

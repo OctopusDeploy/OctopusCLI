@@ -6,16 +6,14 @@ using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
 using Octopus.Client.Exceptions;
 using Octopus.Client.Extensibility;
-using Octopus.Client.Logging;
 using Octopus.Client.Model;
 using Octopus.Client.Repositories.Async;
+using Serilog;
 
 namespace Octopus.Cli.Util
 {
     public static class RepositoryExtensions
     {
-        private static readonly ILog Logger = LogProvider.GetLogger(typeof(RepositoryExtensions));
-
         private static async Task<TResource> FindByNameOrIdOrFail<T, TResource>(this T repository,
             Func<string, Task<TResource>> findByNameFunc, string resourceTypeIdPrefix, string resourceTypeDisplayName,
             string nameOrId, string enclosingContextDescription = "", bool skipLog = false)
@@ -69,7 +67,7 @@ namespace Octopus.Cli.Util
 
             if (!skipLog)
             {
-                Logger.Debug($"Found {resourceTypeDisplayName}: {found.Name} ({found.Id})");
+                Log.Logger.Debug($"Found {resourceTypeDisplayName}: {found.Name} ({found.Id})");
             }
 
             return found;
@@ -118,7 +116,7 @@ namespace Octopus.Cli.Util
 
             if (!skipLog)
             {
-                Logger.Debug($"Found {resourceTypeDisplayName}{(results.Length == 1 ? "" : "s")}: "
+                Log.Logger.Debug($"Found {resourceTypeDisplayName}{(results.Length == 1 ? "" : "s")}: "
                              + $"{string.Join(", ", results.Select(r => $"{r.Resource.Name} ({r.Resource.Id})"))}");
             }
 
