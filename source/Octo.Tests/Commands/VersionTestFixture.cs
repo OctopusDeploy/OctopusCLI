@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using FluentAssertions;
 using NUnit.Framework;
 using Octopus.Cli.Commands;
@@ -34,13 +35,23 @@ namespace Octo.Tests.Commands
         [Test]
         public void ShouldPrintCorrectVersionNumber()
         {
-            var version = GetVersionFromFile(Path.Combine(TestContext.CurrentContext.WorkDirectory, "ExpectedSdkVersion.txt"));
+            var filename = Path.Combine(Path.GetDirectoryName(AssemblyPath()), "ExpectedSdkVersion.txt");
+            var version = GetVersionFromFile(filename);
 
             versionCommand.Execute();
 
             output.ToString()
                 .Should()
                 .Contain(version);
+        }
+        
+        private static string AssemblyPath()
+        {
+            var codeBase = Assembly.GetExecutingAssembly().CodeBase;
+            var uri = new UriBuilder(codeBase);
+            var root = Uri.UnescapeDataString(uri.Path);
+            root = root.Replace('/',Path.DirectorySeparatorChar);
+            return root;
         }
 
         private string GetVersionFromFile(string versionFilePath)
