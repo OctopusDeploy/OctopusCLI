@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using FluentAssertions;
-using NuGet.Common;
 using NUnit.Framework;
-using Octo;
+using Octopus.Cli;
 
-namespace Octopus.Cli.Tests.Integration
+namespace Octo.Tests.Integration
 {
     [TestFixture]
     public class PackTests

@@ -1,5 +1,4 @@
-﻿using System;
-using Octopus.Cli.Infrastructure;
+﻿using Octopus.Cli.Infrastructure;
 
 // ReSharper disable CheckNamespace
 namespace Octopus.Cli.Tests.Helpers

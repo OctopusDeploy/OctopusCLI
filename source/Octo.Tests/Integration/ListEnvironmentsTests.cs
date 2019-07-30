@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-
-using FluentAssertions;
+﻿using FluentAssertions;
 using Nancy;
 using NUnit.Framework;
 using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
 
-namespace Octopus.Cli.Tests.Integration
+namespace Octo.Tests.Integration
 {
     public class ListEnvironmentsTests : IntegrationTestBase
     {

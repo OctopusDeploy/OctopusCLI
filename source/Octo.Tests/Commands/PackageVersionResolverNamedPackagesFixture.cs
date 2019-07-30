@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
+using Octo.Tests.Util;
 using Octopus.Cli.Commands.Releases;
 using Octopus.Cli.Infrastructure;
-using Octopus.Cli.Tests.Util;
 using Serilog;
 
 namespace Octo.Tests.Commands
