@@ -28,7 +28,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Nancy" Version="2.0.0-clinteastwood" />
-    <PackageReference Include="Octopus.Client" Version="6.9.3-enh-ilmergenewtons13" />
+    <PackageReference Include="Octopus.Client" Version="6.9.3-enh-ilmergenewtons14" />
     <PackageReference Include="Serilog.Sinks.TextWriter" Version="2.0.0" />
     <PackageReference Include="NSubstitute" Version="2.0.3" />
     <PackageReference Include="FluentAssertions" Version="4.19.4" />
@@ -57,8 +57,8 @@
     <None Update="Commands\Resources\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <EmbeddedResource Include="Integration\Responses\**\*.json" />
   </ItemGroup>
-
 
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
@@ -67,7 +67,7 @@
   <Target Name="WriteExpectedVersion" BeforeTargets="BeforeBuild" DependsOnTargets="PrepareForBuild">
 
     <PropertyGroup>
-      <ExpectedVersionFileInIntermediateFolder>$(OurDir)ExpectedSdkVersion.txt</ExpectedVersionFileInIntermediateFolder>
+      <ExpectedVersionFileInIntermediateFolder>$(OutDir)ExpectedSdkVersion.txt</ExpectedVersionFileInIntermediateFolder>
 
       <VersionFileContent>$(Version)</VersionFileContent>
       <ExistingVersionFileContent Condition=" Exists('$(ExpectedVersionFileInIntermediateFolder)') ">
@@ -81,7 +81,7 @@
     <WriteLinesToFile File="$(ExpectedVersionFileInIntermediateFolder)" Lines="$(VersionFileContent)" Condition=" '$(ShouldOverwriteVersionFile)' == 'true' " Overwrite="true" />
 
     <ItemGroup>
-      <Content Include="$(ExpectedVersionFileInIntermediateFolder)" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(ExpectedVersionFileInIntermediateFolder)" CopyToOutputDirectory="true" />
       <FileWrites Include="$(ExpectedVersionFileInIntermediateFolder)" />
     </ItemGroup>
 

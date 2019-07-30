@@ -1,15 +1,13 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Nancy;
 using NUnit.Framework;
 using Octopus.Client.Extensibility;
-using Serilog;
-using Octopus.Client.Extensions;
 using Octopus.Client.Model;
+using Serilog;
 
-namespace Octopus.Cli.Tests.Integration
+namespace Octo.Tests.Integration
 {
     public class PushTests : IntegrationTestBase
     {
@@ -17,27 +15,7 @@ namespace Octopus.Cli.Tests.Integration
 
         public PushTests()
         {
-            Get($"{TestRootPath}/api/users/me", p => Response.AsJson(
-                new UserResource()
-                {
-                    Links = new LinkCollection()
-                    {
-                        {"Spaces", TestRootPath + "/api/users/users-1/spaces" }
-                    }
-                }
-            ));
-
-            Get($"{TestRootPath}/api/users/users-1/spaces", p => Response.AsJson(
-                    new[] {
-                        new SpaceResource() { Id = "Spaces-1", IsDefault = true},
-                        new SpaceResource() { Id = "Spaces-2", IsDefault = false}
-                    }
-            ));
-
-
-            Get($"{TestRootPath}/api/spaces-1", p => Response.AsJson(
-                new SpaceRootResource()
-            ));
+            Get($"{TestRootPath}/api/users/me", p => LoadResponseFile("api/users/me"));
 
             Post(TestRootPath + "/api/packages/raw", p =>
             {

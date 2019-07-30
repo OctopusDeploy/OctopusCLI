@@ -9,7 +9,7 @@ using Octopus.Client;
 using Octopus.Client.Model;
 using Octopus.Client.Model.Endpoints;
 
-namespace Octopus.Cli.Commands.WorkerPools
+namespace Octopus.Cli.Commands.WorkerPool
 {
     [Command("clean-workerpool", Description = "Cleans all Offline Workers from a WorkerPool")]
     public class CleanWorkerPoolCommand : ApiCommand, ISupportFormattedOutput
