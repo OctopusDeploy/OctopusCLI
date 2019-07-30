@@ -9,7 +9,6 @@ namespace Octo.Tests.Integration
 
         public ListEnvironmentsTests()
         {
-
             Get($"{TestRootPath}/api/users/me", p => LoadResponseFile("api/users/me"));
             Get($"{TestRootPath}/api/environments", p => LoadResponseFile(@"api/environments"));
         }

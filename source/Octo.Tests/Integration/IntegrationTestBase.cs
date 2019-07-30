@@ -82,7 +82,7 @@ namespace Octo.Tests.Integration
         protected IntegrationTestBase()
         {
             TestRootPath = $"/{GetType().Name}";
-            
+
             Get($"{TestRootPath}/api", p => LoadResponseFile("api"));
         }
 
