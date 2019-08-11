@@ -33,8 +33,15 @@ namespace Octopus.Cli.Commands.Package
 
         public async Task Request()
         {
+            if (string.IsNullOrEmpty(MetadataFile))
+                throw new CommandException("Please specify the metadata file.");
+            if (string.IsNullOrEmpty(PackageId))
+                throw new CommandException("Please specify the package id.");
+            if (string.IsNullOrEmpty(Version))
+                throw new CommandException("Please specify the package version.");
+
             if (!FileSystem.FileExists(MetadataFile))
-                throw new CommandException("Metadata file does not exist");
+                throw new CommandException($"Metadata file '{MetadataFile}' does not exist");
 
             commandOutputProvider.Debug("Pushing package metadata: {PackageId}...", PackageId);
 
