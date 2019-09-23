@@ -85,12 +85,9 @@ namespace Octo.Tests.Commands
         {
             resolver.Add("PackageA:Package2:2.0.0");
             resolver.Add("Step:Package2:3.0.0");
-            resolver.Add("Step:4.0.0");
-            resolver.Add("Package2:5.0.0");
             resolver.Add("PackageA:*:1.0.0");
             resolver.Add("*:Package1:1.0.0-alpha1");
             resolver.Add("*=Package1=1.0.0-alpha1");
-            resolver.Add("*=*=1.0.0-beta");
             resolver.Add("*=6.0.0");
 
             // This is an exact match. We prioritise step names over package names
@@ -99,12 +96,6 @@ namespace Octo.Tests.Commands
             Assert.That(resolver.ResolveVersion("Step", "PackageUnknown", "Package2"), Is.EqualTo("3.0.0"));
             // This is an exact match to the package name
             Assert.That(resolver.ResolveVersion("StepUnknown", "PackageA", "Package2"), Is.EqualTo("2.0.0"));
-            // This is an exact match to the unnamed package version by step id
-            Assert.That(resolver.ResolveVersion("Step", "PackageWhatever"), Is.EqualTo("4.0.0"));
-            // This is an exact match to the unnamed package version by package id
-            Assert.That(resolver.ResolveVersion("StepUnknown", "Package2"), Is.EqualTo("5.0.0"));
-            // Unnamed packages also match the wildcard. In this case it is the wildcard for the unnamed packages
-            Assert.That(resolver.ResolveVersion("StepUnknown", "PackageA"), Is.EqualTo("6.0.0"));
             // This will match the wildcard step but fixed package name version, because we treat the
             // package reference name as more specific
             Assert.That(resolver.ResolveVersion("Step", "PackageA", "Package1"), Is.EqualTo("1.0.0-alpha1"));
@@ -114,7 +105,7 @@ namespace Octo.Tests.Commands
             // specific than the default
             Assert.That(resolver.ResolveVersion("Step", "PackageB", "Package1"), Is.EqualTo("1.0.0-alpha1"));
             // This will match the default (i.e. the double wildcard)
-            Assert.That(resolver.ResolveVersion("StepWhatever", "PackageB", "PackageUnknown"), Is.EqualTo("1.0.0-beta"));
+            Assert.That(resolver.ResolveVersion("StepWhatever", "PackageB", "PackageUnknown"), Is.EqualTo("6.0.0"));
         }
 
         [Test]
@@ -147,6 +138,38 @@ namespace Octo.Tests.Commands
             resolver.Add("PackageId", "Package1", "1.2.0");
 
             Assert.That(resolver.ResolveVersion("StepName", "PackageId", "Package1"), Is.EqualTo("1.2.0"));
+        }
+        
+        [Test]
+        public void ShouldHandleNoStepSpecifiedWithNamedReference()
+        {
+            resolver.Add("Package1:1.0.0");
+
+            Assert.That(resolver.ResolveVersion("Step", "Package1", "Package1"), Is.EqualTo("1.0.0"));
+        }
+        
+        [Test]
+        public void ShouldHandleNoStepSpecifiedWithDefaultPackageReferenceName()
+        {
+            resolver.Add("Package1:1.0.0");
+
+            Assert.That(resolver.ResolveVersion("Step", "Package1", null), Is.EqualTo("1.0.0"));
+        }
+        
+        [Test]
+        public void ShouldHandleOnlyStepSpecifiedWithNamedReference()
+        {
+            resolver.Add("Step:1.0.0");
+
+            Assert.That(resolver.ResolveVersion("Step", "Package1", "Package1"), Is.EqualTo("1.0.0"));
+        }
+        
+        [Test]
+        public void ShouldHandleOnlyStepSpecifiedWithDefaultPackageReferenceName()
+        {
+            resolver.Add("Step:1.0.0");
+
+            Assert.That(resolver.ResolveVersion("Step", "Package1", null), Is.EqualTo("1.0.0"));
         }
     }
 }
