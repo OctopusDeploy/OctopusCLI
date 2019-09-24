@@ -171,5 +171,23 @@ namespace Octo.Tests.Commands
 
             Assert.That(resolver.ResolveVersion("Step", "Package1", null), Is.EqualTo("1.0.0"));
         }
+        
+        [Test]
+        public void ShouldHandleOnlyStepSpecifiedWithDefaultPackageAndExplicitDefaultSpecified()
+        {
+            resolver.Add("Step::1.0.0");
+
+            Assert.That(resolver.ResolveVersion("Step", "Package1", null), Is.EqualTo("1.0.0"));
+        }
+        
+        [Test]
+        public void ShouldHandlePackageReferencesOnTheSameStepWithExplicitDefaultPackageReference()
+        {
+            resolver.Add("Step::1.0.0");
+            resolver.Add("Step:foo:1.0.1");
+
+            Assert.That(resolver.ResolveVersion("Step", "Package1", null), Is.EqualTo("1.0.0"));
+            Assert.That(resolver.ResolveVersion("Step", "Package1", "foo"), Is.EqualTo("1.0.1"));
+        }
     }
 }
