@@ -8,6 +8,7 @@ using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
+using Octopus.Client.Model;
 using Serilog;
 using SemanticVersion = Octopus.Client.Model.SemanticVersion;
 
@@ -111,44 +112,44 @@ namespace Octopus.Cli.Commands.Releases
             }
         }
 
-        public void Add(string stepNameAndVersion)
+        public void Add(string stepNameOrPackageIdAndVersion)
         {
-            var split = stepNameAndVersion.Split(Delimiters);
+            var split = stepNameOrPackageIdAndVersion.Split(Delimiters);
             if (split.Length < 2)
-                throw new CommandException("The package argument '" + stepNameAndVersion + "' does not use expected format of : {Step Name}:{Version}");
+                throw new CommandException("The package argument '" + stepNameOrPackageIdAndVersion + "' does not use expected format of : {Step Name}:{Version}");
 
-            var stepOrPackageId = split[0];
-            var packageReferenceName = split.Length > 2 ? split[1] : null;
+            var stepNameOrPackageId = split[0];
+            var packageReferenceName = split.Length > 2 ? split[1] : WildCard;
             var version = split.Length > 2 ? split[2] : split[1];
 
-            if (string.IsNullOrWhiteSpace(stepOrPackageId) || string.IsNullOrWhiteSpace(version))
+            if (string.IsNullOrWhiteSpace(stepNameOrPackageId) || string.IsNullOrWhiteSpace(version))
             {
-                throw new CommandException("The package argument '" + stepNameAndVersion + "' does not use expected format of : {Step Name}:{Version}");
+                throw new CommandException("The package argument '" + stepNameOrPackageIdAndVersion + "' does not use expected format of : {Step Name}:{Version}");
             }
 
             if (!SemanticVersion.TryParse(version, out var parsedVersion))
             {
-                throw new CommandException("The version portion of the package constraint '" + stepNameAndVersion + "' is not a valid semantic version number.");
+                throw new CommandException("The version portion of the package constraint '" + stepNameOrPackageIdAndVersion + "' is not a valid semantic version number.");
             }
 
-            Add(stepOrPackageId, packageReferenceName, version);
+            Add(stepNameOrPackageId, packageReferenceName, version);
         }
 
-        public void Add(string stepName, string packageVersion)
+        public void Add(string stepNameOrPackageId, string packageVersion)
         {
-            Add(stepName, string.Empty, packageVersion);
+            Add(stepNameOrPackageId, string.Empty, packageVersion);
         }
 
-        public void Add(string stepName, string packageReferenceName, string packageVersion)
+        public void Add(string stepNameOrPackageId, string packageReferenceName, string packageVersion)
         {
             // Double wild card == default value
-            if (stepName == WildCard && packageReferenceName == WildCard)
+            if (stepNameOrPackageId == WildCard && packageReferenceName == WildCard)
             {
                 Default(packageVersion);
                 return;
             }
 
-            var key = new PackageKey(stepName, packageReferenceName ?? string.Empty);
+            var key = new PackageKey(stepNameOrPackageId, packageReferenceName ?? WildCard);
             if (stepNameToVersion.TryGetValue(key, out var current))
             {
                 var newVersion = SemanticVersion.Parse(packageVersion);
