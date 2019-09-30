@@ -43,6 +43,10 @@ namespace Octopus.Cli.Commands.Package
             if (!FileSystem.FileExists(MetadataFile))
                 throw new CommandException($"Metadata file '{MetadataFile}' does not exist");
 
+            var rootDocument = await Repository.LoadRootDocument();
+            if (rootDocument.HasLink("BuildInformation"))
+                throw new CommandException("This Octopus server supports the BuildInformation API, we recommend using the `build-information` command as `package-metadata` has been deprecated.");
+
             commandOutputProvider.Debug("Pushing package metadata: {PackageId}...", PackageId);
 
             var fileContent = FileSystem.ReadAllText(MetadataFile);
