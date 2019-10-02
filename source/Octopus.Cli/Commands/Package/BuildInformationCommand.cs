@@ -13,7 +13,7 @@ namespace Octopus.Cli.Commands.Package
     [Command("build-information", Description = "Pushes build information to Octopus Server.")]
     public class BuildInformationCommand : ApiCommand, ISupportFormattedOutput
     {
-        private OctopusBuildInformationMappedResource resultResource;
+        private OctopusPackageVersionBuildInformationMappedResource resultResource;
 
         public BuildInformationCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
