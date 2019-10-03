@@ -7,6 +7,8 @@ using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
 using Octopus.Client.Model.BuildInformation;
+using Octopus.Client.Model.PackageMetadata;
+
 
 namespace Octopus.Cli.Commands.Package
 {
@@ -42,16 +44,27 @@ namespace Octopus.Cli.Commands.Package
             if (!FileSystem.FileExists(File))
                 throw new CommandException($"Build information file '{File}' does not exist");
 
-            var rootDocument = await Repository.LoadRootDocument();
-            if (!rootDocument.HasLink("BuildInformation"))
-                throw new CommandException("The Octopus server doesn't support the BuildInformation API. 2019.9.0 or later is required.");
-
-            commandOutputProvider.Debug("Pushing build information: {PackageId}...", PackageId);
-
             var fileContent = FileSystem.ReadAllText(File);
-            var buildInformation = JsonConvert.DeserializeObject<OctopusBuildInformation>(fileContent);
 
-            resultResource = await Repository.BuildInformationRepository.Push(PackageId, Version, buildInformation, OverwriteMode);
+            var rootDocument = await Repository.LoadRootDocument();
+            if (rootDocument.HasLink("BuildInformation"))
+            {
+                commandOutputProvider.Debug("Pushing build information: {PackageId}...", PackageId);
+
+                var buildInformation = JsonConvert.DeserializeObject<OctopusBuildInformation>(fileContent);
+
+                resultResource = await Repository.BuildInformationRepository.Push(PackageId, Version, buildInformation, OverwriteMode);
+            }
+            else
+            {
+                commandOutputProvider.Warning("Detected Octopus server version doesn't support the Build Information API, pushing build information as legacy package metadata: {PackageId}...", PackageId);
+
+                var metadata = JsonConvert.DeserializeObject<OctopusPackageMetadata>(fileContent);
+                // old server won't parse without the CommentParser being set, default it to Jira
+                metadata.CommentParser = "Jira";
+
+                var result = await Repository.PackageMetadataRepository.Push(PackageId, Version, metadata, OverwriteMode);
+            }
         }
 
         public void PrintDefaultOutput()
