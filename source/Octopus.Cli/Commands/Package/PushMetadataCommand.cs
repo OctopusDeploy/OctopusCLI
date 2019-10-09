@@ -45,7 +45,7 @@ namespace Octopus.Cli.Commands.Package
 
             var rootDocument = await Repository.LoadRootDocument();
             if (rootDocument.HasLink("BuildInformation"))
-                throw new CommandException("This Octopus server supports the BuildInformation API, we recommend using the `build-information` command as `package-metadata` has been deprecated.");
+                commandOutputProvider.Warning("This Octopus server supports the BuildInformation API, we recommend using the `build-information` command as `package-metadata` has been deprecated.");
 
             commandOutputProvider.Debug("Pushing package metadata: {PackageId}...", PackageId);
 
