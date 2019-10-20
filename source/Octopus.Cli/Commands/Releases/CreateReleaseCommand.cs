@@ -176,6 +176,23 @@ namespace Octopus.Cli.Commands.Releases
                     }, ignoreChannelRules: IgnoreChannelRules)
                     .ConfigureAwait(false);
 
+                try
+                {
+                    var releaseLog = await Repository.Releases.GetLog(release).ConfigureAwait(false);
+                    foreach (var entry in releaseLog.Items.SelectMany(rl => rl.Entries).OrderBy(e => e.Occurred))
+                    {
+                        commandOutputProvider.Write(entry.Category.ToLogEventLevel(), entry.MessageText);
+                    }
+                }
+                catch (OperationNotSupportedByOctopusServerException ex)
+                {
+                    commandOutputProvider.Warning(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    commandOutputProvider.Warning("Unable to fetch and display the release creation log, due to " + ex);
+                }
+
                 commandOutputProvider.Information("Release {Version:l} created successfully!", release.Version);
                 commandOutputProvider.ServiceMessage("setParameter", new { name = "octo.releaseNumber", value = release.Version });
                 commandOutputProvider.TfsServiceMessage(ServerBaseUrl, project, release);

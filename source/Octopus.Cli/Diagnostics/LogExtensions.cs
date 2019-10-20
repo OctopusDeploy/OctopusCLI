@@ -6,6 +6,7 @@ using System.Reflection;
 using Octopus.Client.AutomationEnvironments;
 using Octopus.Client.Model;
 using Serilog;
+using Serilog.Events;
 
 namespace Octopus.Cli.Diagnostics
 {
@@ -132,6 +133,33 @@ namespace Octopus.Cli.Diagnostics
                 }
 
                 log.Information("##vso[task.addattachment type=Distributedtask.Core.Summary;name=Octopus Deploy;]{MarkdownFile:l}", markdownFile);
+            }
+        }
+
+        public static LogEventLevel ToLogEventLevel(this LogCategory logCategory)
+        {
+            switch (logCategory)
+            {
+                case LogCategory.Trace:
+                    return LogEventLevel.Debug;
+                case LogCategory.Verbose:
+                    return LogEventLevel.Verbose;
+                case LogCategory.Info:
+                case LogCategory.Planned:
+                case LogCategory.Highlight:
+                case LogCategory.Abandoned:
+                case LogCategory.Wait:
+                case LogCategory.Progress:
+                case LogCategory.Finished:
+                    return LogEventLevel.Information;
+                case LogCategory.Warning:
+                    return LogEventLevel.Warning;
+                case LogCategory.Error:
+                    return LogEventLevel.Error;
+                case LogCategory.Fatal:
+                    return LogEventLevel.Fatal;
+                default:
+                    return LogEventLevel.Information;
             }
         }
 
