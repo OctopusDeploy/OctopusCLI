@@ -186,7 +186,7 @@ namespace Octopus.Cli.Commands.Releases
                 }
                 catch (OperationNotSupportedByOctopusServerException ex)
                 {
-                    commandOutputProvider.Warning(ex.Message);
+                    commandOutputProvider.Information(ex.Message);
                 }
                 catch (Exception ex)
                 {
