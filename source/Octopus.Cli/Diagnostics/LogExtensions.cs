@@ -141,9 +141,9 @@ namespace Octopus.Cli.Diagnostics
             switch (logCategory)
             {
                 case LogCategory.Trace:
-                    return LogEventLevel.Debug;
-                case LogCategory.Verbose:
                     return LogEventLevel.Verbose;
+                case LogCategory.Verbose:
+                    return LogEventLevel.Debug;
                 case LogCategory.Info:
                 case LogCategory.Planned:
                 case LogCategory.Highlight:
