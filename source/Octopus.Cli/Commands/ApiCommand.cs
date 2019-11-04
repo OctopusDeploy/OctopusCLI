@@ -68,13 +68,27 @@ namespace Octopus.Cli.Commands
             options.Add("debug", "[Optional] Enable debug logging", v => enableDebugging = true);
             options.Add("ignoreSslErrors", "[Optional] Set this flag if your Octopus Server uses HTTPS but the certificate is not trusted on this machine. Any certificate errors will be ignored. WARNING: this option may create a security vulnerability.", v => ignoreSslErrors = true);
             options.Add("enableServiceMessages", "[Optional] Enable TeamCity or Team Foundation Build service messages when logging.", v => commandOutputProvider.EnableServiceMessages());
-            options.Add("timeout=", $"[Optional] Timeout in seconds for network operations. Default is {ApiConstants.DefaultClientRequestTimeout/1000}.", v => clientOptions.Timeout = TimeSpan.FromSeconds(int.Parse(v)));
+            options.Add("timeout=", $"[Optional] Timeout in seconds for network operations. Default is {ApiConstants.DefaultClientRequestTimeout/1000}.", v =>
+            {
+                if (int.TryParse(v, out var parsedInt))
+                    clientOptions.Timeout = TimeSpan.FromSeconds(parsedInt);
+                else if (TimeSpan.TryParse(v, out var parsedTimeSpan))
+                    clientOptions.Timeout = parsedTimeSpan;
+                else
+                    throw new CommandException($"Unable to parse '{v}' as a timespan or an integer.");
+            });
             options.Add("proxy=", $"[Optional] The URL of the proxy to use, e.g., 'https://proxy.example.com'.", v => clientOptions.Proxy = v);
             options.Add("proxyUser=", $"[Optional] The username for the proxy.", v => clientOptions.ProxyUsername = v);
             options.Add("proxyPass=", $"[Optional] The password for the proxy. If both the username and password are omitted and proxyAddress is specified, the default credentials are used. ", v => clientOptions.ProxyPassword = v);
             options.Add("space=", $"[Optional] The name or ID of a space within which this command will be executed. The default space will be used if it is omitted. ", v => spaceNameOrId = v);
 #if NETFRAMEWORK
-            options.Add("keepalive=", "[Optional] How frequently (in seconds) to send a TCP keepalive packet.", input => keepAlive = int.Parse(input) * 1000);
+            options.Add("keepalive=", "[Optional] How frequently (in seconds) to send a TCP keepalive packet.", input =>
+            {
+                if (int.TryParse(input, out var parsedInt))
+                    keepAlive = parsedInt * 1000;
+                else
+                    throw new CommandException($"Unable to parse '{input}' as an integer.");
+            });
 #endif
             options.AddLogLevelOptions();
         }

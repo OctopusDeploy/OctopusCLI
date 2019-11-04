@@ -62,6 +62,36 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
+        [TestCase("100")]
+        [TestCase("00:15:00")]
+        public void ShouldSupportValidIntAndTimespanForTimeout(string input)
+        {
+            CommandLineArgs.Add("--timeout=" + input);
+            TestCommandExtensions.Execute(apiCommand, CommandLineArgs.ToArray());
+        }
+        
+        [Test]
+        public void ShouldThrowNiceExceptionForInvalidTimeout()
+        {
+            CommandLineArgs.Add("--timeout=fred");
+            Assert.Throws<CommandException>(() => TestCommandExtensions.Execute(apiCommand, CommandLineArgs.ToArray()));
+        }
+        
+        [Test]
+        public void ShouldSupportValidIntForKeepAlive()
+        {
+            CommandLineArgs.Add("--keepalive=10");
+            TestCommandExtensions.Execute(apiCommand, CommandLineArgs.ToArray());
+        }
+        
+        [Test]
+        public void ShouldThrowNiceExceptionForInvalidKeepalive()
+        {
+            CommandLineArgs.Add("--keepalive=fred");
+            Assert.Throws<CommandException>(() => TestCommandExtensions.Execute(apiCommand, CommandLineArgs.ToArray()));
+        }
+        
+        [Test]
         public Task ShouldNotThrowIfCustomOptionsAreAddedByCommand()
         {
             CommandLineArgs.Add("--pill=red");
