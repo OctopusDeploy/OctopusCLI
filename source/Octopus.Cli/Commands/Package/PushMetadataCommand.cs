@@ -10,7 +10,7 @@ using Octopus.Client.Model.PackageMetadata;
 
 namespace Octopus.Cli.Commands.Package
 {
-    [Command("push-metadata", Description = "Pushes package metadata to Octopus Server.")]
+    [Command("push-metadata", Description = "Pushes package metadata to Octopus Server.  Deprecated. Please use the build-information command for Octopus Server 2019.10.0 and above.")]
     public class PushMetadataCommand : ApiCommand, ISupportFormattedOutput
     {
         private OctopusPackageMetadataMappedResource resultResource;
