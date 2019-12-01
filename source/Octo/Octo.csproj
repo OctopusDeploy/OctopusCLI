@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks Condition="!$([MSBuild]::IsOSUnixLike())">net452;netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks Condition="!$([MSBuild]::IsOSUnixLike())">net451;netcoreapp2.0</TargetFrameworks>
     <TargetFrameworks Condition="$([MSBuild]::IsOSUnixLike())">netcoreapp2.0</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>portable</DebugType>
