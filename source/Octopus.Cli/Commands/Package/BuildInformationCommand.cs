@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Octopus.Cli.Infrastructure;
@@ -16,18 +17,21 @@ namespace Octopus.Cli.Commands.Package
     public class BuildInformationCommand : ApiCommand, ISupportFormattedOutput
     {
         private OctopusPackageVersionBuildInformationMappedResource resultResource;
+        private readonly List<OctopusPackageVersionBuildInformationMappedResource> pushedBuildInformation;
 
         public BuildInformationCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Build information pushing");
-            options.Add("package-id=", "The ID of the package, e.g., 'MyCompany.MyApp'.", v => PackageId = v);
+            options.Add("package-id=", "The ID of the package. Specify multiple packages by specifying this argument multiple times: \n--package-id 'MyCompany.MyApp' --package-id 'MyCompany.MyApp2'.", packageId => PackageIds.Add(packageId));
             options.Add("version=", "The version of the package; defaults to a timestamp-based version", v => Version = v);
             options.Add("file=", "Octopus Build Information Json file.", file => File = file);
             options.Add("overwrite-mode=", "If the build information already exists in the repository, the default behavior is to reject the new build information being pushed (FailIfExists). You can use the overwrite mode to OverwriteExisting or IgnoreIfExists.", mode => OverwriteMode = (OverwriteMode)Enum.Parse(typeof(OverwriteMode), mode, true));
+
+            pushedBuildInformation = new List<OctopusPackageVersionBuildInformationMappedResource>();
         }
 
-        public string PackageId { get; set; }
+        public HashSet<string> PackageIds { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         public string Version { get; set; }
         public string File { get; set; }
         public OverwriteMode OverwriteMode { get; set; }
@@ -36,8 +40,8 @@ namespace Octopus.Cli.Commands.Package
         {
             if (string.IsNullOrEmpty(File))
                 throw new CommandException("Please specify the build information file.");
-            if (string.IsNullOrEmpty(PackageId))
-                throw new CommandException("Please specify the package id.");
+            if (PackageIds.None())
+                throw new CommandException("Please specify at least one package id.");
             if (string.IsNullOrEmpty(Version))
                 throw new CommandException("Please specify the package version.");
 
@@ -49,21 +53,29 @@ namespace Octopus.Cli.Commands.Package
             var rootDocument = await Repository.LoadRootDocument();
             if (rootDocument.HasLink("BuildInformation"))
             {
-                commandOutputProvider.Debug("Pushing build information: {PackageId}...", PackageId);
 
                 var buildInformation = JsonConvert.DeserializeObject<OctopusBuildInformation>(fileContent);
 
-                resultResource = await Repository.BuildInformationRepository.Push(PackageId, Version, buildInformation, OverwriteMode);
+                foreach (var packageId in PackageIds)
+                {
+                    commandOutputProvider.Debug("Pushing build information for package {PackageId} version {Version}...", packageId, Version);
+                    resultResource = await Repository.BuildInformationRepository.Push(packageId, Version, buildInformation, OverwriteMode);
+                    pushedBuildInformation.Add(resultResource);
+                }
             }
             else
             {
-                commandOutputProvider.Warning("Detected Octopus server version doesn't support the Build Information API, pushing build information as legacy package metadata: {PackageId}...", PackageId);
+                commandOutputProvider.Warning("Detected Octopus server version doesn't support the Build Information API.");
 
                 var metadata = JsonConvert.DeserializeObject<OctopusPackageMetadata>(fileContent);
                 // old server won't parse without the CommentParser being set, default it to Jira
                 metadata.CommentParser = "Jira";
 
-                var result = await Repository.PackageMetadataRepository.Push(PackageId, Version, metadata, OverwriteMode);
+                foreach (var packageId in PackageIds)
+                {
+                    commandOutputProvider.Debug("Pushing build information as legacy package metadata for package {PackageId} version {Version}...", packageId, Version);
+                    var result = await Repository.PackageMetadataRepository.Push(packageId, Version, metadata, OverwriteMode);
+                }
             }
         }
 
@@ -74,7 +86,7 @@ namespace Octopus.Cli.Commands.Package
 
         public void PrintJsonOutput()
         {
-            commandOutputProvider.Json(resultResource);
+            commandOutputProvider.Json(pushedBuildInformation);
         }
     }
 }

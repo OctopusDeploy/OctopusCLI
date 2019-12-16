@@ -52,8 +52,8 @@ namespace Octopus.Cli.Commands.Releases
         {
             var key = obj as PackageKey;
             return key != null &&
-                   string.Equals(StepNameOrPackageId, key.StepNameOrPackageId, StringComparison.CurrentCultureIgnoreCase) &&
-                   string.Equals(PackageReferenceName, key.PackageReferenceName, StringComparison.CurrentCultureIgnoreCase);
+                   string.Equals(StepNameOrPackageId, key.StepNameOrPackageId, StringComparison.OrdinalIgnoreCase) &&
+                   string.Equals(PackageReferenceName, key.PackageReferenceName, StringComparison.OrdinalIgnoreCase);
         }
 
         public override int GetHashCode()
