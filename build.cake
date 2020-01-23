@@ -153,7 +153,10 @@ Task("DotnetPublish")
             SelfContained = true,
             PublishSingleFile = true
         });
-        SignBinaries($"{octoPublishFolder}/{rid}");
+        if (!rid.StartsWith("linux-") && !rid.StartsWith("osx-")) {
+            // Sign binaries, except linux which are verified at download, and osx which are signed on a mac
+            SignBinaries($"{octoPublishFolder}/{rid}");
+        }
     }
 });
 
