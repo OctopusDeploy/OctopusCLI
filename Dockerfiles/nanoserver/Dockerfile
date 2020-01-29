@@ -14,4 +14,4 @@ RUN Invoke-WebRequest $Env:OCTO_TOOLS_DOWNLOAD_URL -OutFile OctopusTools.zip; \
 	mkdir src |Out-Null
 
 WORKDIR /src
-ENTRYPOINT ["dotnet", "/octo/Octo.dll"]
+ENTRYPOINT ["dotnet", "/octo/octo.dll"]

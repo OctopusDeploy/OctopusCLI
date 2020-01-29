@@ -154,7 +154,7 @@ namespace Octopus.Cli
                 Log.Error(ex.Message);
                 if (LogExtensions.IsKnownEnvironment())
                 {
-                    Log.Error("This error is most likely occurring while executing Octo.exe as part of an automated build process. The following doc is recommended to get some tips on how to troubleshoot this: https://g.octopushq.com/OctoexeTroubleshooting");
+                    Log.Error("This error is most likely occurring while executing octo.exe as part of an automated build process. The following doc is recommended to get some tips on how to troubleshoot this: https://g.octopushq.com/OctoexeTroubleshooting");
                 }
                 return -1;
             }
