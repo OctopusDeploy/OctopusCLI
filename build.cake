@@ -4,7 +4,7 @@
 #tool "nuget:?package=GitVersion.CommandLine&version=4.0.0"
 #tool "nuget:?package=ILRepack&version=2.0.13"
 #addin "nuget:?package=SharpCompress&version=0.12.4"
-#addin "nuget:?package=Cake.Incubator&version=4.0.0"
+#addin "nuget:?package=Cake.Incubator&version=5.1.0"
 
 using SharpCompress;
 using SharpCompress.Common;
@@ -149,13 +149,16 @@ Task("DotnetPublish")
             Configuration = configuration,
             Runtime = rid,
             OutputDirectory = $"{octoPublishFolder}/{rid}",
-			ArgumentCustomization = args => args.Append($"/p:Version={nugetVersion}")
+			ArgumentCustomization = args => args.Append($"/p:Version={nugetVersion}"),
+            SelfContained = true,
+            PublishSingleFile = true
         });
-        SignBinaries($"{octoPublishFolder}/{rid}");
+        if (!rid.StartsWith("linux-") && !rid.StartsWith("osx-")) {
+            // Sign binaries, except linux which are verified at download, and osx which are signed on a mac
+            SignBinaries($"{octoPublishFolder}/{rid}");
+        }
     }
-
 });
-
 
 Task("MergeOctoExe")
     .IsDependentOn("DotnetPublish")
@@ -272,6 +275,7 @@ private void SignBinaries(string path)
 	var files = GetFiles(path + "/**/Octopus.*.dll");
     files.Add(GetFiles(path + "/**/Octo.dll"));
     files.Add(GetFiles(path + "/**/Octo.exe"));
+    files.Add(GetFiles(path + "/**/Octo"));
     files.Add(GetFiles(path + "/**/dotnet-octo.dll"));
 
 	Sign(files, new SignToolSignSettings {
