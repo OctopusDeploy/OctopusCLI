@@ -1,5 +1,5 @@
 # octopusdeploy/octo
-A docker wrapped version of the popular [octo.exe](https://octopus.com/docs/api-and-integration/octo.exe-command-line) command line tool
+A docker wrapped version of the popular Octopus CLI, [octo](https://octopus.com/docs/api-and-integration/octo.exe-command-line)
 
 ## Platforms
 Images are currently available for
@@ -8,7 +8,7 @@ Images are currently available for
 
 
 ## Command Options
-Arguments passed to the container will be passed directly to the `octo.exe` tool internally. For the full list of commands and parameters [read our docs](https://octopus.com/docs/api-and-integration/octo.exe-command-line).
+Arguments passed to the container will be passed directly to the `octo` tool internally. For the full list of commands and parameters [read our docs](https://octopus.com/docs/api-and-integration/octo.exe-command-line).
 
 ### Example Usage
 #### Help
