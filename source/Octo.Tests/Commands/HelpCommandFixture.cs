@@ -47,7 +47,7 @@ namespace Octo.Tests.Commands
 
             output.ToString()
                 .Should()
-                .Contain("Usage: octo <command> [<options>]")
+                .MatchRegex(@"Usage: (octo|testhost) <command> \[<options>\]")
                 .And.Contain("Where <command> is one of:")
                 .And.Contain("create-foo");
         }

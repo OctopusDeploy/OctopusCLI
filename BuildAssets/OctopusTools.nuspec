@@ -2,15 +2,15 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd" xmlns:octopus="http://octopus.org">
   <metadata>
     <id>OctopusTools</id>
-    <title>Octo.exe</title>
+    <title>Octopus CLI</title>
     <version>$version$</version>
     <authors>Octopus Deploy</authors>
     <owners>Octopus Deploy</owners>
     <summary>Create, deploy and promote releases using Octopus Deploy.</summary>
     <description>
-      Octopus Deploy is an automated release management tool for modern developers and DevOps teams.
-	  
-	  This package contains Octo.exe, a command line tool for creating and deploying releases with Octopus Deploy.
+      Octopus is a user-friendly DevOps tool for developers that supports release management, deployment automation, and operations runbooks.
+
+      This package contains the Octopus CLI (octo), a tool to create and deploy releases, create and push packages, and manage environments with Octopus.
     </description>
     <releaseNotes></releaseNotes>
     <language>en-US</language>
