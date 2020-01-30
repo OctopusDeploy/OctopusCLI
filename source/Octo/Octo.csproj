@@ -5,7 +5,7 @@
     <TargetFrameworks Condition="$([MSBuild]::IsOSUnixLike())">netcoreapp3.1</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>portable</DebugType>
-    <AssemblyName>octo</AssemblyName>
+    <AssemblyName>Octo</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>OctopusTools</PackageId>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
