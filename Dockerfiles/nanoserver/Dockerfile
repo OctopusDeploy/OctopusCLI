@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:2.1-runtime-nanoserver-sac2016
+FROM mcr.microsoft.com/dotnet/core/runtime:3.1-nanoserver-1809
 MAINTAINER robert.erez devops@octopus.com
 ARG OCTO_TOOLS_VERSION=4.31.1
 
