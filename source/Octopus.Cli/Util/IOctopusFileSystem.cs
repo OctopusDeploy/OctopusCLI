@@ -29,8 +29,6 @@ namespace Octopus.Cli.Util
         void CopyDirectory(string sourceDirectory, string targetDirectory, CancellationToken cancel, int overwriteFileRetryAttempts = 3);
         ReplaceStatus CopyFile(string sourceFile, string destinationFile, int overwriteFileRetryAttempts = 3);
         void EnsureDirectoryExists(string directoryPath);
-        void EnsureDiskHasEnoughFreeSpace(string directoryPath);
-        void EnsureDiskHasEnoughFreeSpace(string directoryPath, long requiredSpaceInBytes);
         string GetFullPath(string relativeOrAbsoluteFilePath);
         void OverwriteAndDelete(string originalFile, string temporaryReplacement);
         void WriteAllBytes(string filePath, byte[] data);

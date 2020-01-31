@@ -339,30 +339,6 @@ namespace Octopus.Cli.Util
             throw new Exception("Internal error, cannot get here");
         }
 
-        public void EnsureDiskHasEnoughFreeSpace(string directoryPath)
-        {
-            EnsureDiskHasEnoughFreeSpace(directoryPath, 500*1024*1024);
-        }
-
-        public void EnsureDiskHasEnoughFreeSpace(string directoryPath, long requiredSpaceInBytes)
-        {
-            ulong freeBytesAvailable;
-            ulong totalNumberOfBytes;
-            ulong totalNumberOfFreeBytes;
-
-            var success = GetDiskFreeSpaceEx(directoryPath, out freeBytesAvailable, out totalNumberOfBytes, out totalNumberOfFreeBytes);
-            if (!success)
-                return;
-
-            // Always make sure at least 500MB are available regardless of what we need 
-            var required = requiredSpaceInBytes < 0 ? 0 : (ulong)requiredSpaceInBytes;
-            required = Math.Max(required, 500L*1024*1024);
-            if (totalNumberOfFreeBytes < required)
-            {
-                throw new IOException(string.Format("The drive containing the directory '{0}' on machine '{1}' does not have enough free disk space available for this operation to proceed. The disk only has {2} available; please free up at least {3}.", directoryPath, Environment.MachineName, totalNumberOfFreeBytes.ToFileSizeString(), required.ToFileSizeString()));
-            }
-        }
-
         public string GetFullPath(string relativeOrAbsoluteFilePath)
         {
             if (!Path.IsPathRooted(relativeOrAbsoluteFilePath))
@@ -467,12 +443,5 @@ namespace Octopus.Cli.Util
             }
             return true;
         }
-
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool GetDiskFreeSpaceEx(string lpDirectoryName,
-            out ulong lpFreeBytesAvailable,
-            out ulong lpTotalNumberOfBytes,
-            out ulong lpTotalNumberOfFreeBytes);
     }
 }
