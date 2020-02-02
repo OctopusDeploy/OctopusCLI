@@ -134,16 +134,6 @@ namespace Octo.Tests.Util
             throw new System.NotImplementedException();
         }
 
-        public void EnsureDiskHasEnoughFreeSpace(string directoryPath)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void EnsureDiskHasEnoughFreeSpace(string directoryPath, long requiredSpaceInBytes)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public string GetFullPath(string relativeOrAbsoluteFilePath)
         {
             throw new System.NotImplementedException();
