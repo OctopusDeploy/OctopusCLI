@@ -14,6 +14,7 @@ using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Exceptions;
 using Serilog;
+using AssemblyExtensions = Octopus.Cli.Util.AssemblyExtensions;
 
 namespace Octopus.Cli
 {
@@ -27,6 +28,9 @@ namespace Octopus.Cli
                                                    | SecurityProtocolType.Tls12;
 #endif
             ConfigureLogger();
+#if NETSTANDARD2_0
+            Log.Warning($"Support for running {AssemblyExtensions.GetExecutableName()} under .NET Core Runtime 2.x will be discontinued soon.{Environment.NewLine}You can get Octopus CLI for your operating system from http://g.octopushq.com/ProductDownloadPage,{Environment.NewLine}or install .NET Core Runtime 3.1 when you upgrade.");
+#endif
             return Run(args);
         }
 
