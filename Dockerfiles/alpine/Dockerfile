@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:2.1-runtime-alpine
+FROM mcr.microsoft.com/dotnet/core/runtime:3.1-alpine
 MAINTAINER robert.erez devops@octopus.com
 
 #alpine doesnt have curl installed
