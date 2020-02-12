@@ -32,7 +32,7 @@ namespace Octopus.Cli.Commands
 
         protected override async Task Execute()
         {
-            commandOutputProvider.Warning("The octo.exe import/export commands have been deprecated. See https://g.octopushq.com/DataMigration for alternative options.");
+            commandOutputProvider.Warning($"The {AssemblyExtensions.GetExecutableName()} import/export commands have been deprecated. See https://g.octopushq.com/DataMigration for alternative options.");
 
             if (string.IsNullOrWhiteSpace(Type)) throw new CommandException("Please specify the type of object to import using the parameter: --type=XYZ");
             if (string.IsNullOrWhiteSpace(FilePath)) throw new CommandException("Please specify the full path and name of the export file to import using the parameter: --filePath=XYZ");

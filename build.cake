@@ -135,8 +135,8 @@ Task("DotnetPublish")
     });
     SignBinaries(portablePublishDir);
 
-    CopyFileToDirectory($"{assetDir}/Octo", portablePublishDir);
-    CopyFileToDirectory($"{assetDir}/Octo.cmd", portablePublishDir);
+    CopyFileToDirectory($"{assetDir}/octo", portablePublishDir);
+    CopyFileToDirectory($"{assetDir}/octo.cmd", portablePublishDir);
 
     var doc = new XmlDocument();
     doc.Load(@".\source\Octo\Octo.csproj");
@@ -167,8 +167,8 @@ Task("MergeOctoExe")
         var outputFolder = $"{octoPublishFolder}/netfx-merged";
         CreateDirectory(outputFolder);
         ILRepack(
-            $"{outputFolder}/Octo.exe",
-            $"{inputFolder}/Octo.exe",
+            $"{outputFolder}/octo.exe",
+            $"{inputFolder}/octo.exe",
             System.IO.Directory.EnumerateFiles(inputFolder, "*.dll")
 				.Union(System.IO.Directory.EnumerateFiles(inputFolder, "octodiff.exe"))
 				.Select(f => (FilePath) f),
@@ -273,9 +273,9 @@ private void SignBinaries(string path)
 {
     Information($"Signing binaries in {path}");
 	var files = GetFiles(path + "/**/Octopus.*.dll");
-    files.Add(GetFiles(path + "/**/Octo.dll"));
-    files.Add(GetFiles(path + "/**/Octo.exe"));
-    files.Add(GetFiles(path + "/**/Octo"));
+    files.Add(GetFiles(path + "/**/octo.dll"));
+    files.Add(GetFiles(path + "/**/octo.exe"));
+    files.Add(GetFiles(path + "/**/octo"));
     files.Add(GetFiles(path + "/**/dotnet-octo.dll"));
 
 	Sign(files, new SignToolSignSettings {

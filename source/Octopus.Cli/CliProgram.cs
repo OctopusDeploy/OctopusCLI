@@ -14,6 +14,7 @@ using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Exceptions;
 using Serilog;
+using AssemblyExtensions = Octopus.Cli.Util.AssemblyExtensions;
 
 namespace Octopus.Cli
 {
@@ -154,7 +155,7 @@ namespace Octopus.Cli
                 Log.Error(ex.Message);
                 if (LogExtensions.IsKnownEnvironment())
                 {
-                    Log.Error("This error is most likely occurring while executing Octo.exe as part of an automated build process. The following doc is recommended to get some tips on how to troubleshoot this: https://g.octopushq.com/OctoexeTroubleshooting");
+                    Log.Error($"This error is most likely occurring while executing {AssemblyExtensions.GetExecutableName()} as part of an automated build process. The following doc is recommended to get some tips on how to troubleshoot this: https://g.octopushq.com/OctoexeTroubleshooting");
                 }
                 return -1;
             }

@@ -188,7 +188,7 @@ namespace Octopus.Cli.Commands
             {
                 if (!serverHasSpaces)
                 {
-                    throw new CommandException($"The server {endpoint.OctopusServer} has no spaces. Try invoking the Octo tool without specifying the space name as an argument");
+                    throw new CommandException($"The server {endpoint.OctopusServer} has no spaces. Try invoking {AssemblyExtensions.GetExecutableName()} without specifying the space name as an argument");
                 }
 
                 var space = await client.ForSystem().Spaces.FindByNameOrIdOrFail(spaceNameOrId).ConfigureAwait(false);
