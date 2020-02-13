@@ -44,7 +44,7 @@ namespace Octopus.Cli.Commands
         {
             var typeInfo = this.GetType().GetTypeInfo();
 
-            var executable = Path.GetFileNameWithoutExtension(typeInfo.Assembly.FullLocalPath());
+            var executable = AssemblyExtensions.GetExecutableName();
             var commandAttribute = typeInfo.GetCustomAttribute<CommandAttribute>();
             string commandName = string.Empty;
             if (commandAttribute == null)
