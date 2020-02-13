@@ -61,7 +61,7 @@ namespace Octo.Tests.Commands
 
             output.ToString()
                 .Should()
-                .Contain("Usage: Octo.Tests speak [<options>]");
+                .MatchRegex(@"Usage: (octo|testhost) speak \[<options>\]");
         }
 
         [Test]
