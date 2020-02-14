@@ -1,9 +1,12 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Model;
 using Octopus.Cli.Util;
+using Serilog;
 
 namespace Octopus.Cli.Commands
 {
@@ -26,7 +29,7 @@ namespace Octopus.Cli.Commands
 
                 commandOutputProvider.PrintMessages = OutputFormat == OutputFormat.Default;
 
-                executable = AssemblyExtensions.GetExecutableName();
+                executable = "octo";
 
                 var commandName = commandLineArguments.FirstOrDefault();
 
