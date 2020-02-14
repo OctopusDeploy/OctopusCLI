@@ -19,5 +19,10 @@ namespace Octopus.Cli.Util
         {
             return type.GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
         }
+
+        public static string GetExecutableName()
+        {
+            return Assembly.GetEntryAssembly()?.GetName().Name ?? "octo";
+        }
     }
 }
