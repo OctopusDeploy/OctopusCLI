@@ -4,7 +4,7 @@
 #tool "nuget:?package=GitVersion.CommandLine&version=4.0.0"
 #tool "nuget:?package=ILRepack&version=2.0.13"
 #addin "nuget:?package=SharpCompress&version=0.12.4"
-#addin "nuget:?package=Cake.Incubator&version=5.1.0"
+#addin "nuget:?package=Cake.Incubator&version=4.0.0"
 
 using SharpCompress;
 using SharpCompress.Common;
@@ -128,15 +128,15 @@ Task("DotnetPublish")
     var portablePublishDir =  $"{octoPublishFolder}/portable";
     DotNetCorePublish(projectToPublish, new DotNetCorePublishSettings
     {
-        Framework = "netcoreapp2.0" /* For compatibility until we gently phase it out. We encourage upgrading to self-contained executable. */,
+        Framework = "netcoreapp2.0",
         Configuration = configuration,
         OutputDirectory = portablePublishDir,
         ArgumentCustomization = args => args.Append($"/p:Version={nugetVersion}")
     });
     SignBinaries(portablePublishDir);
 
-    CopyFileToDirectory($"{assetDir}/octo", portablePublishDir);
-    CopyFileToDirectory($"{assetDir}/octo.cmd", portablePublishDir);
+    CopyFileToDirectory($"{assetDir}/Octo", portablePublishDir);
+    CopyFileToDirectory($"{assetDir}/Octo.cmd", portablePublishDir);
 
     var doc = new XmlDocument();
     doc.Load(@".\source\Octo\Octo.csproj");
@@ -145,20 +145,17 @@ Task("DotnetPublish")
     {
         DotNetCorePublish(projectToPublish, new DotNetCorePublishSettings
         {
-            Framework = "netcoreapp3.1",
+            Framework = "netcoreapp2.0",
             Configuration = configuration,
             Runtime = rid,
             OutputDirectory = $"{octoPublishFolder}/{rid}",
-			ArgumentCustomization = args => args.Append($"/p:Version={nugetVersion}"),
-            SelfContained = true,
-            PublishSingleFile = true
+			ArgumentCustomization = args => args.Append($"/p:Version={nugetVersion}")
         });
-        if (!rid.StartsWith("linux-") && !rid.StartsWith("osx-")) {
-            // Sign binaries, except linux which are verified at download, and osx which are signed on a mac
-            SignBinaries($"{octoPublishFolder}/{rid}");
-        }
+        SignBinaries($"{octoPublishFolder}/{rid}");
     }
+
 });
+
 
 Task("MergeOctoExe")
     .IsDependentOn("DotnetPublish")
@@ -167,8 +164,8 @@ Task("MergeOctoExe")
         var outputFolder = $"{octoPublishFolder}/netfx-merged";
         CreateDirectory(outputFolder);
         ILRepack(
-            $"{outputFolder}/octo.exe",
-            $"{inputFolder}/octo.exe",
+            $"{outputFolder}/Octo.exe",
+            $"{inputFolder}/Octo.exe",
             System.IO.Directory.EnumerateFiles(inputFolder, "*.dll")
 				.Union(System.IO.Directory.EnumerateFiles(inputFolder, "octodiff.exe"))
 				.Select(f => (FilePath) f),
@@ -273,9 +270,8 @@ private void SignBinaries(string path)
 {
     Information($"Signing binaries in {path}");
 	var files = GetFiles(path + "/**/Octopus.*.dll");
-    files.Add(GetFiles(path + "/**/octo.dll"));
-    files.Add(GetFiles(path + "/**/octo.exe"));
-    files.Add(GetFiles(path + "/**/octo"));
+    files.Add(GetFiles(path + "/**/Octo.dll"));
+    files.Add(GetFiles(path + "/**/Octo.exe"));
     files.Add(GetFiles(path + "/**/dotnet-octo.dll"));
 
 	Sign(files, new SignToolSignSettings {

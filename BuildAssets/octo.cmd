@@ -1,1 +1,0 @@
-dotnet "%~dp0/octo.dll" %*

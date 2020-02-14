@@ -1,9 +1,9 @@
-This repository contains the Octopus CLI (`octo`) for [Octopus][1], a user-friendly DevOps tool for developers that supports release management, deployment automation, and operations runbooks. You can use it to create and deploy releases, create and push packages, and manage environments.
+This repository contains the command line tool (`Octo.exe`) for [Octopus Deploy][1], an automated deployment server for professional .NET developers. You can use it to create and deploy releases, create and push packages, and manage environments.
 
-`octo` can be [downloaded from the Octopus downloads page][2].
+`Octo.exe` can be [downloaded from the Octopus downloads page][2].
 
 ## Documentation
-- [octo][3]
+- [Octo.exe][3]
 
 ## Issues
 Please see [Contributing](CONTRIBUTING.md)
