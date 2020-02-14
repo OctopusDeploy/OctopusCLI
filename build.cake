@@ -128,7 +128,7 @@ Task("DotnetPublish")
     var portablePublishDir =  $"{octoPublishFolder}/portable";
     DotNetCorePublish(projectToPublish, new DotNetCorePublishSettings
     {
-        Framework = "netcoreapp2.0" /* For compatibility until we gently phase it out. We encourage upgrading to self-contained executable. */,
+        Framework = "netcoreapp3.1",
         Configuration = configuration,
         OutputDirectory = portablePublishDir,
         ArgumentCustomization = args => args.Append($"/p:Version={nugetVersion}")
