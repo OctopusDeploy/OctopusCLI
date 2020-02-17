@@ -213,12 +213,12 @@ Task("Zip")
 
 
 Task("PackOctopusToolsNuget")
-    .IsDependentOn("MergeOctoExe")
+    .IsDependentOn("DotnetPublish")
     .Does(() => {
         var nugetPackDir = $"{publishDir}/nuget";
         var nuspecFile = "OctopusTools.nuspec";
 
-        CopyDirectory($"{octoPublishFolder}/netfx-merged", nugetPackDir);
+        CopyDirectory($"{octoPublishFolder}/win-x64", nugetPackDir);
         CopyFileToDirectory($"{assetDir}/LICENSE.txt", nugetPackDir);
         CopyFileToDirectory($"{assetDir}/VERIFICATION.txt", nugetPackDir);
         CopyFileToDirectory($"{assetDir}/init.ps1", nugetPackDir);
