@@ -1,5 +1,4 @@
-FROM microsoft/dotnet:2.1-runtime-alpine
-MAINTAINER robert.erez devops@octopus.com
+FROM mcr.microsoft.com/dotnet/core/runtime:3.1-alpine
 
 #alpine doesnt have curl installed
 #RUN apk add --no-cache curl
@@ -14,7 +13,7 @@ ENV LANG en_US.UTF-8
 # The dotnetcore bootstrapper doesnt work in alpine shell (built for bash)
 # This allows invoking octo if running interactive container
 RUN mkdir /octo &&\
-        echo "dotnet /octo/Octo.dll \"\$@\"" > /octo/alpine &&\
+        echo "dotnet /octo/octo.dll \"\$@\"" > /octo/alpine &&\
         ln /octo/alpine /usr/bin/octo &&\
         chmod +x /usr/bin/octo
         
@@ -31,4 +30,4 @@ RUN tar -zxvf /tmp/OctopusTools.$OCTO_TOOLS_VERSION.portable.tar.gz -C /octo &&\
 
 
 WORKDIR /src
-ENTRYPOINT ["dotnet", "/octo/Octo.dll"]
+ENTRYPOINT ["dotnet", "/octo/octo.dll"]

@@ -5,7 +5,7 @@ using Octopus.Cli.Util;
 
 namespace Octopus.Cli.Commands
 {
-    [Command("version", "v", "ver", Description = "Output Octo command line tool version.")]
+    [Command("version", "v", "ver", Description = "Output Octopus CLI version.")]
     public class VersionCommand : CommandBase, ICommand
     {
         public VersionCommand(ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
