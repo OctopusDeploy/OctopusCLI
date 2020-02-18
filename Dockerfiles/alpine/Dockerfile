@@ -20,7 +20,7 @@ LABEL maintainer="devops@octopus.com"
 LABEL octopus.dockerfile.version="1.0"
 LABEL octopus.tools.version=$OCTO_TOOLS_VERSION
 
-COPY OctopusTools.$OCTO_TOOLS_VERSION.portable.portable.tar.gz ./tmp/OctopusTools.portable.tar.gz
+COPY OctopusTools.$OCTO_TOOLS_VERSION.portable.tar.gz ./tmp/OctopusTools.portable.tar.gz
 
 RUN tar -zxvf /tmp/OctopusTools.$OCTO_TOOLS_VERSION.portable.tar.gz -C /octo &&\
 	rm /tmp/OctopusTools.$OCTO_TOOLS_VERSION.portable.tar.gz
