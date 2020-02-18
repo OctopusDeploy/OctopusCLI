@@ -1,8 +1,5 @@
 FROM mcr.microsoft.com/dotnet/core/runtime:3.1-alpine
 
-#alpine doesnt have curl installed
-#RUN apk add --no-cache curl
-
 # Alpine base image does not have ICU libraries available
 # https://github.com/dotnet/corefx/blob/master/Documentation/architecture/globalization-invariant-mode.md
 RUN apk add --no-cache icu-libs
@@ -19,15 +16,14 @@ RUN mkdir /octo &&\
         
 ARG OCTO_TOOLS_VERSION=4.31.1
 
-LABEL maintainer="devops@octopus.com" \
-        octopus.dockerfile.version="1.0" \
-        octopus.tools.version=$OCTO_TOOLS_VERSION
+LABEL maintainer="devops@octopus.com"
+LABEL octopus.dockerfile.version="1.0"
+LABEL octopus.tools.version=$OCTO_TOOLS_VERSION
 
+COPY OctopusTools.$OCTO_TOOLS_VERSION.portable.portable.tar.gz ./tmp/OctopusTools.portable.tar.gz
 
-ADD https://download.octopusdeploy.com/octopus-tools/$OCTO_TOOLS_VERSION/OctopusTools.$OCTO_TOOLS_VERSION.portable.tar.gz /tmp
 RUN tar -zxvf /tmp/OctopusTools.$OCTO_TOOLS_VERSION.portable.tar.gz -C /octo &&\
 	rm /tmp/OctopusTools.$OCTO_TOOLS_VERSION.portable.tar.gz
-
 
 WORKDIR /src
 ENTRYPOINT ["dotnet", "/octo/octo.dll"]

@@ -5,6 +5,7 @@
 #tool "nuget:?package=ILRepack&version=2.0.13"
 #addin "nuget:?package=SharpCompress&version=0.12.4"
 #addin "nuget:?package=Cake.Incubator&version=5.1.0"
+#addin "nuget:?package=Cake.Docker&version=0.10.0"
 
 using SharpCompress;
 using SharpCompress.Common;
@@ -186,8 +187,6 @@ Task("Zip")
     .IsDependentOn("MergeOctoExe")
     .IsDependentOn("DotnetPublish")
     .Does(() => {
-
-
         foreach(var dir in System.IO.Directory.EnumerateDirectories(octoPublishFolder))
         {
             var dirName = System.IO.Path.GetFileName(dir);
@@ -269,6 +268,45 @@ Task("CopyToLocalPackages")
     CopyFileToDirectory($"{artifactsDir}/Octopus.DotNet.Cli.{nugetVersion}.nupkg", localPackagesDir);
 });
 
+Task("AssertDotNetOctoNugetExists")
+    .Does(() =>
+{
+    var file = artifactsDir + $"/OctopusTools.{nugetVersion}.portable.zip";
+    if (!FileExists(file))
+        throw new Exception($"This build requires the portable zip at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
+    file = artifactsDir + $"/OctopusTools.{nugetVersion}.portable.tar.gz";
+    if (!FileExists(file))
+        throw new Exception($"This build requires the portable tar.gz file at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
+});
+
+Task("BuildDockerImage")
+    .IsDependentOn("AssertDotNetOctoNugetExists")
+    .Does(() => 
+{
+    var platform = "nanoserver";
+    var tag = $"octopusdeploy/octo-prerelease:{nugetVersion}-{platform}";
+    var latest = $"octopusdeploy/octo-prerelease:latest-{platform}";
+    if (IsRunningOnUnix())
+    {
+        platform = "alpine";
+    }
+    //assumes logged in
+    DockerBuild(new DockerImageBuildSettings { File = $"Dockerfiles/{platform}/Dockerfile", Tag = new [] { tag, latest }, BuildArg = new [] { $"OCTO_TOOLS_VERSION={nugetVersion}"} }, "artifacts");
+    var stdOut = DockerRun(tag, "version", "--rm");
+    
+    if (stdOut == nugetVersion)
+    {
+        Information("Image successfully created");
+    }
+    else 
+    {
+        throw new Exception($"Built image did not return expected version {nugetVersion} - it returned {stdOut}");
+    }
+    
+    DockerPush(tag);
+    DockerPush(latest);
+});
+
 private void SignBinaries(string path)
 {
     Information($"Signing binaries in {path}");
@@ -285,7 +323,6 @@ private void SignBinaries(string path)
             Password = signingCertificatePassword
     });
 }
-
 
 private void TarGzip(string path, string outputFile)
 {
