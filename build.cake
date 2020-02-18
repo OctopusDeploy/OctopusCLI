@@ -38,7 +38,6 @@ var dotNetOctoCliFolder = "./source/Octopus.DotNet.Cli";
 var dotNetOctoPublishFolder = $"{publishDir}/dotnetocto";
 var dotNetOctoMergedFolder =  $"{publishDir}/dotnetocto-Merged";
 
-GitVersion gitVersionInfo;
 string nugetVersion;
 
 
@@ -47,17 +46,26 @@ string nugetVersion;
 ///////////////////////////////////////////////////////////////////////////////
 Setup(context =>
 {
-     gitVersionInfo = GitVersion(new GitVersionSettings {
-        OutputType = GitVersionOutput.Json
-    });
-    nugetVersion = gitVersionInfo.NuGetVersion;
+    var fromEnv = Context.EnvironmentVariable("GitVersion.NuGetVersion");
+    
+    if (string.IsNullOrEmpty(fromEnv))
+    { 
+        var gitVersionInfo = GitVersion(new GitVersionSettings {
+            OutputType = GitVersionOutput.Json
+        });
+        nugetVersion = gitVersionInfo.NuGetVersion;
+        Information("Building OctopusCli v{0}", nugetVersion);
+        Information("Informational Version {0}", gitVersionInfo.InformationalVersion);
+        Verbose("GitVersion:\n{0}", gitVersionInfo.Dump());
+    }
+    else
+    {
+        nugetVersion = fromEnv;
+        Information("Building OctopusCli v{0}", nugetVersion);
+    }
 
     if(BuildSystem.IsRunningOnTeamCity)
         BuildSystem.TeamCity.SetBuildNumber(nugetVersion);
-
-    Information("Building OctopusCli v{0}", nugetVersion);
-    Information("Informational Version {0}", gitVersionInfo.InformationalVersion);
-    Verbose("GitVersion:\n{0}", gitVersionInfo.Dump());
 });
 
 Teardown(context =>
