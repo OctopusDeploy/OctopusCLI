@@ -297,11 +297,14 @@ private void TarGzip(string path, string outputFile, bool insertUpperCaseOctoWra
     {
         using (var tar = WriterFactory.Open(tarMemStream, ArchiveType.Tar, CompressionType.None, true))
         {
+            // If using a capitalized wrapper, insert it first so it wouldn't overwrite the main payload on a case-insensitive system.
             if (insertUpperCaseOctoWrapper) {
                 tar.Write("Octo", $"{assetDir}/OctoWrapper.sh");
             } else if (insertUpperCaseDotNetWrapper) {
                 tar.Write("Octo", $"{assetDir}/octo");
             }
+
+            // Add the remaining files
             tar.WriteAll(path, "*", SearchOption.AllDirectories);
         }
 
