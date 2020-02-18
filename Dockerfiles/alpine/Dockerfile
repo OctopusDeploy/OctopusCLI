@@ -22,8 +22,8 @@ LABEL octopus.tools.version=$OCTO_TOOLS_VERSION
 
 COPY OctopusTools.$OCTO_TOOLS_VERSION.portable.tar.gz ./tmp/OctopusTools.portable.tar.gz
 
-RUN tar -zxvf /tmp/OctopusTools.$OCTO_TOOLS_VERSION.portable.tar.gz -C /octo &&\
-	rm /tmp/OctopusTools.$OCTO_TOOLS_VERSION.portable.tar.gz
+RUN tar -zxvf /tmp/OctopusTools.portable.tar.gz -C /octo &&\
+	rm /tmp/OctopusTools.portable.tar.gz
 
 WORKDIR /src
 ENTRYPOINT ["dotnet", "/octo/octo.dll"]
