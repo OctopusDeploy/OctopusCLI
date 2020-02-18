@@ -46,7 +46,8 @@ namespace Octopus.Cli.Commands
 
             var executable = AssemblyExtensions.GetExecutableName();
             var commandAttribute = typeInfo.GetCustomAttribute<CommandAttribute>();
-            string commandName = string.Empty;
+            string commandName;
+            var description = string.Empty;
             if (commandAttribute == null)
             {
                 commandName = args.FirstOrDefault();
@@ -54,20 +55,21 @@ namespace Octopus.Cli.Commands
             else
             {
                 commandName = commandAttribute.Name;
+                description = commandAttribute.Description;
             }
 
             commandOutputProvider.PrintMessages = HelpOutputFormat == OutputFormat.Default;
             if (HelpOutputFormat  == OutputFormat.Json)
             {
-                PrintJsonHelpOutput(commandName);
+                PrintJsonHelpOutput(writer, commandName, description);
             }
             else
             {
-                PrintDefaultHelpOutput(writer, executable, commandName);
+                PrintDefaultHelpOutput(writer, executable, commandName, description);
             }
         }
 
-        protected void SetOutputFormat(string s)
+        private void SetOutputFormat(string s)
         {
             OutputFormat = ParseOutputFormat(s);
         }
@@ -83,17 +85,18 @@ namespace Octopus.Cli.Commands
             return Enum.TryParse(s, true, out outputFormat) ? outputFormat : OutputFormat.Default;
         }
 
-        private void PrintDefaultHelpOutput(TextWriter writer, string executable, string commandName)
+        private void PrintDefaultHelpOutput(TextWriter writer, string executable, string commandName, string description)
         {
-            commandOutputProvider.PrintCommandHelpHeader(executable, commandName, writer);
+            commandOutputProvider.PrintCommandHelpHeader(executable, commandName, description, writer);
             commandOutputProvider.PrintCommandOptions(Options, writer);
         }
 
-        private void PrintJsonHelpOutput(string commandName)
+        private void PrintJsonHelpOutput(TextWriter writer, string commandName, string description)
         {
             commandOutputProvider.Json(new
             {
                 Command = commandName,
+                Description = description,
                 Options = Options.OptionSets.OrderByDescending(x => x.Key).Select(g => new
                 {
                     @Group = g.Key,
@@ -106,7 +109,7 @@ namespace Octopus.Cli.Commands
                         p.Description
                     })
                 })
-            });
+            }, writer);
         }
     }
 }

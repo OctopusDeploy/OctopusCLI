@@ -5,6 +5,7 @@ using System.Text;
 using NSubstitute;
 using NUnit.Framework;
 using Octopus.Cli.Repositories;
+using Octopus.Cli.Tests.Helpers;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
@@ -43,8 +44,13 @@ namespace Octo.Tests.Commands
             Log = new LoggerConfiguration()
                 .WriteTo.TextWriter(new StringWriter(LogOutput), outputTemplate: "{Message}{NewLine}{Exception}", formatProvider: new StringFormatter(null))
                 .CreateLogger();
-           
-            RootResource rootDocument = Substitute.For<RootResource>();
+            
+            var consoleWriter = new ConsoleWriter();
+            consoleWriter.WriteEvent += (sender, args) => LogOutput.Append(args.Value);
+            consoleWriter.WriteLineEvent += (sender, args) => LogOutput.AppendLine(args.Value);
+            Console.SetOut(consoleWriter);
+
+            var rootDocument = Substitute.For<RootResource>();
             rootDocument.ApiVersion = "2.0";
             rootDocument.Version = "2.0";
             rootDocument.Links.Add("Tenants", "http://tenants.org");
@@ -75,8 +81,6 @@ namespace Octo.Tests.Commands
                 "--server=http://the-server",
                 "--apiKey=ABCDEF123456789"
             };
-
-
         }
 
         public StringBuilder LogOutput { get; set; }

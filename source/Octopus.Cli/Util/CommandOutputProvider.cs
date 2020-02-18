@@ -32,11 +32,13 @@ namespace Octopus.Cli.Util
             }
         }
        
-        public void PrintCommandHelpHeader(string executable, string commandName, TextWriter textWriter)
+        public void PrintCommandHelpHeader(string executable, string commandName, string description, TextWriter textWriter)
         {
             if (PrintMessages)
             {
                 Console.ResetColor();
+                textWriter.WriteLine(description);
+                textWriter.WriteLine();
                 textWriter.Write("Usage: ");
                 Console.ForegroundColor = ConsoleColor.White;
                 textWriter.WriteLine($"{executable} {commandName} [<options>]");
@@ -96,6 +98,11 @@ namespace Octopus.Cli.Util
         public void Json(object o)
         {
             logger.Information(Octopus.Client.Serialization.JsonSerialization.SerializeObject(o));
+        }
+        
+        public void Json(object o, TextWriter writer)
+        {
+            writer.WriteLine(Octopus.Client.Serialization.JsonSerialization.SerializeObject(o));
         }
 
         public void Warning(string s)

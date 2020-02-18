@@ -12,7 +12,7 @@ namespace Octopus.Cli.Util
 
         void PrintHeader();
 
-        void PrintCommandHelpHeader(string executable, string commandName, TextWriter textWriter);
+        void PrintCommandHelpHeader(string executable, string commandName, string description, TextWriter textWriter);
 
         void PrintCommandOptions(Options options, TextWriter textWriter);
 
@@ -25,6 +25,7 @@ namespace Octopus.Cli.Util
         void Information(string template, params object[] propertyValues);
 
         void Json(object o);
+        void Json(object o, TextWriter writer);
         void Warning(string s);
         void Warning(string template, params object[] propertyValues);
         void Error(string template, params object[] propertyValues);
