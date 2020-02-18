@@ -46,7 +46,7 @@ string nugetVersion;
 ///////////////////////////////////////////////////////////////////////////////
 Setup(context =>
 {
-    var fromEnv = Context.EnvironmentVariable("GitVersion.NuGetVersion");
+    var fromEnv = context.EnvironmentVariable("GitVersion.NuGetVersion");
     
     if (string.IsNullOrEmpty(fromEnv))
     { 
@@ -279,12 +279,18 @@ Task("CopyToLocalPackages")
 Task("AssertDotNetOctoNugetExists")
     .Does(() =>
 {
-    var file = artifactsDir + $"/OctopusTools.{nugetVersion}.portable.zip";
-    if (!FileExists(file))
-        throw new Exception($"This build requires the portable zip at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
-    file = artifactsDir + $"/OctopusTools.{nugetVersion}.portable.tar.gz";
-    if (!FileExists(file))
-        throw new Exception($"This build requires the portable tar.gz file at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
+    if (IsRunningOnWindows())
+    {    
+        var file = artifactsDir + $"/OctopusTools.{nugetVersion}.portable.zip";
+        if (!FileExists(file))
+            throw new Exception($"This build requires the portable zip at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
+    } 
+    else
+    {
+        var file = artifactsDir + $"/OctopusTools.{nugetVersion}.portable.tar.gz";
+        if (!FileExists(file))
+            throw new Exception($"This build requires the portable tar.gz file at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
+    }
 });
 
 Task("BuildDockerImage")
