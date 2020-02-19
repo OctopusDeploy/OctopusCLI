@@ -276,7 +276,7 @@ Task("CopyToLocalPackages")
     CopyFileToDirectory($"{artifactsDir}/Octopus.DotNet.Cli.{nugetVersion}.nupkg", localPackagesDir);
 });
 
-Task("AssertDotNetOctoNugetExists")
+Task("AssertPortableArtifactsExists")
     .Does(() =>
 {
     if (IsRunningOnWindows())
@@ -294,23 +294,25 @@ Task("AssertDotNetOctoNugetExists")
 });
 
 Task("BuildDockerImage")
-    .IsDependentOn("AssertDotNetOctoNugetExists")
+    .IsDependentOn("AssertPortableArtifactsExists")
     .Does(() => 
 {
     var platform = "nanoserver";
-    var tag = $"octopusdeploy/octo-prerelease:{nugetVersion}-{platform}";
-    var latest = $"octopusdeploy/octo-prerelease:latest-{platform}";
     if (IsRunningOnUnix())
     {
         platform = "alpine";
     }
-    //assumes logged in
+    var tag = $"octopusdeploy/octo-prerelease:{nugetVersion}-{platform}";
+    var latest = $"octopusdeploy/octo-prerelease:latest-{platform}";
+
     DockerBuild(new DockerImageBuildSettings { File = $"Dockerfiles/{platform}/Dockerfile", Tag = new [] { tag, latest }, BuildArg = new [] { $"OCTO_TOOLS_VERSION={nugetVersion}"} }, "artifacts");
+
+    //test that we can run
     var stdOut = DockerRun(tag, "version", "--rm");
     
     if (stdOut == nugetVersion)
     {
-        Information("Image successfully created");
+        Information($"Image successfully created - running 'docker run {tag} version --rm' returned '{stdOut}'");
     }
     else 
     {
