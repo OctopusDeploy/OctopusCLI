@@ -10,6 +10,9 @@ test -d tmp_usr_bin && rmdir tmp_usr_bin
 # Create executable symlink to include in package
 mkdir tmp_usr_bin && ln -s /opt/octopus/octopuscli/octo tmp_usr_bin/octo || exit 1
 
+# Set permissions
+chmod 755 "$OCTOPUSCLI_BINARIES/octo"
+
 # Create packages
 fpm --version "$VERSION" \
   --name octopuscli \
