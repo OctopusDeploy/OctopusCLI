@@ -1,24 +1,5 @@
 #!/bin/bash
 
-# this is inlined from this dockerfile - https://github.com/OctopusDeploy/OctopusTentacle/blob/master/docker/debian-tools/Dockerfile
-# we should look to pre-build it, so we dont have to waste time during tentacle / octopuscli builds 
-
-apt-get update && apt-get install -y \
-    gnupg1 \ 
-    wget \
-    ruby-dev \
-    gcc \
-    make \
-    ruby \
-    gpgv1 \
-    rpm
-
-rm -rf /var/lib/apt/lists/*
-gem install fpm --no-ri --no-rdoc
-gem install pleaserun
-
-#### end copy from dockerfile  
-
 # Remove existing packages, fpm doesnt like to overwrite
 rm *.{deb,rpm}
 

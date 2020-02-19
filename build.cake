@@ -350,7 +350,7 @@ Task("__CreateLinuxPackages")
             $"artifacts:/app",
             $"artifacts:/out"
         }
-    }, "ubuntu:bionic", "/build/create-linux-packages.sh");
+    }, "octopusdeploy/bionic-fpm:latest", "/build/create-linux-packages.sh");
 
     var buildSystem = BuildSystemAliases.BuildSystem(Context);
     buildSystem.TeamCity.PublishArtifacts("artifactsDir/*.deb");
