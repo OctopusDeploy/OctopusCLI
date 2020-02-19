@@ -11,7 +11,7 @@ test -d tmp_usr_bin && rmdir tmp_usr_bin
 mkdir tmp_usr_bin && ln -s /opt/octopus/octopuscli/octo tmp_usr_bin/octo || exit 1
 
 # Create packages
-fpm --version $VERSION \
+fpm --version "$VERSION" \
   --name octopuscli \
   --input-type dir \
   --output-type deb \
@@ -26,10 +26,10 @@ fpm --version $VERSION \
   --depends 'libkrb5-3' \
   --depends 'zlib1g' \
   --depends 'libicu52 | libicu55 | libicu57 | libicu60 | libicu63' \
-  $OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli \
+  "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli" \
   tmp_usr_bin/=/usr/bin/
 
-fpm --version $VERSION \
+fpm --version "$VERSION" \
   --name octopuscli \
   --input-type dir \
   --output-type rpm \
@@ -37,6 +37,6 @@ fpm --version $VERSION \
   --vendor 'Octopus Deploy' \
   --url 'https://octopus.com/' \
   --description 'Command line tool for Octopus Deploy' \
-  $OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli
+  "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli"
 
 mv -f *.{deb,rpm} $ARTIFACTS
