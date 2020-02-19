@@ -206,7 +206,9 @@ Task("Zip")
                     Zip(dir, outFile + ".zip");
 
                 if(!dirName.Contains("win"))
-                    TarGzip(dir, outFile);
+                    TarGzip(dir, outFile,
+                        insertCapitalizedOctoWrapper: dirName.Contains("linux"),
+                        insertCapitalizedDotNetWrapper: dirName == "portable");
             }
         }
     });
@@ -287,7 +289,7 @@ private void SignBinaries(string path)
 }
 
 
-private void TarGzip(string path, string outputFile)
+private void TarGzip(string path, string outputFile, bool insertCapitalizedOctoWrapper = false, bool insertCapitalizedDotNetWrapper = false)
 {
     var outFile = $"{outputFile}.tar.gz";
     Information("Creating TGZ file {0} from {1}", outFile, path);
@@ -295,6 +297,14 @@ private void TarGzip(string path, string outputFile)
     {
         using (var tar = WriterFactory.Open(tarMemStream, ArchiveType.Tar, CompressionType.None, true))
         {
+            // If using a capitalized wrapper, insert it first so it wouldn't overwrite the main payload on a case-insensitive system.
+            if (insertCapitalizedOctoWrapper) {
+                tar.Write("Octo", $"{assetDir}/OctoWrapper.sh");
+            } else if (insertCapitalizedDotNetWrapper) {
+                tar.Write("Octo", $"{assetDir}/octo");
+            }
+
+            // Add the remaining files
             tar.WriteAll(path, "*", SearchOption.AllDirectories);
         }
 
