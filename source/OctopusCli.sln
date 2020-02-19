@@ -21,6 +21,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Octopus.DotNet.Cli", "Octop
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Octopus.Cli", "Octopus.Cli\Octopus.Cli.csproj", "{627462FB-2E70-4F9C-ACC9-8CF84BF6C196}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{994AA337-0E3B-44C3-83F8-0E6C5D3AA007}"
+ProjectSection(SolutionItems) = preProject
+	..\Dockerfiles\Readme.md = ..\Dockerfiles\Readme.md
+EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Alpine", "Alpine", "{32A3C564-207A-43DB-9588-27AFAF846C1A}"
+ProjectSection(SolutionItems) = preProject
+	..\Dockerfiles\alpine\Dockerfile = ..\Dockerfiles\alpine\Dockerfile
+EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NanoServer", "NanoServer", "{0E7214DA-B46B-4C56-A535-B5341080295E}"
+ProjectSection(SolutionItems) = preProject
+	..\Dockerfiles\nanoserver\Dockerfile = ..\Dockerfiles\nanoserver\Dockerfile
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,5 +98,9 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FD0E320F-79AC-4489-9508-C62497C629D3}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{32A3C564-207A-43DB-9588-27AFAF846C1A} = {994AA337-0E3B-44C3-83F8-0E6C5D3AA007}
+		{0E7214DA-B46B-4C56-A535-B5341080295E} = {994AA337-0E3B-44C3-83F8-0E6C5D3AA007}
 	EndGlobalSection
 EndGlobal
