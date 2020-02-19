@@ -24,14 +24,4 @@ fpm --version $VERSION \
   --description 'Command line tool for Octopus Deploy' \
   $OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli
 
-#mkdir octopuscli
-#
-#cp -a $OCTOPUSCLI_BINARIES/. octopuscli/
-#
-#tar czvf octopuscli-$VERSION-linux_x64.tar.gz tentacle
-#
-#mkdir -p $ARTIFACTS
-#
-#cp -f *.tar.gz $ARTIFACTS
-
-cp -f *.{deb,rpm} $ARTIFACTS
+mv -f *.{deb,rpm} $ARTIFACTS
