@@ -347,8 +347,8 @@ Task("__CreateLinuxPackages")
         },
         Volume = new string[] { 
             $"BuildAssets:/build",
-            $"{artifactsDir}:/app",
-            $"{artifactsDir}:/out"
+            $"artifacts:/app",
+            $"artifacts:/out"
         }
     }, "ubuntu:bionic", "/build/create-linux-packages.sh");
 
