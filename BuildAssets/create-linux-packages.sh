@@ -45,7 +45,8 @@ fpm --version "$VERSION" \
   --depends 'krb5-libs' \
   --depends 'zlib' \
   --depends 'libicu' \
-  "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli"
+  "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli" \
+  tmp_usr_bin/=/usr/bin/
 # Omitted from rpm depends due to problems in centos:7... --depends 'lttng-ust'
 
 mv -f *.{deb,rpm} $ARTIFACTS
