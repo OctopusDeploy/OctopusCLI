@@ -337,7 +337,7 @@ Task("BuildDockerImage")
     DockerPush(latest);
 });
 
-Task("__CreateLinuxPackages")
+Task("CreateLinuxPackages")
     .IsDependentOn("AssertLinuxSelfContainedArtifactsExists")
     .Does(() =>
 {
@@ -358,7 +358,7 @@ Task("__CreateLinuxPackages")
             $"{Environment.CurrentDirectory}/artifacts/OctopusTools.{nugetVersion}.linux-x64.extracted:/app",
             $"{Environment.CurrentDirectory}/artifacts:/out"
         }
-    }, "octopusdeploy/bionic-fpm:latest", "/build/create-linux-packages.sh");
+    }, "octopusdeploy/bionic-fpm:latest", "bash /build/create-linux-packages.sh");
     
     DeleteDirectory(artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.extracted", new DeleteDirectorySettings { Recursive = true, Force = true });
 
@@ -369,7 +369,7 @@ Task("__CreateLinuxPackages")
 
 Task("CreateDockerContainerAndLinuxPackages")
     .IsDependentOn("BuildDockerImage")
-    .IsDependentOn("__CreateLinuxPackages");
+    .IsDependentOn("CreateLinuxPackages");
 
 private void SignBinaries(string path)
 {
