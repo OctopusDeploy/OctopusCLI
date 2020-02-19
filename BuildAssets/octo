@@ -7,7 +7,7 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 OCTO_PATH="$( dirname "$SOURCE")/octo.dll"
 if [ "$(basename "$0")" == "Octo" ]; then
-  echo 'Note: The Octo command has been renamed to octo. Redirecting...' >&2
+  echo 'Deprecated: The Octo command has been renamed to octo..' >&2
 fi
 # LTTNG_UST_REGISTER_TIMEOUT=0 is there to work around a bug in docker that causes an assertion violation in dotnet on first launch
 # See https://github.com/dotnet/cli/issues/1582
