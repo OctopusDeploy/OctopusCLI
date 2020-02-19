@@ -359,7 +359,7 @@ Task("__CreateLinuxPackages")
 
 Task("CreateDockerContainerAndLinuxPackages")
     .IsDependentOn("BuildDockerImage")
-    .IsDependentOn("__CreateLinuxPackages")
+    .IsDependentOn("__CreateLinuxPackages");
 
 private void SignBinaries(string path)
 {
