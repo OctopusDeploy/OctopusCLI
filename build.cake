@@ -295,6 +295,14 @@ Task("AssertPortableArtifactsExists")
     }
 });
 
+Task("AssertLinuxSelfContainedArtifactsExists")
+    .Does(() =>
+{
+    var file = artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.tar.gz";
+    if (!FileExists(file))
+        throw new Exception($"This build requires the linux self-contained tar.gz file at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
+});
+
 Task("BuildDockerImage")
     .IsDependentOn("AssertPortableArtifactsExists")
     .Does(() => 
@@ -323,6 +331,30 @@ Task("BuildDockerImage")
     
     DockerPush(tag);
     DockerPush(latest);
+});
+
+Task("__CreateLinuxPackages")
+    .IsDependentOn("AssertLinuxSelfContainedArtifactsExists")
+    .Does(() =>
+{
+    DockerRunWithoutResult(new DockerContainerRunSettings {
+        Rm = true,
+        Tty = true,
+        Env = new string[] { 
+            $"VERSION={nugetVersion}",
+            "OCTOPUSCLI_BINARIES=/app/",
+            "ARTIFACTS=/out"
+        },
+        Volume = new string[] { 
+            $"BuildAssets:/build",
+            $"{artifactsDir}:/app",
+            $"{artifactsDir}:/out"
+        }
+    }, "ubuntu:bionic", "/build/create-linux-packages.sh");
+
+    var buildSystem = BuildSystemAliases.BuildSystem(Context);
+    buildSystem.TeamCity.PublishArtifacts("artifactsDir/*.deb");
+    buildSystem.TeamCity.PublishArtifacts("artifactsDir/*.rpm");
 });
 
 private void SignBinaries(string path)
