@@ -3,13 +3,17 @@
 //////////////////////////////////////////////////////////////////////
 #tool "nuget:?package=GitVersion.CommandLine&version=4.0.0"
 #tool "nuget:?package=ILRepack&version=2.0.13"
-#addin "nuget:?package=SharpCompress&version=0.12.4"
+#addin "nuget:?package=SharpCompress&version=0.24.0"
 #addin "nuget:?package=Cake.Incubator&version=5.1.0"
 #addin "nuget:?package=Cake.Docker&version=0.10.0"
 
 using SharpCompress;
 using SharpCompress.Common;
-using SharpCompress.Writer;
+using SharpCompress.Readers;
+using SharpCompress.Readers.GZip;
+using SharpCompress.Readers.Tar;
+using SharpCompress.Writers;
+using SharpCompress.Writers.Tar;
 using System.Xml;
 using Cake.Incubator;
 using Cake.Incubator.LoggingExtensions;
@@ -337,6 +341,10 @@ Task("__CreateLinuxPackages")
     .IsDependentOn("AssertLinuxSelfContainedArtifactsExists")
     .Does(() =>
 {
+    UnTarGZip(
+        artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.tar.gz",
+        artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.extracted");
+
     DockerRunWithoutResult(new DockerContainerRunSettings {
         Rm = true,
         Tty = true,
@@ -347,10 +355,12 @@ Task("__CreateLinuxPackages")
         },
         Volume = new string[] { 
             $"{Environment.CurrentDirectory}/BuildAssets:/build",
-            $"{Environment.CurrentDirectory}/artifacts:/app",
+            $"{Environment.CurrentDirectory}/artifacts/OctopusTools.{nugetVersion}.linux-x64.extracted:/app",
             $"{Environment.CurrentDirectory}/artifacts:/out"
         }
     }, "octopusdeploy/bionic-fpm:latest", "/build/create-linux-packages.sh");
+    
+    DeleteDirectory(artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.extracted", new DeleteDirectorySettings { Recursive = true, Force = true });
 
     var buildSystem = BuildSystemAliases.BuildSystem(Context);
     buildSystem.TeamCity.PublishArtifacts("artifactsDir/*.deb");
@@ -384,7 +394,7 @@ private void TarGzip(string path, string outputFile, bool insertCapitalizedOctoW
     Information("Creating TGZ file {0} from {1}", outFile, path);
     using (var tarMemStream = new MemoryStream())
     {
-        using (var tar = WriterFactory.Open(tarMemStream, ArchiveType.Tar, CompressionType.None, true))
+        using (var tar = WriterFactory.Open(tarMemStream, ArchiveType.Tar, new TarWriterOptions(CompressionType.None, true)))
         {
             // If using a capitalized wrapper, insert it first so it wouldn't overwrite the main payload on a case-insensitive system.
             if (insertCapitalizedOctoWrapper) {
@@ -406,6 +416,26 @@ private void TarGzip(string path, string outputFile, bool insertCapitalizedOctoW
     Information("Successfully created TGZ file: {0}", outFile);
 }
 
+private void UnTarGZip(string path, string destination)
+{
+    using (var packageStream = new FileStream(path, FileMode.Open, FileAccess.Read))
+    {
+        using (var gzipReader = GZipReader.Open(packageStream))
+        {
+            gzipReader.MoveToNextEntry();
+            using (var compressionStream = (Stream) gzipReader.OpenEntryStream())
+            {
+                using (var reader = (IReader) TarReader.Open(compressionStream))
+                {
+                    while (reader.MoveToNextEntry())
+                    {
+                        reader.WriteEntryToDirectory(destination, new ExtractionOptions {ExtractFullPath = true, Overwrite = true});
+                    }
+                }
+            }
+        }
+    }
+}
 
 
 //////////////////////////////////////////////////////////////////////
