@@ -369,7 +369,6 @@ Task("CreateLinuxPackages")
     var buildSystem = BuildSystemAliases.BuildSystem(Context);
     buildSystem.TeamCity.PublishArtifacts($"{artifactsDir}/OctopusTools.{nugetVersion}.linux-x64.packages.tar.gz");
     DeleteDirectory($"{artifactsDir}/linuxpackages", new DeleteDirectorySettings { Recursive = true, Force = true });
-
 });
 
 Task("CreateDockerContainerAndLinuxPackages")
