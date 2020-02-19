@@ -357,6 +357,10 @@ Task("__CreateLinuxPackages")
     buildSystem.TeamCity.PublishArtifacts("artifactsDir/*.rpm");
 });
 
+Task("CreateDockerContainerAndLinuxPackages")
+    .IsDependentOn("BuildDockerImage")
+    .IsDependentOn("__CreateLinuxPackages")
+
 private void SignBinaries(string path)
 {
     Information($"Signing binaries in {path}");
