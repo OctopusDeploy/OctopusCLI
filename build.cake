@@ -346,9 +346,9 @@ Task("__CreateLinuxPackages")
             "ARTIFACTS=/out"
         },
         Volume = new string[] { 
-            $"BuildAssets:/build",
-            $"artifacts:/app",
-            $"artifacts:/out"
+            $"{Environment.CurrentDirectory}/BuildAssets:/build",
+            $"{Environment.CurrentDirectory}/artifacts:/app",
+            $"{Environment.CurrentDirectory}/artifacts:/out"
         }
     }, "octopusdeploy/bionic-fpm:latest", "/build/create-linux-packages.sh");
 
