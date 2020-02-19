@@ -1,8 +1,16 @@
 #!/bin/bash
 
 # Remove existing packages, fpm doesnt like to overwrite
-rm *.{deb,rpm}
+rm -f *.{deb,rpm}
 
+# Remove build files
+rm -f tmp_usr_bin/octo
+test -d tmp_usr_bin && rmdir tmp_usr_bin
+
+# Create executable symlink to include in package
+mkdir tmp_usr_bin && ln -s /opt/octopus/octopuscli/octo tmp_usr_bin/octo || exit 1
+
+# Create packages
 fpm --version $VERSION \
   --name octopuscli \
   --input-type dir \
@@ -12,7 +20,14 @@ fpm --version $VERSION \
   --url 'https://octopus.com/' \
   --description 'Command line tool for Octopus Deploy' \
   --deb-no-default-config-files \
-  $OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli
+  --depends 'liblttng-ust0' \
+  --depends 'libcurl3 | libcurl4' \
+  --depends 'libssl1.0.0 | libssl1.0.2 | libssl1.1' \
+  --depends 'libkrb5-3' \
+  --depends 'zlib1g' \
+  --depends 'libicu52 | libicu55 | libicu57 | libicu60 | libicu63' \
+  $OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli \
+  tmp_usr_bin/=/usr/bin/
 
 fpm --version $VERSION \
   --name octopuscli \
