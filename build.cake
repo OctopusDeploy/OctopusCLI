@@ -361,10 +361,15 @@ Task("CreateLinuxPackages")
     }, "octopusdeploy/bionic-fpm:latest", "bash /build/create-linux-packages.sh");
     
     DeleteDirectory(artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.extracted", new DeleteDirectorySettings { Recursive = true, Force = true });
-
+ 
+    CreateDirectory($"{artifactsDir}/linuxpackages");
+    MoveFiles(GetFiles($"{artifactsDir}/*.deb"), $"{artifactsDir}/linuxpackages");
+    MoveFiles(GetFiles($"{artifactsDir}/*.rpm"), $"{artifactsDir}/linuxpackages");
+    TarGzip($"{artifactsDir}/linuxpackages", $"{artifactsDir}/OctopusTools.{nugetVersion}.linux-x64.packages");
     var buildSystem = BuildSystemAliases.BuildSystem(Context);
-    buildSystem.TeamCity.PublishArtifacts("artifactsDir/*.deb");
-    buildSystem.TeamCity.PublishArtifacts("artifactsDir/*.rpm");
+    buildSystem.TeamCity.PublishArtifacts($"{artifactsDir}/OctopusTools.{nugetVersion}.linux-x64.packages.tar.gz");
+    DeleteDirectory($"{artifactsDir}/linuxpackages", new DeleteDirectorySettings { Recursive = true, Force = true });
+
 });
 
 Task("CreateDockerContainerAndLinuxPackages")
