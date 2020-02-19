@@ -40,12 +40,12 @@ fpm --version "$VERSION" \
   --vendor 'Octopus Deploy' \
   --url 'https://octopus.com/' \
   --description 'Command line tool for Octopus Deploy' \
-  # Causes problems in centos:7 # --depends 'lttng-ust' \
   --depends 'libcurl' \
   --depends 'openssl-libs' \
   --depends 'krb5-libs' \
   --depends 'zlib' \
   --depends 'libicu' \
   "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli"
+# Omitted from rpm depends due to problems in centos:7... --depends 'lttng-ust'
 
 mv -f *.{deb,rpm} $ARTIFACTS
