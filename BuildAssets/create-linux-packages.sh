@@ -47,6 +47,7 @@ fpm --version "$VERSION" \
   --depends 'libicu' \
   "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli" \
   tmp_usr_bin/=/usr/bin/
-# Omitted from rpm depends due to problems in centos:7... --depends 'lttng-ust'
+# Note: Microsoft recommends dep 'lttng-ust' but it seems to be unavailable in CentOS 7, so we're omitting it for now.
+# As it's related to tracing, hopefully it will not be required for normal usage.
 
 mv -f *.{deb,rpm} $ARTIFACTS
