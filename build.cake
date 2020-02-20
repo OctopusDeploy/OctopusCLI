@@ -365,9 +365,9 @@ Task("CreateLinuxPackages")
     CreateDirectory($"{artifactsDir}/linuxpackages");
     MoveFiles(GetFiles($"{artifactsDir}/*.deb"), $"{artifactsDir}/linuxpackages");
     MoveFiles(GetFiles($"{artifactsDir}/*.rpm"), $"{artifactsDir}/linuxpackages");
-    TarGzip($"{artifactsDir}/linuxpackages", $"{artifactsDir}/OctopusTools.{nugetVersion}.linux-x64.packages");
+    TarGzip($"{artifactsDir}/linuxpackages", $"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}");
     var buildSystem = BuildSystemAliases.BuildSystem(Context);
-    buildSystem.TeamCity.PublishArtifacts($"{artifactsDir}/OctopusTools.{nugetVersion}.linux-x64.packages.tar.gz");
+    buildSystem.TeamCity.PublishArtifacts($"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}.tar.gz");
     DeleteDirectory($"{artifactsDir}/linuxpackages", new DeleteDirectorySettings { Recursive = true, Force = true });
 });
 
