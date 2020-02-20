@@ -13,6 +13,9 @@ mkdir tmp_usr_bin && ln -s /opt/octopus/octopuscli/octo tmp_usr_bin/octo || exit
 # Set permissions
 chmod 755 "$OCTOPUSCLI_BINARIES/octo"
 
+# Exclude Octo legacy wrapper from distribution
+rm -f "$OCTOPUSCLI_BINARIES/Octo"
+
 # Create packages
 fpm --version "$VERSION" \
   --name octopuscli \
