@@ -30,4 +30,4 @@ echo "Adding new packages"
 aptly repo add octopus ./OctopusTools.Packages.linux-x64 || exit 1
 aptly repo show -with-packages octopus || exit 1
 
-aptly publish repo -batch -passphrase "$GPG_PASSPHRASE" octopus s3:$S3_PUBLISH_ENDPOINT: || echo ERROR
+aptly publish repo -batch -passphrase "$GPG_PASSPHRASE" octopus s3:$S3_PUBLISH_ENDPOINT: || exit 1
