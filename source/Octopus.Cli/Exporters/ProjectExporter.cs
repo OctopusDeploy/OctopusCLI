@@ -14,7 +14,7 @@ using Serilog;
 
 namespace Octopus.Cli.Exporters
 {
-    [Exporter("project", "ProjectWithDependencies", Description = "Exports a project as JSON to a file")]
+    [Exporter("project", "ProjectWithDependencies", Description = "Exports a project as JSON to a file.")]
     public class ProjectExporter : BaseExporter
     {
         readonly ActionTemplateRepository actionTemplateRepository;

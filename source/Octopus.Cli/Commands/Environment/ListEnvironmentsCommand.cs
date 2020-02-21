@@ -11,7 +11,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands.Environment
 {
-    [Command("list-environments", Description = "List environments")]
+    [Command("list-environments", Description = "List environments.")]
     public class ListEnvironmentsCommand : ApiCommand, ISupportFormattedOutput
     {
         List<EnvironmentResource> environments;

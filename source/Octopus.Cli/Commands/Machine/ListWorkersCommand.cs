@@ -11,7 +11,7 @@ using Octopus.Client.Model.Endpoints;
 
 namespace Octopus.Cli.Commands.Machine
 {
-    [Command("list-workers", Description = "Lists all workers")]
+    [Command("list-workers", Description = "Lists all workers.")]
     public class ListWorkersCommand : ApiCommand, ISupportFormattedOutput
     {
         readonly HashSet<string> pools = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

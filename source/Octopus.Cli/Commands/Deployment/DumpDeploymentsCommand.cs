@@ -12,7 +12,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands.Deployment
 {
-    [Command("dump-deployments", new string[] {}, Description = "Writes deployments to an XML file that can be imported in Excel")]
+    [Command("dump-deployments", Description = "Writes deployments to an XML file that can be imported in Excel.")]
     public class DumpDeploymentsCommand : ApiCommand
     {
         string filePath;

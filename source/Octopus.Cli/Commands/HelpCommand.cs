@@ -7,7 +7,7 @@ using Octopus.Cli.Util;
 
 namespace Octopus.Cli.Commands
 {
-    [Command("help", "?", "h", Description = "Prints this help text")]
+    [Command("help", "?", "h", Description = "Prints this help text.")]
     public class HelpCommand : CommandBase, ICommand
     {
         readonly ICommandLocator commands;

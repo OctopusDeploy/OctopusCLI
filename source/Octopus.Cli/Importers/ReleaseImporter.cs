@@ -9,7 +9,7 @@ using Serilog;
 
 namespace Octopus.Cli.Importers
 {
-    [Importer("release", "List", Description = "Imports a projects releases from an export file")]
+    [Importer("release", "List", Description = "Imports a projects releases from an export file.")]
     public class ReleaseImporter : BaseImporter
     {
         ValidatedImportSettings validatedImportSettings;

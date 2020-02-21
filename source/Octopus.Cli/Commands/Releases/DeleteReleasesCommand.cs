@@ -11,7 +11,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands.Releases
 {
-    [Command("delete-releases", Description = "Deletes a range of releases")]
+    [Command("delete-releases", Description = "Deletes a range of releases.")]
     public class DeleteReleasesCommand : ApiCommand, ISupportFormattedOutput
     {
         ProjectResource project;

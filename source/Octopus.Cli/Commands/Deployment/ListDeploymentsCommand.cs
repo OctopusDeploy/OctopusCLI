@@ -12,7 +12,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands.Deployment
 {
-    [Command("list-deployments", Description = "List a number of deployments by project, environment or by tenant")]
+    [Command("list-deployments", Description = "List a number of deployments by project, environment or by tenant.")]
     public class ListDeploymentsCommand : ApiCommand, ISupportFormattedOutput
     {
         const int DefaultReturnAmount = 30;

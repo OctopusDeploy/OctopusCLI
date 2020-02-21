@@ -14,7 +14,7 @@ using SemanticVersion = Octopus.Client.Model.SemanticVersion;
 
 namespace Octopus.Cli.Commands.Package
 {
-    [Command("pack", Description = "Creates a package (.nupkg or .zip) from files on disk, without needing a .nuspec or .csproj")]
+    [Command("pack", Description = "Creates a package (.nupkg or .zip) from files on disk, without needing a .nuspec or .csproj.")]
     public class PackCommand : CommandBase, ICommand, ISupportFormattedOutput
     {
         readonly IList<string> authors = new List<string>();

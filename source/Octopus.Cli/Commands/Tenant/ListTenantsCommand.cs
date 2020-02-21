@@ -9,7 +9,7 @@ using Octopus.Client.Model;
 
 namespace Octopus.Cli.Commands.Tenant
 {
-    [Command("list-tenants", Description = "List tenants")]
+    [Command("list-tenants", Description = "List tenants.")]
     public class ListTenantsCommand : ApiCommand, ISupportFormattedOutput 
     {
         List<TenantResource> tenants;

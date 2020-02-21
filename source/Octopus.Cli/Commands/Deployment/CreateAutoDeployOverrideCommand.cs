@@ -12,7 +12,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands.Deployment
 {
-    [Command("create-autodeployoverride", Description = "Override the release that auto deploy will use")]
+    [Command("create-autodeployoverride", Description = "Override the release that auto deploy will use.")]
     public class CreateAutoDeployOverrideCommand : ApiCommand, ISupportFormattedOutput
     {
         EnvironmentResource environment;

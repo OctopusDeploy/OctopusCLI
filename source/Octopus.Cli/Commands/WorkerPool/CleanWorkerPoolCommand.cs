@@ -11,7 +11,7 @@ using Octopus.Client.Model.Endpoints;
 
 namespace Octopus.Cli.Commands.WorkerPool
 {
-    [Command("clean-workerpool", Description = "Cleans all Offline Workers from a WorkerPool")]
+    [Command("clean-workerpool", Description = "Cleans all Offline Workers from a WorkerPool.")]
     public class CleanWorkerPoolCommand : ApiCommand, ISupportFormattedOutput
     {
         string poolName;
