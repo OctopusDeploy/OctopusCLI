@@ -3,7 +3,7 @@
 # Required env vars:
 #export AWS_ACCESS_KEY_ID=$(get_octopusvariable "OctopusToolsAwsAccount.AccessKey")
 #export AWS_SECRET_ACCESS_KEY=$(get_octopusvariable "OctopusToolsAwsAccount.SecretKey")
-#export S3_PUBLISH_ENDPOINT=$(get_octopusvariable "Publish.APT.S3.TargetBucket")
+#export S3_PUBLISH_ENDPOINT=$(get_octopusvariable "Publish.RPM.S3.TargetBucket")
 
 if [ ! -z "${DEBUG}" ]; then
   set -x
