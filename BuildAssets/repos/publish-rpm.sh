@@ -22,6 +22,14 @@ echo "Configuring S3 bucket"
 #aws s3 mb "s3://${S3_PUBLISH_ENDPOINT}" || exit 1
 #aws s3api wait bucket-exists --bucket ${S3_PUBLISH_ENDPOINT} || exit 1
 #aws s3 sync ./rpm-content "s3://${S3_PUBLISH_ENDPOINT}" --acl public-read || exit 1
+echo -e "[octopuscli]
+name=Octopus CLI
+baseurl=https://s3.amazonaws.com/$S3_PUBLISH_ENDPOINT/\$basearch/
+enabled=1
+gpgkey=https://s3.amazonaws.com/$S3_PUBLISH_ENDPOINT/public.key
+gpgcheck=0
+" > octopuscli.repo
+aws s3 cp octopuscli.repo "s3://${S3_PUBLISH_ENDPOINT}/octopuscli.repo" --acl public-read || exit 1
 
 TARGET_DIR="/tmp/$S3_PUBLISH_ENDPOINT"
 
