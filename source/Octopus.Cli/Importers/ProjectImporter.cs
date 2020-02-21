@@ -15,7 +15,7 @@ using Serilog;
 
 namespace Octopus.Cli.Importers
 {
-    [Importer("project", "ProjectWithDependencies", Description = "Imports a project from an export file")]
+    [Importer("project", "ProjectWithDependencies", Description = "Imports a project from an export file.")]
     public class ProjectImporter : BaseImporter
     {
         readonly protected ActionTemplateRepository actionTemplateRepository;

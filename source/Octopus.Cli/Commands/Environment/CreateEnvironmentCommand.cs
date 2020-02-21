@@ -8,7 +8,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands.Environment
 {
-    [Command("create-environment", Description = "Creates a deployment environment")]
+    [Command("create-environment", Description = "Creates a deployment environment.")]
     public class CreateEnvironmentCommand : ApiCommand, ISupportFormattedOutput
     {
         EnvironmentResource env;

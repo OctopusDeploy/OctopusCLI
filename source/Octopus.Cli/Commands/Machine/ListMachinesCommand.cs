@@ -12,7 +12,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands.Machine
 {
-    [Command("list-machines", Description = "Lists all machines")]
+    [Command("list-machines", Description = "Lists all machines.")]
     public class ListMachinesCommand : ApiCommand, ISupportFormattedOutput
     {
         readonly HashSet<string> environments = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

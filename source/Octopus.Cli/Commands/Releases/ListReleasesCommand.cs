@@ -11,7 +11,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands.Releases
 {
-    [Command("list-releases", Description = "List releases by project")]
+    [Command("list-releases", Description = "List releases by project.")]
     public class ListReleasesCommand : ApiCommand, ISupportFormattedOutput
     {
         readonly HashSet<string> projects = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

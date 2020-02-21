@@ -11,7 +11,7 @@ using Serilog;
 
 namespace Octopus.Cli.Exporters
 {
-    [Exporter("release", "List", Description = "Exports either a single release, or multiple releases")]
+    [Exporter("release", "List", Description = "Exports either a single release, or multiple releases.")]
     public class ReleaseExporter : BaseExporter
     {
         public ReleaseExporter(IOctopusAsyncRepository repository, IOctopusFileSystem fileSystem, ILogger log) :

@@ -9,7 +9,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands.Project
 {
-    [Command("create-project", Description = "Creates a project")]
+    [Command("create-project", Description = "Creates a project.")]
     public class CreateProjectCommand : ApiCommand, ISupportFormattedOutput
     {
         ProjectResource project;

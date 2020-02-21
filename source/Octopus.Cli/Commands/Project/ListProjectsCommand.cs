@@ -10,7 +10,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands.Project
 {
-    [Command("list-projects", Description = "Lists all projects")]
+    [Command("list-projects", Description = "Lists all projects.")]
     public class ListProjectsCommand : ApiCommand, ISupportFormattedOutput
     {
         private List<Octopus.Client.Model.ProjectResource> _projectResources;

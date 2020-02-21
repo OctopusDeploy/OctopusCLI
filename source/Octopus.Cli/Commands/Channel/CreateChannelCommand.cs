@@ -10,7 +10,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands.Channel
 {
-    [Command("create-channel", Description = "Creates a channel for a project")]
+    [Command("create-channel", Description = "Creates a channel for a project.")]
     public class CreateChannelCommand : ApiCommand, ISupportFormattedOutput
     {
         public CreateChannelCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider) 

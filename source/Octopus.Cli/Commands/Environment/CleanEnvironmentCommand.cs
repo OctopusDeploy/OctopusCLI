@@ -14,7 +14,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands.Environment
 {
-    [Command("clean-environment", Description = "Cleans all Offline Machines from an Environment")]
+    [Command("clean-environment", Description = "Cleans all Offline Machines from an Environment.")]
     public class CleanEnvironmentCommand : ApiCommand, ISupportFormattedOutput
     {
         string environmentName;
