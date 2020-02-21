@@ -1,8 +1,11 @@
-export GPG_PASSPHRASE=$(get_octopusvariable "Publish.APT.GPG.PassPhrase")
-export AWS_ACCESS_KEY_ID=$(get_octopusvariable "OctopusToolsAwsAccount.AccessKey")
-export AWS_SECRET_ACCESS_KEY=$(get_octopusvariable "OctopusToolsAwsAccount.SecretKey")
-export S3_PUBLISH_ENDPOINT=$(get_octopusvariable "Publish.APT.S3.TargetBucket")
-GPG_PRIVATEKEY=$(get_octopusvariable "Publish.APT.GPG.PrivateKey")
+#!/bin/bash
+
+# Required env vars:
+#export AWS_ACCESS_KEY_ID=$(get_octopusvariable "OctopusToolsAwsAccount.AccessKey")
+#export AWS_SECRET_ACCESS_KEY=$(get_octopusvariable "OctopusToolsAwsAccount.SecretKey")
+#export S3_PUBLISH_ENDPOINT=$(get_octopusvariable "Publish.APT.S3.TargetBucket")
+#export GPG_PRIVATEKEY=$(get_octopusvariable "Publish.APT.GPG.PrivateKey")
+#export GPG_PASSPHRASE=$(get_octopusvariable "Publish.APT.GPG.PassPhrase")
 
 echo "Importing private key"
 echo "$GPG_PRIVATEKEY" | gpg1 --batch --import || exit 1
