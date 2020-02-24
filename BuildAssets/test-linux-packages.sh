@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This script requires environment variables to run:
-#   OCTOPUS_CLI_SERVER, OCTOPUS_CLI_API_KEY, OCTOPUS_EXPECT_ENV
+#   OCTOPUS_CLI_SERVER, OCTOPUS_CLI_API_KEY, OCTOPUS_SPACE, OCTOPUS_EXPECT_ENV
 # You must also supply either:
 #   TEST_QUICK (to skip some distributions)
 # or
@@ -20,7 +20,7 @@ TEST_DEB_SH='
   # Test octo
   octo version || exit
   apt-get --no-install-recommends --yes install ca-certificates >/dev/null || exit
-  OCTO_RESULT="$(octo list-environments --space=Integrations)" || { echo "$OCTO_RESULT"; exit 1; }
+  OCTO_RESULT="$(octo list-environments --space="$OCTOPUS_SPACE")" || { echo "$OCTO_RESULT"; exit 1; }
   echo "$OCTO_RESULT" | grep "$OCTOPUS_EXPECT_ENV" || { echo "Expected environment not found: $OCTOPUS_EXPECT_ENV." >&2; exit 1; }
 '
 
@@ -31,7 +31,7 @@ TEST_RPM_SH='
 
   # Test octo
   octo version || exit
-  OCTO_RESULT="$(octo list-environments --space=Integrations)" || { echo "$OCTO_RESULT"; exit 1; }
+  OCTO_RESULT="$(octo list-environments --space="$OCTOPUS_SPACE")" || { echo "$OCTO_RESULT"; exit 1; }
   echo "$OCTO_RESULT" | grep "$OCTOPUS_EXPECT_ENV" || { echo "Expected environment not found: $OCTOPUS_EXPECT_ENV." >&2; exit 1; }
 '
 
@@ -44,14 +44,14 @@ TEST_RHEL_SH='
 
   # Test octo
   octo version || exit
-  OCTO_RESULT="$(octo list-environments --space=Integrations)" || { echo "$OCTO_RESULT"; exit 1; }
+  OCTO_RESULT="$(octo list-environments --space="$OCTOPUS_SPACE")" || { echo "$OCTO_RESULT"; exit 1; }
   echo "$OCTO_RESULT" | grep "$OCTOPUS_EXPECT_ENV" || { echo "Expected environment not found: $OCTOPUS_EXPECT_ENV." >&2; exit 1; }
 '
 
 test_in_docker () {
   echo "== Testing $1 =="
   docker pull "$1" >/dev/null || exit
-  docker run --rm --volume "$(pwd):/pkgs" --env OCTOPUS_CLI_SERVER --env OCTOPUS_CLI_API_KEY --env OCTOPUS_EXPECT_ENV \
+  docker run --rm --volume "$(pwd):/pkgs" --env OCTOPUS_CLI_SERVER --env OCTOPUS_CLI_API_KEY --env OCTOPUS_SPACE --env OCTOPUS_EXPECT_ENV \
     --env REDHAT_SUBSCRIPTION_USERNAME --env REDHAT_SUBSCRIPTION_PASSWORD "$1" bash -c "$2" || exit
 }
 
