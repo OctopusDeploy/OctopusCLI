@@ -15,7 +15,7 @@ echo "Configuring S3 bucket"
 #aws s3 mb "s3://$S3_PUBLISH_ENDPOINT" || exit 1
 #aws s3api wait bucket-exists --bucket "$S3_PUBLISH_ENDPOINT" || exit 1
 #aws s3 sync ./apt-content "s3://$S3_PUBLISH_ENDPOINT" --acl public-read || exit 1
-aptly config show | jq '.S3PublishEndpoints[env.S3_PUBLISH_ENDPOINT] = {"region": "us-east-1", "bucket": env.S3_PUBLISH_ENDPOINT, "acl": "public-read"}' > ~/.aptly.conf.new 2>&1 || exit
+aptly config show 2>/dev/null | jq '.S3PublishEndpoints[env.S3_PUBLISH_ENDPOINT] = {"region": "us-east-1", "bucket": env.S3_PUBLISH_ENDPOINT, "acl": "public-read"}' > ~/.aptly.conf.new || exit
 mv ~/.aptly.conf.new ~/.aptly.conf || exit
 
 echo "Creating APT repo"

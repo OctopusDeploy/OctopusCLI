@@ -8,8 +8,8 @@ curl -s "http://$S3_PUBLISH_ENDPOINT/tentacle.repo" -o /etc/yum.repos.d/tentacle
 curl -s "http://$S3_PUBLISH_ENDPOINT/octopuscli.repo" -o /etc/yum.repos.d/octopuscli.repo || exit
 
 # Install
-yum --quiet --assumeyes install tentacle || exit
-yum --quiet --assumeyes install octopuscli || exit
+yum --quiet --assumeyes install tentacle 2>&1 || exit
+yum --quiet --assumeyes install octopuscli 2>&1 || exit
 
 # Test
 echo "== Testing Tentacle =="
