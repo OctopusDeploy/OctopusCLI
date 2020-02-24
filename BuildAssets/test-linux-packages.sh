@@ -26,8 +26,7 @@ TEST_DEB_SH='
 
 TEST_RPM_SH='
   # Install octo
-  yum --quiet --assumeyes localinstall /pkgs/octopuscli*.rpm 2>&1 | \
-    { grep -v "NOKEY$\|^Importing GPG\|^ Userid \|^ Fingerprint\|^ From"; exit 0; } || exit
+  yum --quiet --assumeyes localinstall /pkgs/octopuscli*.rpm 2>&1 || exit
 
   # Test octo
   octo version || exit

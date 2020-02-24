@@ -8,7 +8,7 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update --quiet 2 || exit
 apt-get install --no-install-recommends --yes apt-utils >/dev/null 2>&1 || exit # silence debconf warnings
 apt-get install --no-install-recommends --yes gnupg curl software-properties-common >/dev/null || exit
-apt-key adv --fetch-keys "http://$S3_PUBLISH_ENDPOINT/public.key" || exit
+apt-key adv --fetch-keys "http://$S3_PUBLISH_ENDPOINT/public.key" 2>&1 || exit
 add-apt-repository "deb http://$S3_PUBLISH_ENDPOINT/ stretch main" || exit
 apt-get update --quiet 2 || exit
 

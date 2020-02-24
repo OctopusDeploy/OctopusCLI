@@ -8,22 +8,22 @@
 #export GPG_PASSPHRASE=$(get_octopusvariable "Publish.APT.GPG.PassPhrase")
 
 echo "Importing private key"
-echo "$GPG_PRIVATEKEY" | gpg1 --batch --import || exit
-curl -s "https://s3.amazonaws.com/$S3_PUBLISH_ENDPOINT/public.key" | gpg1 --no-default-keyring --keyring trustedkeys.gpg --import || exit
+echo "$GPG_PRIVATEKEY" | gpg1 --batch --import 2>&1 || exit
+curl -s "https://s3.amazonaws.com/$S3_PUBLISH_ENDPOINT/public.key" | gpg1 --no-default-keyring --keyring trustedkeys.gpg --import 2>&1 || exit
 
 echo "Configuring S3 bucket"
 #aws s3 mb "s3://$S3_PUBLISH_ENDPOINT" || exit 1
 #aws s3api wait bucket-exists --bucket "$S3_PUBLISH_ENDPOINT" || exit 1
 #aws s3 sync ./apt-content "s3://$S3_PUBLISH_ENDPOINT" --acl public-read || exit 1
-aptly config show | jq '.S3PublishEndpoints[env.S3_PUBLISH_ENDPOINT] = {"region": "us-east-1", "bucket": env.S3_PUBLISH_ENDPOINT, "acl": "public-read"}' > ~/.aptly.conf.new || exit
+aptly config show | jq '.S3PublishEndpoints[env.S3_PUBLISH_ENDPOINT] = {"region": "us-east-1", "bucket": env.S3_PUBLISH_ENDPOINT, "acl": "public-read"}' > ~/.aptly.conf.new 2>&1 || exit
 mv ~/.aptly.conf.new ~/.aptly.conf || exit
 
 echo "Creating APT repo"
 aptly repo create -distribution=stretch -component=main octopus || exit
 
 echo "Importing from existing APT repo"
-aptly mirror create octopus-mirror "https://s3.amazonaws.com/$S3_PUBLISH_ENDPOINT/" stretch || exit
-aptly mirror update octopus-mirror || exit
+aptly mirror create octopus-mirror "https://s3.amazonaws.com/$S3_PUBLISH_ENDPOINT/" stretch 2>&1 || exit
+aptly mirror update octopus-mirror 2>&1 || exit
 aptly repo import octopus-mirror octopus '$Version' || exit
 
 echo "Adding new packages"
