@@ -14,7 +14,7 @@ TEST_DEB_SH='
   apt-get install --no-install-recommends --yes apt-utils >/dev/null 2>&1 || exit # silence debconf warnings
 
   # Install octo
-  dpkg -i /pkgs/octopuscli*.deb >/dev/null 2>&1 # Silenced and expected to fail
+  dpkg -i /pkgs/octopuscli*.deb >/dev/null 2>&1 # Silenced and expected to fail due to missing deps, which apt can fix
   apt-get --no-install-recommends --yes --fix-broken install >/dev/null 2>&1 || exit
 
   # Test octo
