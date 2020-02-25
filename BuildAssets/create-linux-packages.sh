@@ -44,7 +44,7 @@ fpm --version "$VERSION" \
   --url 'https://octopus.com/' \
   --description 'Command line tool for Octopus Deploy' \
   --depends '( libcurl or libcurl4 )' \
-  --depends 'openssl-libs' \
+  --depends '( openssl-libs or libopenssl1_0_0 )' \
   --depends '( krb5-libs or krb5 )' \
   --depends 'zlib' \
   --depends 'libicu' \
