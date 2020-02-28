@@ -16,7 +16,7 @@ You need:
 Run `Build.cmd` to build, test and package the project. Do this before pushing as it will run the surface area tests as well,
 which require approval on almost every change.
 
-To release to Nuget, tag `master` with the next major, minor or patch number, [TeamCity](https://build.octopushq.com/project.html?projectId=OctopusDeploy_OctopusCLI&tab=projectOverview) will do the rest. Kick off the `Release: OctopusCLI to Octopus3` build again if any of the dependencies fail.
+To release to Nuget, tag `master` with the next major, minor or patch number, [TeamCity](https://build.octopushq.com/project.html?projectId=OctopusDeploy_OctopusCLI&tab=projectOverview) will do the rest. Kick off the `Release: Deploy OctopusCLI` build again if any of the dependencies fail.
 
 Every successful TeamCity build for all branches will be pushed to Feedz.io.
 
