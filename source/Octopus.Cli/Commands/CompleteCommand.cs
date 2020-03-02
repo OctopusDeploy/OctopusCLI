@@ -27,8 +27,9 @@ namespace Octopus.Cli.Commands
                 commandOutputProvider.PrintMessages = OutputFormat == OutputFormat.Default;
                 
                 if (commandLineArguments.Length > 1) throw new CommandException("Unexpected parameters, please specify a single search term.");
-                
-                var suggestions = CommandSuggester.SuggestCommandsFor(commandLineArguments[0], GetCompletionMap());
+
+                var searchTerm = commandLineArguments.Length > 0 ? commandLineArguments.Last() : "";
+                var suggestions = CommandSuggester.SuggestCommandsFor(searchTerm, GetCompletionMap());
                 foreach (var suggestion in suggestions)
                 {
                     commandOutputProvider.Information(suggestion);

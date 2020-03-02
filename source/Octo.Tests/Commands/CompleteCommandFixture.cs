@@ -1,50 +1,63 @@
 using System;
 using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
 using Octopus.Cli.Commands;
 using Octopus.Cli.Infrastructure;
+using Octopus.Cli.Tests.Helpers;
 using Octopus.Cli.Util;
 using Serilog;
 
 namespace Octo.Tests.Commands
 {
     [TestFixture]
-    public class CompleteCommandFixture
+    public class CompleteCommandFixture 
     {
         CompleteCommand completeCommand;
-        StringWriter output;
-        TextWriter originalOutput;
         private ICommandOutputProvider commandOutputProvider;
         private ILogger logger;
+
+        private TextWriter originalOutput;
+        private StringWriter output;
+        private ICommandLocator commandLocator;
 
         [SetUp]
         public void SetUp()
         {
-           originalOutput = Console.Out;
-           output = new StringWriter();
-           Console.SetOut(output);
+            originalOutput = Console.Out;
+            output = new StringWriter();
+            Console.SetOut(output);
 
-           commandOutputProvider = new CommandOutputProvider(logger);
-           ICommandLocator commands = Substitute.For<ICommandLocator>();
-           commands.List().Returns(new []
-           {
-               new CommandAttribute("test"), 
-               new CommandAttribute("list-environments")
-           });
-                   
-           completeCommand = new CompleteCommand(commands, commandOutputProvider);
-           logger = new LoggerConfiguration().WriteTo.TextWriter(output).CreateLogger();
+            commandLocator = Substitute.For<ICommandLocator>();
+            logger = new LoggerConfiguration().WriteTo.TextWriter(output).CreateLogger();
+            commandOutputProvider = new CommandOutputProvider(logger);
+            commandLocator.List().Returns(new []
+            {
+                new CommandAttribute("test"), 
+                new CommandAttribute("list-environments")
+            });
+               
+            completeCommand = new CompleteCommand(commandLocator, commandOutputProvider);
         }
 
         [Test]
-        public void ShouldReturnSubCommandSuggestions()
+        public async Task ShouldReturnSubCommandSuggestions()
         {
-            completeCommand.Execute(new[] { "list" });
+            await completeCommand.Execute(new[] { "list" });
+            
             output.ToString()
                 .Should()
-                .Contain("list-environments");
+                .Contain("list-environments")
+                .And.NotContain("test");
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Console.SetOut(originalOutput);
         }
     }
 }

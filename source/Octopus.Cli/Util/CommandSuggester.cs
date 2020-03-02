@@ -10,8 +10,10 @@ namespace Octopus.Cli.Util
             string words,
             IList<string> completionItems)
         {
-            return completionItems.Where(item =>
-                item.StartsWith(words.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase));
+            return string.IsNullOrWhiteSpace(words)
+                ? completionItems
+                : completionItems.Where(item =>
+                    item.StartsWith(words.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase));
         }
     } 
 }

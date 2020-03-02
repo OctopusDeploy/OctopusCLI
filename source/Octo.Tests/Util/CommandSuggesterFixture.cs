@@ -23,6 +23,9 @@ namespace Octo.Tests.Util
         {
             yield return new TestCaseData("list", new [] {"list-deployments", "list-environments", "list-projects" });
             yield return new TestCaseData("list-e", new [] {"list-environments" });
+            yield return new TestCaseData("", new [] {"list-deployments", "list-environments", "list-projects" });
+            yield return new TestCaseData(null, new [] {"list-deployments", "list-environments", "list-projects" });
+            yield return new TestCaseData("junk", new string[] { });
         }
     }
 }
