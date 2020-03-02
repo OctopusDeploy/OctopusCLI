@@ -1,15 +1,22 @@
 #!/bin/bash
 
-# This script requires environment variables to run:
-#   S3_PUBLISH_ENDPOINT, OCTOPUS_CLI_SERVER, OCTOPUS_CLI_API_KEY, OCTOPUS_SPACE, OCTOPUS_EXPECT_ENV
+if [[ -z "$PUBLISH_LINUX_EXTERNAL" || -z "$OCTOPUS_CLI_SERVER" || -z "$OCTOPUS_CLI_API_KEY" || -z "$OCTOPUS_SPACE" || -z "$OCTOPUS_EXPECT_ENV" ]]; then
+  echo -e 'This script requires the following environment variables to be set:
+  PUBLISH_LINUX_EXTERNAL, OCTOPUS_CLI_SERVER, OCTOPUS_CLI_API_KEY, OCTOPUS_SPACE, OCTOPUS_EXPECT_ENV'
+fi
+
+if [[ "$PUBLISH_LINUX_EXTERNAL" == "true" ]]; then
+  ORIGIN="https://rpm.octopus.com/"
+else
+  ORIGIN="http://prerelease.rpm.octopus.com/"
+fi
 
 # Configure yum
-curl -s "http://$S3_PUBLISH_ENDPOINT/tentacle.repo" -o /etc/yum.repos.d/tentacle.repo || exit
-curl -s "http://$S3_PUBLISH_ENDPOINT/octopuscli.repo" -o /etc/yum.repos.d/octopuscli.repo || exit
+curl --silent "$ORIGIN/tentacle.repo" --output /etc/yum.repos.d/tentacle.repo || exit
+curl --silent "$ORIGIN/octopuscli.repo" --output /etc/yum.repos.d/octopuscli.repo || exit
 
 # Install
-yum --quiet --assumeyes install tentacle 2>&1 || exit
-yum --quiet --assumeyes install octopuscli 2>&1 || exit
+yum --quiet --assumeyes install tentacle octopuscli 2>&1 || exit
 
 # Test
 echo "== Testing Tentacle =="

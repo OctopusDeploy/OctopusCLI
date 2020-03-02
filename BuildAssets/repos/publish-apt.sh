@@ -1,33 +1,50 @@
 #!/bin/bash
 
-# Required env vars:
-#export AWS_ACCESS_KEY_ID=$(get_octopusvariable "OctopusToolsAwsAccount.AccessKey")
-#export AWS_SECRET_ACCESS_KEY=$(get_octopusvariable "OctopusToolsAwsAccount.SecretKey")
-#export S3_PUBLISH_ENDPOINT=$(get_octopusvariable "Publish.APT.S3.TargetBucket")
-#export GPG_PRIVATEKEY=$(get_octopusvariable "Publish.APT.GPG.PrivateKey")
-#export GPG_PASSPHRASE=$(get_octopusvariable "Publish.APT.GPG.PassPhrase")
+if [[ -z "$PUBLISH_LINUX_EXTERNAL" || -z "$PUBLISH_ARTIFACTORY_USERNAME" || -z "$PUBLISH_ARTIFACTORY_PASSWORD" \
+   || -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" ]]; then
+  echo -e 'This script requires the following environment variables to be set:
+  PUBLISH_LINUX_EXTERNAL, PUBLISH_ARTIFACTORY_USERNAME, PUBLISH_ARTIFACTORY_PASSWORD, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY'
+fi
 
-echo "Importing private key"
-echo "$GPG_PRIVATEKEY" | gpg1 --batch --import 2>&1 || exit
-curl -s "https://s3.amazonaws.com/$S3_PUBLISH_ENDPOINT/public.key" | gpg1 --no-default-keyring --keyring trustedkeys.gpg --import 2>&1 || exit
+if [[ "$PUBLISH_LINUX_EXTERNAL" == "true" ]]; then
+  REPO_KEY='apt'
+  BUCKET='apt.octopus.com'
+  ORIGIN="https://$BUCKET"
+else
+  REPO_KEY='apt-prerelease'
+  BUCKET='prerelease.apt.octopus.com'
+  ORIGIN="http://$BUCKET"
+fi
+CURL_USER="$PUBLISH_ARTIFACTORY_USERNAME:$PUBLISH_ARTIFACTORY_PASSWORD"
 
-echo "Configuring S3 bucket"
-#aws s3 mb "s3://$S3_PUBLISH_ENDPOINT" || exit 1
-#aws s3api wait bucket-exists --bucket "$S3_PUBLISH_ENDPOINT" || exit 1
-#aws s3 sync ./apt-content "s3://$S3_PUBLISH_ENDPOINT" --acl public-read || exit 1
-aptly config show 2>/dev/null | jq '.S3PublishEndpoints[env.S3_PUBLISH_ENDPOINT] = {"region": "us-east-1", "bucket": env.S3_PUBLISH_ENDPOINT, "acl": "public-read"}' > ~/.aptly.conf.new || exit
-mv ~/.aptly.conf.new ~/.aptly.conf || exit
+echo "Uploading package to Artifactory"
+PKG=$(ls -1 *.deb | head -n1)
+PKGBN=$(basename "$PKG")
+DISTS=(oldoldstable oldstable stable jessie stretch buster trusty xenial bionic cosmic disco eoan)
+DISTS=$(printf ";deb.distribution=%s" "${DISTS[@]}")
+curl --user "$CURL_USER" --request PUT --upload-file "$PKG" --fail \
+  "https://octopusdeploy.jfrog.io/octopusdeploy/$REPO_KEY/pool/main/${PKGBN:0:1}/${PKGBN/%_*/}/$PKGBN$DISTS;deb.component=main;deb.architecture=amd64" \
+  || exit
 
-echo "Creating APT repo"
-aptly repo create -distribution=stretch -component=main octopus || exit
+echo "Waiting for reindex"
+sleep 5
+# Note: reindex is automatic, but triggering it synchronously provides an indication when it has completed
+curl --user "$CURL_USER" --request POST --fail \
+  "https://octopusdeploy.jfrog.io/octopusdeploy/api/deb/reindex/$REPO_KEY?async=0" || exit
 
-echo "Importing from existing APT repo"
-aptly mirror create octopus-mirror "https://s3.amazonaws.com/$S3_PUBLISH_ENDPOINT/" stretch 2>&1 || exit
-aptly mirror update octopus-mirror 2>&1 || exit
-aptly repo import octopus-mirror octopus '$Version' || exit
+echo "Preparing sync to S3"
+RCLONE_OPTS="--config=/dev/null --verbose --s3-provider=AWS --s3-env-auth=true --s3-region=us-east-1 --s3-acl=public-read"
+RCLONE_SYNC_OPTS=":http: ':s3:$BUCKET' --http-url='https://octopusdeploy.jfrog.io/octopusdeploy/$REPO_KEY' $RCLONE_OPTS \
+  --fast-list --update --use-server-modtime"
+rclone sync $RCLONE_SYNC_OPTS --dry-run --include=*.deb --max-delete=0 \
+  || { echo 'Package deletion detected. Aborting sync to S3 for manual investigation.'; exit 1; }
 
-echo "Adding new packages"
-aptly repo add octopus ./OctopusTools.Packages.linux-x64 || exit
-aptly repo show -with-packages octopus || exit
+echo "Copying new files to S3"
+rclone copy $RCLONE_SYNC_OPTS --ignore-existing || exit
 
-aptly publish repo -batch -passphrase "$GPG_PASSPHRASE" octopus "s3:$S3_PUBLISH_ENDPOINT:" || exit
+echo "Replacing changed files then deleting on S3"
+rclone sync $RCLONE_SYNC_OPTS --delete-after || exit
+
+echo "Asserting current public key on S3"
+curl --silent --fail https://octopusdeploy.jfrog.io/octopusdeploy/api/gpg/key/public \
+  | rclone rcat ":s3:$BUCKET/public.key" $RCLONE_OPTS || exit
