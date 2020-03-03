@@ -2,11 +2,13 @@
 
 if [[ -z "$OCTOPUS_CLI_SERVER" || -z "$OCTOPUS_CLI_API_KEY" || -z "$OCTOPUS_SPACE" || -z "$OCTOPUS_EXPECT_ENV" ]]; then
   echo -e 'This script requires the following environment variables to be set:
-  OCTOPUS_CLI_SERVER, OCTOPUS_CLI_API_KEY, OCTOPUS_SPACE, OCTOPUS_EXPECT_ENV'
+  OCTOPUS_CLI_SERVER, OCTOPUS_CLI_API_KEY, OCTOPUS_SPACE, OCTOPUS_EXPECT_ENV' >&2
+  exit 1
 fi
 if [[ -z "$TEST_QUICK" && ( -z "$REDHAT_SUBSCRIPTION_USERNAME" || -z "$REDHAT_SUBSCRIPTION_PASSWORD" ) ]]; then
   echo -e 'This script requires the environment variables REDHAT_SUBSCRIPTION_USERNAME and REDHAT_SUBSCRIPTION_PASSWORD,
-or TEST_QUICK to skip some distributions.'
+or TEST_QUICK to skip some distributions.' >&2
+  exit 1
 fi
 
 TEST_DEB_SH='
@@ -52,8 +54,8 @@ TEST_RHEL_SH='
 test_in_docker () {
   echo "== Testing $1 =="
   docker pull "$1" >/dev/null || exit
-  docker run --rm --volume "$(pwd):/pkgs" --env OCTOPUS_CLI_SERVER --env OCTOPUS_CLI_API_KEY --env OCTOPUS_SPACE --env OCTOPUS_EXPECT_ENV \
-    --env REDHAT_SUBSCRIPTION_USERNAME --env REDHAT_SUBSCRIPTION_PASSWORD "$1" bash -c "$2" || exit
+  docker run --rm --volume "$(pwd):/pkgs" --env OCTOPUS_CLI_SERVER --env OCTOPUS_CLI_API_KEY --env OCTOPUS_SPACE \
+    --env OCTOPUS_EXPECT_ENV --env REDHAT_SUBSCRIPTION_USERNAME --env REDHAT_SUBSCRIPTION_PASSWORD "$1" bash -c "$2" || exit
 }
 
 test_in_docker debian:stable-slim "$TEST_DEB_SH"
