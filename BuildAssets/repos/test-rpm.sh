@@ -8,9 +8,9 @@ if [[ -z "$PUBLISH_LINUX_EXTERNAL" || -z "$OCTOPUS_CLI_SERVER" || -z "$OCTOPUS_C
 fi
 
 if [[ "$PUBLISH_LINUX_EXTERNAL" == "true" ]]; then
-  ORIGIN="https://rpm.octopus.com/"
+  ORIGIN="https://rpm.octopus.com"
 else
-  ORIGIN="http://prerelease.rpm.octopus.com/"
+  ORIGIN="http://prerelease.rpm.octopus.com"
 fi
 
 # Configure yum
