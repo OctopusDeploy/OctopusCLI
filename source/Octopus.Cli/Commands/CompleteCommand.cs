@@ -23,23 +23,26 @@ namespace Octopus.Cli.Commands
             return Task.Run(() =>
             {
                 Options.Parse(commandLineArguments);
-                
                 commandOutputProvider.PrintMessages = OutputFormat == OutputFormat.Default;
-                
-                if (commandLineArguments.Length > 1) throw new CommandException("Unexpected parameters, please specify a single search term.");
-
-                var searchTerm = commandLineArguments.Length > 0 ? commandLineArguments.Last() : "";
-                var suggestions = CommandSuggester.SuggestCommandsFor(searchTerm, GetCompletionMap());
-                foreach (var suggestion in suggestions)
+                var completionMap = GetCompletionMap();
+                var suggestions = CommandSuggester.SuggestCommandsFor(commandLineArguments, completionMap);
+                foreach (var s in suggestions)
                 {
-                    commandOutputProvider.Information(suggestion);
+                    commandOutputProvider.Information(s);
                 }
             });
         }
 
-        private List<string> GetCompletionMap()
+        private IReadOnlyDictionary<string, string[]> GetCompletionMap()
         {
-            return commands.List().Select(command => command.Name).ToList();
+            var commandMetadatas = commands.List();
+            return commandMetadatas.ToDictionary(
+                c => c.Name,
+                c =>
+                {
+                    var subCommand = (CommandBase) commands.Find(c.Name);
+                    return subCommand.GetOptionNames().ToArray();
+                });
         }
     }
 }
