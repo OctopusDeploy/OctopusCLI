@@ -47,18 +47,18 @@ curl --user "$CURL_USER" --request POST --fail \
   "https://octopusdeploy.jfrog.io/octopusdeploy/api/yum/$REPO_KEY?async=0" || exit
 
 echo "Preparing sync to S3"
-RCLONE_OPTS="--config=/dev/null --verbose --s3-provider=AWS --s3-env-auth=true --s3-region=us-east-1 --s3-acl=public-read"
-RCLONE_SYNC_OPTS=":http: ':s3:$BUCKET' --http-url='https://octopusdeploy.jfrog.io/octopusdeploy/$REPO_KEY' $RCLONE_OPTS \
-  --fast-list --update --use-server-modtime"
-rclone sync $RCLONE_SYNC_OPTS --dry-run --include=*.rpm --max-delete=0 \
-  || { echo 'Package deletion detected. Aborting sync to S3 for manual investigation.'; exit 1; }
+RCLONE_OPTS=(--config=/dev/null --verbose --s3-provider=AWS --s3-env-auth=true --s3-region=us-east-1 --s3-acl=public-read)
+RCLONE_SYNC_OPTS=(:http: ":s3:$BUCKET" --http-url="https://octopusdeploy.jfrog.io/octopusdeploy/$REPO_KEY" "${RCLONE_OPTS[@]}" \
+  --fast-list --update --use-server-modtime)
+rclone sync "${RCLONE_SYNC_OPTS[@]}" --dry-run --include=*.rpm --max-delete=0 \
+  || { echo 'Package deletion predicted. Aborting sync to S3 for manual investigation.'; exit 1; }
 
 echo "Copying new files to S3"
-rclone copy $RCLONE_SYNC_OPTS --ignore-existing || exit
+rclone copy "${RCLONE_SYNC_OPTS[@]}" --ignore-existing || exit
 
 echo "Replacing changed files then deleting on S3"
-rclone sync $RCLONE_SYNC_OPTS --delete-after || exit
+rclone sync "${RCLONE_SYNC_OPTS[@]}" --delete-after || exit
 
 echo "Asserting current public key on S3"
 curl --silent --fail https://octopusdeploy.jfrog.io/octopusdeploy/api/gpg/key/public \
-  | rclone rcat ":s3:$BUCKET/public.key" $RCLONE_OPTS || exit
+  | rclone rcat ":s3:$BUCKET/public.key" "${RCLONE_OPTS[@]}" || exit

@@ -1,11 +1,13 @@
 #!/bin/bash
 
-# This script requires environment variables to run:
-#   OCTOPUS_CLI_SERVER, OCTOPUS_CLI_API_KEY, OCTOPUS_SPACE, OCTOPUS_EXPECT_ENV
-# You must also supply either:
-#   TEST_QUICK (to skip some distributions)
-# or
-#   REDHAT_SUBSCRIPTION_USERNAME, REDHAT_SUBSCRIPTION_PASSWORD (to support RHEL tests)
+if [[ -z "$OCTOPUS_CLI_SERVER" || -z "$OCTOPUS_CLI_API_KEY" || -z "$OCTOPUS_SPACE" || -z "$OCTOPUS_EXPECT_ENV" ]]; then
+  echo -e 'This script requires the following environment variables to be set:
+  OCTOPUS_CLI_SERVER, OCTOPUS_CLI_API_KEY, OCTOPUS_SPACE, OCTOPUS_EXPECT_ENV'
+fi
+if [[ -z "$TEST_QUICK" && ( -z "$REDHAT_SUBSCRIPTION_USERNAME" || -z "$REDHAT_SUBSCRIPTION_PASSWORD" ) ]]; then
+  echo -e 'This script requires the environment variables REDHAT_SUBSCRIPTION_USERNAME and REDHAT_SUBSCRIPTION_PASSWORD,
+or TEST_QUICK to skip some distributions.'
+fi
 
 TEST_DEB_SH='
   # Configure apt
