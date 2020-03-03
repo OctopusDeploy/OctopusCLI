@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -67,6 +68,14 @@ namespace Octopus.Cli.Commands
             {
                 PrintDefaultHelpOutput(writer, executable, commandName, description);
             }
+        }
+
+        public IEnumerable<string> GetOptionNames()
+        {
+            return Options.OptionSets
+                .SelectMany(keyValuePair => keyValuePair.Value)
+                .SelectMany(option => option.Names)
+                .Select(str => $"--{str}");
         }
 
         private void SetOutputFormat(string s)

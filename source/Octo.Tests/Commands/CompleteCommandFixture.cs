@@ -1,13 +1,11 @@
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
 using Octopus.Cli.Commands;
 using Octopus.Cli.Infrastructure;
-using Octopus.Cli.Tests.Helpers;
 using Octopus.Cli.Util;
 using Serilog;
 
@@ -37,27 +35,94 @@ namespace Octo.Tests.Commands
             commandLocator.List().Returns(new []
             {
                 new CommandAttribute("test"), 
-                new CommandAttribute("list-environments")
+                new CommandAttribute("help")
             });
-               
+            commandLocator.Find("help").Returns(new HelpCommand(commandLocator, commandOutputProvider));
+            commandLocator.Find("test").Returns(new TestCommand(commandOutputProvider));
             completeCommand = new CompleteCommand(commandLocator, commandOutputProvider);
         }
 
         [Test]
         public async Task ShouldReturnSubCommandSuggestions()
         {
-            await completeCommand.Execute(new[] { "list" });
+            await completeCommand.Execute(new[] { "he" });
             
             output.ToString()
                 .Should()
-                .Contain("list-environments")
+                .Contain("help")
                 .And.NotContain("test");
         }
 
+        [Test]
+        public async Task ShouldReturnParameterSuggestions()
+        {
+            await completeCommand.Execute(new[] {"test", "--ap"});
+            output.ToString()
+                .Should()
+                .Contain("--apiKey");
+        }
+
+        [Test]
+        public async Task ShouldReturnCommonOptionsWhenSingleEmptyParameter()
+        {
+           await completeCommand.Execute(new[] {"--"});
+           output.ToString()
+               .Should()
+               .Contain("--helpOutputFormat");
+        }
+        
+        [Test]
+        public async Task ShouldReturnOptionSuggestions()
+        {
+           await completeCommand.Execute(new[] {"--helpOut"});
+           output.ToString()
+               .Should()
+               .Contain("--helpOutputFormat")
+               .And.NotContain("--help\n");
+        }
+
+        [Test]
+        public async Task ShouldReturnAllSubCommandsWhenEmptyArguments()
+        {
+           await completeCommand.Execute(new[] {""});
+           output.ToString()
+               .Should()
+               .Contain("help")
+               .And.Contain("test");
+        }
+
+        [Test]
+        public async Task ShouldStopSubCommandCompletionAfterOptionSuggestion()
+        {
+            await completeCommand.Execute(new[] {"test", "--api", "he"});
+            output.ToString()
+                .Should()
+                .BeEmpty();
+        }
+        
         [TearDown]
         public void TearDown()
         {
             Console.SetOut(originalOutput);
+        }
+    }
+
+    [Command("test", Description = "test command")]
+    public class TestCommand : CommandBase, ICommand
+    {
+        public TestCommand(ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
+        {
+            var options = Options.For("Test group");
+            options.Add("apiKey", "api key", v => ApiKey = v);
+            options.Add("url", "url", v => Url = v);
+        }
+
+        public string Url { get; set; }
+
+        public string ApiKey { get; set; }
+        public Task Execute(string[] commandLineArguments)
+        {
+            return Task.Run(() => 0);
         }
     }
 }
