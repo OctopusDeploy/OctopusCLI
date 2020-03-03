@@ -15,7 +15,7 @@ else
   BUCKET='prerelease.rpm.octopus.com'
   ORIGIN="http://$BUCKET"
 fi
-CURL_USER="$PUBLISH_ARTIFACTORY_USERNAME:$PUBLISH_ARTIFACTORY_PASSWORD"
+CURL_UPL_OPTS=(--silent --fail --user "$PUBLISH_ARTIFACTORY_USERNAME:$PUBLISH_ARTIFACTORY_PASSWORD")
 
 echo "Uploading config to Artifactory"
 REPO_BODY="baseurl=$ORIGIN/\$basearch/
@@ -26,24 +26,24 @@ repo_gpgcheck=1
 "
 echo "[tentacle]
 name=Octopus Tentacle
-$REPO_BODY" | curl --user "$CURL_USER" --request PUT --upload-file - --fail \
+$REPO_BODY" | curl "${CURL_UPL_OPTS[@]}" --request PUT --upload-file - \
   "https://octopusdeploy.jfrog.io/octopusdeploy/rpm-prerelease/tentacle.repo" || exit
 echo "[octopuscli]
 name=Octopus CLI
-$REPO_BODY" | curl --user "$CURL_USER" --request PUT --upload-file - --fail \
+$REPO_BODY" | curl "${CURL_UPL_OPTS[@]}" --request PUT --upload-file - \
   "https://octopusdeploy.jfrog.io/octopusdeploy/rpm-prerelease/octopuscli.repo" || exit
 
 echo "Uploading package to Artifactory"
 PKG=$(ls -1 *.rpm | head -n1)
 PKGBN=$(basename "$PKG")
-curl --user "$CURL_USER" --request PUT --upload-file "$PKG" --fail \
+curl "${CURL_UPL_OPTS[@]}" --request PUT --upload-file "$PKG" \
   "https://octopusdeploy.jfrog.io/octopusdeploy/$REPO_KEY/x86_64/$PKGBN" \
   || exit
 
 echo "Waiting for reindex"
 sleep 5
 # Note: reindex is automatic, but triggering it synchronously provides an indication when it has completed
-curl --user "$CURL_USER" --request POST --fail \
+curl "${CURL_UPL_OPTS[@]}" --request POST \
   "https://octopusdeploy.jfrog.io/octopusdeploy/api/yum/$REPO_KEY?async=0" || exit
 
 echo "Preparing sync to S3"

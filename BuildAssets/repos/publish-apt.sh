@@ -15,21 +15,21 @@ else
   BUCKET='prerelease.apt.octopus.com'
   ORIGIN="http://$BUCKET"
 fi
-CURL_USER="$PUBLISH_ARTIFACTORY_USERNAME:$PUBLISH_ARTIFACTORY_PASSWORD"
+CURL_UPL_OPTS=(--silent --fail --user "$PUBLISH_ARTIFACTORY_USERNAME:$PUBLISH_ARTIFACTORY_PASSWORD")
 
 echo "Uploading package to Artifactory"
 PKG=$(ls -1 *.deb | head -n1)
 PKGBN=$(basename "$PKG")
 DISTS=(oldoldstable oldstable stable jessie stretch buster trusty xenial bionic cosmic disco eoan)
 DISTS=$(printf ";deb.distribution=%s" "${DISTS[@]}")
-curl --user "$CURL_USER" --request PUT --upload-file "$PKG" --fail \
+curl "${CURL_UPL_OPTS[@]}" --request PUT --upload-file "$PKG" \
   "https://octopusdeploy.jfrog.io/octopusdeploy/$REPO_KEY/pool/main/${PKGBN:0:1}/${PKGBN/%_*/}/$PKGBN$DISTS;deb.component=main;deb.architecture=amd64" \
   || exit
 
 echo "Waiting for reindex"
 sleep 5
 # Note: reindex is automatic, but triggering it synchronously provides an indication when it has completed
-curl --user "$CURL_USER" --request POST --fail \
+curl "${CURL_UPL_OPTS[@]}" --request POST \
   "https://octopusdeploy.jfrog.io/octopusdeploy/api/deb/reindex/$REPO_KEY?async=0" || exit
 
 echo "Preparing sync to S3"
