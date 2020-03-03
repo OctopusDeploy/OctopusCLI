@@ -10,7 +10,7 @@ namespace Octopus.Cli.Util
             string[] words,
             IReadOnlyDictionary<string, string[]> completionItems)
         {
-            words = words.Except(new[] { "octo", "complete" }).ToArray();
+            words = words.Except(new[] { "octo", "complete" }, StringComparer.OrdinalIgnoreCase).ToArray();
             var numberOfArgs = words.Length;
             var searchTerm = numberOfArgs > 0 ? words.Last() ?? "" : "";
             var suggestions = new List<string>();

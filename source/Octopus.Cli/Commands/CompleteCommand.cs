@@ -23,7 +23,7 @@ namespace Octopus.Cli.Commands
             return Task.Run(() =>
             {
                 Options.Parse(commandLineArguments);
-                commandOutputProvider.PrintMessages = OutputFormat == OutputFormat.Default;
+                commandOutputProvider.PrintMessages = true;
                 var completionMap = GetCompletionMap();
                 var suggestions = CommandSuggester.SuggestCommandsFor(commandLineArguments, completionMap);
                 foreach (var s in suggestions)
