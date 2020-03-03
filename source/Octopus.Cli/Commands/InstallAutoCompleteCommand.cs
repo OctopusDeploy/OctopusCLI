@@ -23,10 +23,12 @@ namespace Octopus.Cli.Commands
     public class InstallAutoCompleteCommand : CommandBase, ICommand
     {
         private readonly IOctopusFileSystem fileSystem;
-        
-        public InstallAutoCompleteCommand(ICommandOutputProvider commandOutputProvider, IOctopusFileSystem fileSystem) : base(commandOutputProvider)
+        private readonly IShellCommandExecutor shellCommandExecutor;
+
+        public InstallAutoCompleteCommand(ICommandOutputProvider commandOutputProvider, IOctopusFileSystem fileSystem, IShellCommandExecutor shellCommandExecutor) : base(commandOutputProvider)
         {
             this.fileSystem = fileSystem;
+            this.shellCommandExecutor = shellCommandExecutor;
 
             var options = Options.For("Install AutoComplete");
             options.Add("shell=",
@@ -71,7 +73,6 @@ namespace Octopus.Cli.Commands
 
         private void Install(string profilePath, string scriptToInject, ProcessStartInfo commandOnComplete)
         {
-            
             commandOutputProvider.Information($"Installing scripts in {profilePath}");
             var tempOutput = new StringBuilder();
             if (fileSystem.FileExists(profilePath))
@@ -111,7 +112,7 @@ namespace Octopus.Cli.Commands
             else
             {
                 fileSystem.OverwriteFile(profilePath, tempOutput.ToString());
-                Process.Start(commandOnComplete);
+                shellCommandExecutor.Execute(commandOnComplete);
                 commandOutputProvider.Information("All done, start using autocomplete by using your tab key!");
                 commandOutputProvider.Information("");
             }
@@ -122,7 +123,7 @@ namespace Octopus.Cli.Commands
             Install(
                 UserProfileHelper.BashProfile, 
                 UserProfileHelper.BashProfileScript, 
-                new ProcessStartInfo("bash", $"-c \"source {UserProfileHelper.BashProfile}\""));
+                new ProcessStartInfo("/usr/bin/bash", $"-c \"source {UserProfileHelper.BashProfile}\""));
         }
 
         private void InstallForZsh()
@@ -181,6 +182,19 @@ complete -F _octo_bash_complete octo";
             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? PwshProfileLocationWindows
                 : PwshProfileLocationNix;
+        }
+    }
+
+    public interface IShellCommandExecutor
+    {
+        void Execute(ProcessStartInfo processStartInfo);
+    }
+
+    public class ShellCommandExecutor : IShellCommandExecutor
+    {
+        public void Execute(ProcessStartInfo processStartInfo)
+        {
+            Process.Start(processStartInfo);
         }
     }
 }
