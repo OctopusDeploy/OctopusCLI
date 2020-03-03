@@ -61,5 +61,5 @@ echo "Replacing changed files then deleting on S3"
 rclone sync "${RCLONE_SYNC_OPTS[@]}" --delete-after 2>&1 || exit
 
 echo "Asserting current public key on S3"
-curl --silent --show-error --fail https://octopusdeploy.jfrog.io/octopusdeploy/api/gpg/key/public \
+curl --location --silent --show-error --fail https://octopusdeploy.jfrog.io/octopusdeploy/api/gpg/key/public \
   | rclone rcat ":s3:$BUCKET/public.key" "${RCLONE_OPTS[@]}" 2>&1 || exit

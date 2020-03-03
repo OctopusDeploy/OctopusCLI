@@ -14,8 +14,8 @@ else
 fi
 
 # Configure yum
-curl --silent --show-error --fail "$ORIGIN/tentacle.repo" --output /etc/yum.repos.d/tentacle.repo || exit
-curl --silent --show-error --fail "$ORIGIN/octopuscli.repo" --output /etc/yum.repos.d/octopuscli.repo || exit
+curl --location --silent --show-error --fail "$ORIGIN/tentacle.repo" --output /etc/yum.repos.d/tentacle.repo || exit
+curl --location --silent --show-error --fail "$ORIGIN/octopuscli.repo" --output /etc/yum.repos.d/octopuscli.repo || exit
 
 # Install
 yum --quiet --assumeyes install tentacle octopuscli 2>&1 || exit
