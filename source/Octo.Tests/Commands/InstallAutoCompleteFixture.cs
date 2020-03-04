@@ -13,15 +13,13 @@ namespace Octo.Tests.Commands
         private InstallAutoCompleteCommand installAutoCompleteCommand;
         private ICommandOutputProvider commandOutputProvider;
         private IOctopusFileSystem fileSystem;
-        private IShellCommandExecutor shellCommandExecutor;
 
         [SetUp]
         public void SetUp()
         {
             fileSystem = Substitute.For<IOctopusFileSystem>();
             commandOutputProvider = Substitute.For<ICommandOutputProvider>();
-            shellCommandExecutor = Substitute.For<IShellCommandExecutor>();
-            installAutoCompleteCommand = new InstallAutoCompleteCommand(commandOutputProvider, fileSystem, shellCommandExecutor);
+            installAutoCompleteCommand = new InstallAutoCompleteCommand(commandOutputProvider, fileSystem);
         }
         
         [Test]
@@ -29,16 +27,8 @@ namespace Octo.Tests.Commands
         {
             await installAutoCompleteCommand.Execute(new[] {"--shell=zsh"});
             var zshProfile = UserProfileHelper.ZshProfile;
-            ExpectFileUpdatedAndProfileSourced();
-
-            void ExpectFileUpdatedAndProfileSourced()
-            {
-                fileSystem.Received()
-                    .OverwriteFile(zshProfile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.ZshProfileScript)));
-                shellCommandExecutor.Received()
-                    .Execute(Arg.Is<ProcessStartInfo>(psi =>
-                        psi.FileName == "/usr/bin/zsh" && psi.Arguments == $"-c \"source {UserProfileHelper.ZshProfile}\""));
-            }
+            fileSystem.Received()
+                .OverwriteFile(zshProfile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.ZshProfileScript)));
         }
 
         [Test]
@@ -47,33 +37,18 @@ namespace Octo.Tests.Commands
             await installAutoCompleteCommand.Execute(new[] {"--shell=pwsh"});
             var profile = UserProfileHelper.GetPwshProfileForOperatingSystem();
             
-            ExpectFileUpdatedAndProfileSourced();
-
-            void ExpectFileUpdatedAndProfileSourced()
-            {
-                fileSystem.Received()
-                    .OverwriteFile(profile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.PwshProfileScript)));
-                shellCommandExecutor.Received()
-                    .Execute(Arg.Is<ProcessStartInfo>(psi =>
-                        psi.FileName == "powershell" && psi.Arguments == "-c \". $PROFILE\""));
-            }
+            fileSystem.Received()
+                .OverwriteFile(profile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.PwshProfileScript)));
         }
 
         [Test]
         public async Task ShouldSupportBourneAgainShell()
         {
             await installAutoCompleteCommand.Execute(new[] {"--shell=bash"});
-            ExpectFileUpdatedAndProfileSourced();
 
-            void ExpectFileUpdatedAndProfileSourced()
-            {
-                fileSystem.Received()
-                    .OverwriteFile(UserProfileHelper.BashProfile,
-                        Arg.Is<string>(arg => arg.Contains(UserProfileHelper.BashProfileScript)));
-                shellCommandExecutor.Received()
-                    .Execute(Arg.Is<ProcessStartInfo>(psi =>
-                        psi.FileName == "/usr/bin/bash" && psi.Arguments == $"-c \"source {UserProfileHelper.BashProfile}\""));
-            }
+            fileSystem.Received()
+                .OverwriteFile(UserProfileHelper.BashProfile,
+                    Arg.Is<string>(arg => arg.Contains(UserProfileHelper.BashProfileScript)));
         }
 
         [Test]
@@ -105,14 +80,6 @@ namespace Octo.Tests.Commands
         {
             await installAutoCompleteCommand.Execute(new[] {"--shell=zsh", "--dryRun"});
             commandOutputProvider.Received().Information(Arg.Is<string>(arg => arg.Contains(UserProfileHelper.ZshProfileScript)));
-        }
-
-        [Test]
-        public async Task ShouldExecuteDotSourcingWhenFinishedUpdatingProfile()
-        {
-            await installAutoCompleteCommand.Execute(new[] {"--shell=zsh"});
-            
-            
         }
     }
 }

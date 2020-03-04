@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using Autofac;
-using Octopus.Cli.Commands;
 using Octopus.Cli.Commands.Releases;
 using Octopus.Cli.Diagnostics;
 using Octopus.Cli.Exporters;
@@ -96,7 +95,6 @@ namespace Octopus.Cli
             builder.RegisterType<OctopusRepositoryFactory>().As<IOctopusAsyncRepositoryFactory>();
 
             builder.RegisterType<OctopusPhysicalFileSystem>().As<IOctopusFileSystem>();
-            builder.RegisterType<ShellCommandExecutor>().As<IShellCommandExecutor>();            
             return builder.Build();
         }
 
