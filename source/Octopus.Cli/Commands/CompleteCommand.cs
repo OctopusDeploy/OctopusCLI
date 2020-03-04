@@ -8,7 +8,7 @@ using Octopus.Cli.Util;
 
 namespace Octopus.Cli.Commands
 {
-    [Command("complete", Description = "Find the most likely subcommand completion based on a partial subcommand.")]
+    [Command("complete", Description = "Supports command line auto completion.")]
     public class CompleteCommand : CommandBase, ICommand
     {
         private ICommandLocator commands;
