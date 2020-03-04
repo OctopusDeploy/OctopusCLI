@@ -15,13 +15,14 @@ namespace Octopus.Cli.Util
             var searchTerm = numberOfArgs > 0 ? words.Last() ?? "" : "";
             var suggestions = new List<string>();
             var isOptionSearch = searchTerm.StartsWith("--");
-
+            var allSubCommands = completionItems.Keys.ToList();
+            
             if (isOptionSearch)
             {
                 var hasSubCommand = numberOfArgs > 1;
                 var subCommandName =
                     hasSubCommand
-                        ? words.Where(IsSubCommand).Last()
+                        ? words.Where(w => IsSubCommand(w, allSubCommands)).Last()
                         : "help"; // HelpCommand is a suitable fallback
                 
                 if (completionItems.TryGetValue(subCommandName, out var options))
@@ -32,7 +33,7 @@ namespace Octopus.Cli.Util
                             .ToList());
                 }
             }
-            else if (words.Where(IsSubCommand).Count() <= 1)
+            else if (words.Where(w => IsSubCommand(w, allSubCommands)).Count() <= 1)
             {
                 suggestions.AddRange(completionItems.Keys.Where(s =>
                     s.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase)));
@@ -41,10 +42,11 @@ namespace Octopus.Cli.Util
             return suggestions;
         }
         
-        private static bool IsSubCommand(string arg)
+        private static bool IsSubCommand(string arg, List<string> subCommandList)
         {
             if (arg == null) return false;
-            return !arg.StartsWith("--");
+            if (arg.StartsWith("--")) return false;
+            return subCommandList.Contains(arg);
         }
     } 
 }

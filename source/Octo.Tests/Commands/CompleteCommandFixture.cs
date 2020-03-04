@@ -94,12 +94,12 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldStopSubCommandCompletionAfterOptionSuggestion()
         {
-            await completeCommand.Execute(new[] {"test", "--api", "he"});
+            await completeCommand.Execute(new[] {"test", "--api", "API-KEY", "--u"});
             output.ToString()
                 .Should()
-                .BeEmpty();
+                .Contain("--url");
         }
-        
+
         [TearDown]
         public void TearDown()
         {
