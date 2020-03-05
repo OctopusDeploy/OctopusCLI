@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
+using NSubstitute.Extensions;
 using NUnit.Framework;
+using Octopus.Cli.Commands;
 using Octopus.Cli.Commands.Releases;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
@@ -30,7 +33,7 @@ namespace Octo.Tests.Commands
                 Name = "Test Project",
                 SpaceId = "Spaces-1"
             };
-            Repository.Projects.FindByNameOrIdOrFail(projectResource.Name).Returns(projectResource);
+            Repository.Projects.FindByName(projectResource.Name).Returns(projectResource);
 
             releaseResource = new ReleaseResource
             {
@@ -40,6 +43,28 @@ namespace Octo.Tests.Commands
                 Version = "0.0.1"
             };
             Repository.Projects.GetReleaseByVersion(projectResource, releaseResource.Version).Returns(releaseResource);
+        }
+
+        [Test]
+        public void ShouldBeSubClassOfCorrectBaseClass()
+        {
+            typeof(PreventReleaseProgressionCommand).IsSubclassOf(typeof(ApiCommand)).Should().BeTrue();
+        }
+
+        [Test]
+        public void ShouldImplementCorrectInterface()
+        {
+            typeof(ISupportFormattedOutput).IsAssignableFrom(typeof(PreventReleaseProgressionCommand)).Should().BeTrue();
+        }
+
+        [Test]
+        public void ShouldBeAttachedWithCorrectAttribute()
+        {
+            var attribute = typeof(PreventReleaseProgressionCommand).GetCustomAttribute<CommandAttribute>();
+
+            attribute.Should().NotBeNull();
+
+            attribute.Name.Should().Be(PreventReleaseProgressionCommand.CommandName);
         }
 
         [Test]
@@ -75,6 +100,19 @@ namespace Octo.Tests.Commands
                 .WithMessage("Please specify a release version");
         }
 
+        [TestCase("version")]
+        [TestCase("releaseNumber")]
+        public async Task ShouldSupportBothReleaseNumberAndVersionArgForReleaseVersionNumberProperty(string argName)
+        {
+            CommandLineArgs.Add($"--project={projectResource.Name}");
+            CommandLineArgs.Add($"--{argName}={releaseResource.Version}");
+            CommandLineArgs.Add($"--reason={ReasonToPrevent}");
+
+            await preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
+
+            preventReleaseProgressionCommand.ReleaseVersionNumber.Should().Be(releaseResource.Version);
+        }
+
         [Test]
         public async Task ShouldPreventReleaseProgressionCorrectly()
         {
@@ -83,7 +121,13 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add($"--reason={ReasonToPrevent}");
 
             await preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
-            
+
+            preventReleaseProgressionCommand.ProjectNameOrId.Should().Be(projectResource.Name);
+            preventReleaseProgressionCommand.ReleaseVersionNumber.Should().Be(releaseResource.Version);
+            preventReleaseProgressionCommand.ReasonToPrevent.Should().Be(ReasonToPrevent);
+
+            await Repository.Projects.Received(1).FindByName(projectResource.Name);
+            await Repository.Projects.Received(1).GetReleaseByVersion(projectResource, releaseResource.Version);
             await Repository.Defects.Received(1).RaiseDefect(releaseResource, ReasonToPrevent);
         }
 
