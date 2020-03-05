@@ -11,6 +11,13 @@ or TEST_QUICK to skip some distributions.' >&2
   exit 1
 fi
 
+TEST_SH='
+  # Test octo
+  octo version || exit
+  OCTO_RESULT="$(octo list-environments --space="$OCTOPUS_SPACE")" || { echo "$OCTO_RESULT"; exit 1; }
+  echo "$OCTO_RESULT" | grep "$OCTOPUS_EXPECT_ENV" || { echo "Expected environment not found: $OCTOPUS_EXPECT_ENV." >&2; exit 1; }
+'
+
 TEST_DEB_SH='
   # Configure apt
   export DEBIAN_FRONTEND=noninteractive
@@ -20,36 +27,25 @@ TEST_DEB_SH='
   # Install octo
   dpkg -i /pkgs/octopuscli*.deb >/dev/null 2>&1 # Silenced and expected to fail due to missing deps, which apt can fix
   apt-get --no-install-recommends --yes --fix-broken install >/dev/null 2>&1 || exit
-
-  # Test octo
-  octo version || exit
   apt-get --no-install-recommends --yes install ca-certificates >/dev/null || exit
-  OCTO_RESULT="$(octo list-environments --space="$OCTOPUS_SPACE")" || { echo "$OCTO_RESULT"; exit 1; }
-  echo "$OCTO_RESULT" | grep "$OCTOPUS_EXPECT_ENV" || { echo "Expected environment not found: $OCTOPUS_EXPECT_ENV." >&2; exit 1; }
-'
+'"$TEST_SH"
 
 TEST_RPM_SH='
+if [[ $(. /etc/os-release && echo $ID) != "rhel" ]]; then
   # Install octo
   yum --quiet --assumeyes localinstall /pkgs/octopuscli*.rpm 2>&1 || exit
-
-  # Test octo
-  octo version || exit
-  OCTO_RESULT="$(octo list-environments --space="$OCTOPUS_SPACE")" || { echo "$OCTO_RESULT"; exit 1; }
-  echo "$OCTO_RESULT" | grep "$OCTOPUS_EXPECT_ENV" || { echo "Expected environment not found: $OCTOPUS_EXPECT_ENV." >&2; exit 1; }
-'
-
-TEST_RHEL_SH='
+else
   # Install octo
   subscription-manager register --username "$REDHAT_SUBSCRIPTION_USERNAME" \
-    --password "$REDHAT_SUBSCRIPTION_PASSWORD" --auto-attach >/dev/null 2>&1
+    --password "$REDHAT_SUBSCRIPTION_PASSWORD" --auto-attach >/dev/null 2>&1 || exit
   yum --quiet --assumeyes localinstall /pkgs/octopuscli*.rpm >/dev/null 2>&1
-  subscription-manager unsubscribe --all >/dev/null 2>&1
-
-  # Test octo
-  octo version || exit
-  OCTO_RESULT="$(octo list-environments --space="$OCTOPUS_SPACE")" || { echo "$OCTO_RESULT"; exit 1; }
-  echo "$OCTO_RESULT" | grep "$OCTOPUS_EXPECT_ENV" || { echo "Expected environment not found: $OCTOPUS_EXPECT_ENV." >&2; exit 1; }
-'
+  STATUS=$?
+  subscription-manager unsubscribe --all >/dev/null 2>&1 || exit
+  if [[ $STATUS -ne 0 ]]; then
+    exit $STATUS
+  fi
+fi
+'"$TEST_SH"
 
 test_in_docker () {
   echo "== Testing $1 =="
@@ -68,9 +64,10 @@ fi
 test_in_docker fedora:latest "$TEST_RPM_SH"
 test_in_docker debian:oldstable-slim "$TEST_DEB_SH"
 test_in_docker ubuntu:rolling "$TEST_DEB_SH"
-test_in_docker centos:7 "$TEST_RPM_SH"
-test_in_docker debian:oldoldstable-slim "$TEST_DEB_SH"
-test_in_docker ubuntu:xenial "$TEST_DEB_SH"
 test_in_docker linuxmintd/mint19.3-amd64 "$TEST_DEB_SH"
-test_in_docker roboxes/rhel8 "$TEST_RHEL_SH"
-test_in_docker roboxes/rhel7 "$TEST_RHEL_SH"
+test_in_docker centos:7 "$TEST_RPM_SH"
+test_in_docker ubuntu:xenial "$TEST_DEB_SH"
+test_in_docker roboxes/rhel8 "$TEST_RPM_SH"
+test_in_docker debian:oldoldstable-slim "$TEST_DEB_SH"
+test_in_docker ubuntu:trusty "$TEST_DEB_SH"
+test_in_docker roboxes/rhel7 "$TEST_RPM_SH"
