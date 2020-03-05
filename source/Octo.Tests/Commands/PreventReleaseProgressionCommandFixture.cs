@@ -3,12 +3,11 @@ using System.Reflection;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
-using NSubstitute.Extensions;
 using NUnit.Framework;
 using Octopus.Cli.Commands;
 using Octopus.Cli.Commands.Releases;
 using Octopus.Cli.Infrastructure;
-using Octopus.Cli.Util;
+using Octopus.Client.Exceptions;
 using Octopus.Client.Model;
 using Octopus.Client.Serialization;
 
@@ -64,7 +63,7 @@ namespace Octo.Tests.Commands
 
             attribute.Should().NotBeNull();
 
-            attribute.Name.Should().Be(PreventReleaseProgressionCommand.CommandName);
+            attribute.Name.Should().Be("prevent-release-progression");
         }
 
         [Test]
@@ -111,6 +110,20 @@ namespace Octo.Tests.Commands
             await preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
 
             preventReleaseProgressionCommand.ReleaseVersionNumber.Should().Be(releaseResource.Version);
+        }
+
+        [Test]
+        public void ShouldThrowCorrectException_WhenReleaseIssNotFound()
+        {
+            Repository.Projects.GetReleaseByVersion(projectResource, releaseResource.Version).Returns((ReleaseResource) null);
+
+            CommandLineArgs.Add($"--project={projectResource.Name}");
+            CommandLineArgs.Add($"--version={releaseResource.Version}");
+            CommandLineArgs.Add($"--reason={ReasonToPrevent}");
+
+            Func<Task> exec = () => preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
+
+            exec.ShouldThrow<OctopusResourceNotFoundException>();
         }
 
         [Test]
