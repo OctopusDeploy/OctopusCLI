@@ -110,6 +110,7 @@ namespace Octo.Tests.Commands
             await preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
 
             preventReleaseProgressionCommand.ReleaseVersionNumber.Should().Be(releaseResource.Version);
+            await Repository.Projects.Received(1).GetReleaseByVersion(projectResource, preventReleaseProgressionCommand.ReleaseVersionNumber);
         }
 
         [Test]
@@ -149,7 +150,7 @@ namespace Octo.Tests.Commands
         {
             preventReleaseProgressionCommand.PrintDefaultOutput();
             
-            LogOutput.ToString().Trim().Should().Be("Prevented Successfully.");
+            LogOutput.ToString().Trim().Should().Be("Prevented successfully.");
         }
 
         [Test]
@@ -167,7 +168,7 @@ namespace Octo.Tests.Commands
             {
                 projectResource.SpaceId,
                 Project = new { projectResource.Id, projectResource.Name },
-                Release = new { releaseResource.Id, releaseResource.Version },
+                Release = new { releaseResource.Id, releaseResource.Version, IsPreventedFromProgressing = true },
                 ReasonToPrevent
             });
 

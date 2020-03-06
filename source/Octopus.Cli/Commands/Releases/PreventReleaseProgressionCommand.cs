@@ -52,7 +52,7 @@ namespace Octopus.Cli.Commands.Releases
 
         public void PrintDefaultOutput()
         {
-            commandOutputProvider.Information("Prevented Successfully.");
+            commandOutputProvider.Information("Prevented successfully.");
         }
 
         public void PrintJsonOutput()
@@ -61,7 +61,7 @@ namespace Octopus.Cli.Commands.Releases
             {
                 project.SpaceId,
                 Project = new { project.Id, project.Name },
-                Release = new { release.Id, release.Version },
+                Release = new { release.Id, release.Version, IsPreventedFromProgressing = true },
                 ReasonToPrevent
             });
         }
