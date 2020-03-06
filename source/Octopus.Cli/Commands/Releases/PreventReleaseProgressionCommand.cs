@@ -45,7 +45,7 @@ namespace Octopus.Cli.Commands.Releases
             project = await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
 
             release = await Repository.Projects.GetReleaseByVersion(project, ReleaseVersionNumber).ConfigureAwait(false);
-            if (release == null) throw new OctopusResourceNotFoundException($"unable to locate a release with version/release number '${ReleaseVersionNumber}'.");
+            if (release == null) throw new OctopusResourceNotFoundException($"Unable to locate a release with version/release number '${ReleaseVersionNumber}'.");
             
             await Repository.Defects.RaiseDefect(release, ReasonToPrevent).ConfigureAwait(false);
         }
