@@ -37,10 +37,10 @@ if [[ $(. /etc/os-release && echo $ID) != "rhel" ]]; then
 else
   # Install octo
   subscription-manager register --username "$REDHAT_SUBSCRIPTION_USERNAME" \
-    --password "$REDHAT_SUBSCRIPTION_PASSWORD" --auto-attach >/dev/null 2>&1 || exit
-  yum --quiet --assumeyes localinstall /pkgs/octopuscli*.rpm >/dev/null 2>&1
+    --password "$REDHAT_SUBSCRIPTION_PASSWORD" --auto-attach >/dev/null 2>&1 || { echo "Red Hat subscribe problem." >&2; exit 1; }
+  yum --quiet --assumeyes localinstall /pkgs/octopuscli*.rpm 2>&1 >/dev/null
   STATUS=$?
-  subscription-manager unsubscribe --all >/dev/null 2>&1 || exit
+  subscription-manager unsubscribe --all >/dev/null 2>&1 || { echo "Red Hat unsubscribe problem." >&2; exit 1; }
   if [[ $STATUS -ne 0 ]]; then
     exit $STATUS
   fi
