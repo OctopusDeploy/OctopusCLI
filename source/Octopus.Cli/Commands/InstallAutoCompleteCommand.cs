@@ -89,12 +89,12 @@ namespace Octopus.Cli.Commands
                     var backupPath = profilePath + ".orig";
                     commandOutputProvider.Warning($"Backing up to {backupPath}");
                     fileSystem.CopyFile(profilePath, backupPath);
-                }
 
-                if (profileText.Contains(UserProfileHelper.AllShellsPrefix) || profileText.Contains(UserProfileHelper.AllShellsSuffix) || profileText.Contains(scriptToInject))
-                {
-                    commandOutputProvider.Information("Looks like this is already installed. Bailing out.");
-                    return;
+                    if (profileText.Contains(UserProfileHelper.AllShellsPrefix) || profileText.Contains(UserProfileHelper.AllShellsSuffix) || profileText.Contains(scriptToInject))
+                    {
+                        commandOutputProvider.Information("Looks like this is already installed. Bailing out.");
+                        return;
+                    }
                 }
 
                 commandOutputProvider.Information($"Updating profile at {profilePath}");
