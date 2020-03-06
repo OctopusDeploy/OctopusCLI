@@ -35,7 +35,7 @@ namespace Octopus.Cli.Commands
             }
         }
 
-        protected Options Options { get; } = new Options();
+        protected internal Options Options { get; } = new Options();
 
         public OutputFormat OutputFormat { get; set; }
 
@@ -68,14 +68,6 @@ namespace Octopus.Cli.Commands
             {
                 PrintDefaultHelpOutput(writer, executable, commandName, description);
             }
-        }
-
-        public IEnumerable<string> GetOptionNames()
-        {
-            return Options.OptionSets
-                .SelectMany(keyValuePair => keyValuePair.Value)
-                .SelectMany(option => option.Names)
-                .Select(str => $"--{str}");
         }
 
         private void SetOutputFormat(string s)
