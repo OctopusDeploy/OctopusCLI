@@ -31,6 +31,7 @@ namespace Octopus.Cli.Commands.Releases
         {
             if (string.IsNullOrWhiteSpace(ProjectNameOrId)) throw new CommandException("Please specify a project name or ID using the parameter: --project=XYZ");
             if (string.IsNullOrWhiteSpace(ReleaseVersionNumber)) throw new CommandException("Please specify a release version");
+            if (!SemanticVersion.TryParse(ReleaseVersionNumber, out _)) throw new CommandException("Invalid release version format, please refer to https://semver.org/ for a valid format.");
 
             await base.ValidateParameters().ConfigureAwait(false);
         }

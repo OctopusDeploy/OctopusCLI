@@ -71,7 +71,7 @@ namespace Octo.Tests.Commands
         [TestCase(null)]
         [TestCase("")]
         [TestCase("    ")]
-        public void ShouldValidateProjectIdOrNameParameter(string projectIdOrName)
+        public void ShouldValidateProjectIdOrNameParameterForMissing(string projectIdOrName)
         {
             CommandLineArgs.Add($"--project={projectIdOrName}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
@@ -84,7 +84,7 @@ namespace Octo.Tests.Commands
         [TestCase(null)]
         [TestCase("")]
         [TestCase("    ")]
-        public void ShouldValidateReleaseVersionNumberParameter(string releaseVersionNumber)
+        public void ShouldValidateReleaseVersionNumberParameterForMissing(string releaseVersionNumber)
         {
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseVersionNumber}");
@@ -92,6 +92,19 @@ namespace Octo.Tests.Commands
             Func<Task> exec = () => unblockReleaseCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
                 .WithMessage("Please specify a release version");
+        }
+
+        [TestCase("abcdef666")]
+        [TestCase("a.23.c")]
+        [TestCase("1.f.b")]
+        public void ShouldValidateReleaseVersionNumberParameterForFormat(string releaseVersionNumber)
+        {
+            CommandLineArgs.Add($"--project={projectResource.Name}");
+            CommandLineArgs.Add($"--version={releaseVersionNumber}");
+
+            Func<Task> exec = () => unblockReleaseCommand.Execute(CommandLineArgs.ToArray());
+            exec.ShouldThrow<CommandException>()
+                .WithMessage("Invalid release version format, please refer to https://semver.org/ for a valid format.");
         }
 
         [TestCase("version")]
@@ -108,7 +121,7 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void ShouldThrowCorrectException_WhenReleaseIsNotFound()
+        public void ShouldThrowCorrectException_WhenReleaseNotFound()
         {
             Repository.Projects.GetReleaseByVersion(projectResource, releaseResource.Version).Returns((ReleaseResource)null);
 

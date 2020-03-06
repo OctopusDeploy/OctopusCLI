@@ -69,7 +69,7 @@ namespace Octo.Tests.Commands
         [TestCase(null)]
         [TestCase("")]
         [TestCase("    ")]
-        public void ShouldValidateProjectIdOrNameParameter(string projectIdOrName)
+        public void ShouldValidateProjectIdOrNameParameterForMissing(string projectIdOrName)
         {
             CommandLineArgs.Add($"--project={projectIdOrName}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
@@ -83,7 +83,7 @@ namespace Octo.Tests.Commands
         [TestCase(null)]
         [TestCase("")]
         [TestCase("    ")]
-        public void ShouldValidateReasonToPreventParameter(string reasonToPrevent)
+        public void ShouldValidateReasonToPreventParameterForMissing(string reasonToPrevent)
         {
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
@@ -97,7 +97,7 @@ namespace Octo.Tests.Commands
         [TestCase(null)]
         [TestCase("")]
         [TestCase("    ")]
-        public void ShouldValidateReleaseVersionNumberParameter(string releaseVersionNumber)
+        public void ShouldValidateReleaseVersionNumberParameterForMissing(string releaseVersionNumber)
         {
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--reason={ReasonToPrevent}");
@@ -106,6 +106,20 @@ namespace Octo.Tests.Commands
             Func<Task> exec = () => preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
                 .WithMessage("Please specify a release version");
+        }
+
+        [TestCase("abc")]
+        [TestCase("a.b.c")]
+        [TestCase("1.3.b")]
+        public void ShouldValidateReleaseVersionNumberParameterForFormat(string releaseVersionNumber)
+        {
+            CommandLineArgs.Add($"--project={projectResource.Name}");
+            CommandLineArgs.Add($"--reason={ReasonToPrevent}");
+            CommandLineArgs.Add($"--version={releaseVersionNumber}");
+
+            Func<Task> exec = () => preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
+            exec.ShouldThrow<CommandException>()
+                .WithMessage("Invalid release version format, please refer to https://semver.org/ for a valid format.");
         }
 
         [TestCase("version")]
@@ -123,7 +137,7 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void ShouldThrowCorrectException_WhenReleaseIsNotFound()
+        public void ShouldThrowCorrectException_WhenReleaseNotFound()
         {
             Repository.Projects.GetReleaseByVersion(projectResource, releaseResource.Version).Returns((ReleaseResource)null);
 
