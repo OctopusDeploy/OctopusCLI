@@ -19,7 +19,7 @@ namespace Octopus.Cli.Commands
         Bash,
     }
     
-    [Command(name: "install-autocomplete", Description = "Install a shell auto-complete script into your shell profile, if they aren't already there. Supports Powershell (pwsh), Z Shell (zsh), Bourne Again Shell (bash) & Friendly Interactive Shell (fish).")]
+    [Command(name: "install-autocomplete", Description = "Install a shell auto-complete script into your shell profile, if they aren't already there. Valid values are pwsh, zsh and bash.")]
     public class InstallAutoCompleteCommand : CommandBase, ICommand
     {
         private readonly IOctopusFileSystem fileSystem;
