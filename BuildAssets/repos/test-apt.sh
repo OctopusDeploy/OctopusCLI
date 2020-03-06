@@ -13,12 +13,14 @@ else
   ORIGIN="http://prerelease.apt.octopus.com"
 fi
 
-# Configure apt
-echo "## Configuring apt"
+# Configure docker environment
 export DEBIAN_FRONTEND=noninteractive
 apt-get update --quiet 2 || exit
 apt-get install --no-install-recommends --yes apt-utils >/dev/null 2>&1 || exit # silence debconf warnings
 
+# The following should be kept in sync with our documented download instructions (but more automated and quieter).
+
+echo "## Configuring apt"
 DIST=$({ grep --perl --no-filename --only-matching --no-messages \
   '^deb\s+(\[[^\]#]*?\]\s+)?[^\s#]+(debian|ubuntu)[^\s#]*\s+\K\w+' /etc/apt/sources.list /etc/apt/sources.list.d/* \
   | sort | uniq --count | sort --reverse --numeric; echo 0 stable; } | awk '{ print $2; exit; }')
@@ -27,10 +29,9 @@ curl --silent --show-error --fail --location "$ORIGIN/public.key" | APT_KEY_DONT
 echo "deb $ORIGIN/ $DIST main" > /etc/apt/sources.list.d/octopus.com.list || exit
 apt-get update --quiet 2 || exit
 
-# Install
+echo "## Installing tentacle, octopuscli"
 apt-get install --no-install-recommends --yes tentacle octopuscli >/dev/null || exit
 
-# Test
 echo "## Testing Tentacle"
 /opt/octopus/tentacle/Tentacle version || exit
 echo

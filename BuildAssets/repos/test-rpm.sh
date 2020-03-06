@@ -13,22 +13,20 @@ else
   ORIGIN="http://prerelease.rpm.octopus.com"
 fi
 
-# Configure yum
+# The following should be kept in sync with our documented download instructions (but more automated and quieter).
+
 echo "## Configuring yum"
 curl --silent --show-error --fail --location "$ORIGIN/tentacle.repo" --output /etc/yum.repos.d/tentacle.repo || exit
 curl --silent --show-error --fail --location "$ORIGIN/octopuscli.repo" --output /etc/yum.repos.d/octopuscli.repo || exit
 
 echo "## Installing tentacle, octopuscli"
 if [[ $(. /etc/os-release && echo $ID) != "rhel" ]]; then
-  # Install
   yum --quiet --assumeyes install tentacle octopuscli 2>&1 || exit
 else
   if [[ -z "$REDHAT_SUBSCRIPTION_USERNAME" || -z "$REDHAT_SUBSCRIPTION_PASSWORD" ]]; then
     echo -e 'Unable to test in RHEL without environment variables: REDHAT_SUBSCRIPTION_USERNAME, REDHAT_SUBSCRIPTION_PASSWORD.' >&2
     exit 1
   fi
-
-  # Install
   subscription-manager register --username "$REDHAT_SUBSCRIPTION_USERNAME" \
     --password "$REDHAT_SUBSCRIPTION_PASSWORD" --auto-attach >/dev/null 2>&1 || { echo "Red Hat subscribe problem." >&2; exit 1; }
   yum --quiet --assumeyes install tentacle octopuscli 2>&1 >/dev/null
@@ -39,7 +37,6 @@ else
   fi
 fi
 
-# Test
 echo "## Testing Tentacle"
 /opt/octopus/tentacle/Tentacle version || exit
 echo
