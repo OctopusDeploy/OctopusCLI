@@ -66,9 +66,12 @@ namespace Octo.Tests.Commands
             attribute.Name.Should().Be("prevent-release-progression");
         }
 
-        [Test]
-        public void ShouldValidateProjectIdOrNameParameter()
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("    ")]
+        public void ShouldValidateProjectIdOrNameParameter(string projectIdOrName)
         {
+            CommandLineArgs.Add($"--project={projectIdOrName}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
             CommandLineArgs.Add($"--reason={ReasonToPrevent}");
 
@@ -77,22 +80,28 @@ namespace Octo.Tests.Commands
                 .WithMessage("Please specify a project name or ID using the parameter: --project=XYZ");
         }
 
-        [Test]
-        public void ShouldValidateReasonToPreventParameter()
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("    ")]
+        public void ShouldValidateReasonToPreventParameter(string reasonToPrevent)
         {
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
+            CommandLineArgs.Add($"--reason={reasonToPrevent}");
 
             Func<Task> exec = () => preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
                 .WithMessage("Please specify a reason why you would like to prevent this release from progressing to next phase");
         }
 
-        [Test]
-        public void ShouldValidateReleaseVersionNumberParameter()
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("    ")]
+        public void ShouldValidateReleaseVersionNumberParameter(string releaseVersionNumber)
         {
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--reason={ReasonToPrevent}");
+            CommandLineArgs.Add($"--version={releaseVersionNumber}");
 
             Func<Task> exec = () => preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
@@ -116,7 +125,7 @@ namespace Octo.Tests.Commands
         [Test]
         public void ShouldThrowCorrectException_WhenReleaseIssNotFound()
         {
-            Repository.Projects.GetReleaseByVersion(projectResource, releaseResource.Version).Returns((ReleaseResource) null);
+            Repository.Projects.GetReleaseByVersion(projectResource, releaseResource.Version).Returns((ReleaseResource)null);
 
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
@@ -149,7 +158,7 @@ namespace Octo.Tests.Commands
         public void ShouldPrintDefaultOutputCorrectly()
         {
             preventReleaseProgressionCommand.PrintDefaultOutput();
-            
+
             LogOutput.ToString().Trim().Should().Be("Prevented successfully.");
         }
 

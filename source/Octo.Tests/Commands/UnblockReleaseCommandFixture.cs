@@ -68,9 +68,12 @@ namespace Octo.Tests.Commands
             attribute.Aliases.Should().Contain("resume-release-progression");
         }
 
-        [Test]
-        public void ShouldValidateProjectIdOrNameParameter()
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("    ")]
+        public void ShouldValidateProjectIdOrNameParameter(string projectIdOrName)
         {
+            CommandLineArgs.Add($"--project={projectIdOrName}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
 
             Func<Task> exec = () => unblockReleaseCommand.Execute(CommandLineArgs.ToArray());
@@ -78,10 +81,13 @@ namespace Octo.Tests.Commands
                 .WithMessage("Please specify a project name or ID using the parameter: --project=XYZ");
         }
 
-        [Test]
-        public void ShouldValidateReleaseVersionNumberParameter()
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("    ")]
+        public void ShouldValidateReleaseVersionNumberParameter(string releaseVersionNumber)
         {
             CommandLineArgs.Add($"--project={projectResource.Name}");
+            CommandLineArgs.Add($"--version={releaseVersionNumber}");
 
             Func<Task> exec = () => unblockReleaseCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
