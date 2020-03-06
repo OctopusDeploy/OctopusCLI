@@ -60,7 +60,7 @@ namespace Octo.Tests.Commands
                 }
             }
 
-            invalidCommandTypes.Should().BeEmpty($"Each command which is a subclass of '{nameof(ApiCommand)}' class must only either override virtual '{methodName}' method Or implement {nameof(ISupportFormattedOutput)} interface with '{nameof(CommandAttribute)}'. " +
+            invalidCommandTypes.Should().BeEmpty($"Each command which is a subclass of '{nameof(ApiCommand)}' class must only either override virtual '{methodName}' method Or implement {nameof(ISupportFormattedOutput)} interface. " +
                                                  $"The following command classes: ({string.Join(", ", invalidCommandTypes)}) may require your attention.");
         }
     }
