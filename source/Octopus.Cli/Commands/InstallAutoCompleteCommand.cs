@@ -86,15 +86,15 @@ namespace Octopus.Cli.Commands
                 var profileText = fileSystem.ReadAllText(profilePath);
                 if (!DryRun)
                 {
-                    var backupPath = profilePath + ".orig";
-                    commandOutputProvider.Warning($"Backing up to {backupPath}");
-                    fileSystem.CopyFile(profilePath, backupPath);
-
                     if (profileText.Contains(UserProfileHelper.AllShellsPrefix) || profileText.Contains(UserProfileHelper.AllShellsSuffix) || profileText.Contains(scriptToInject))
                     {
                         commandOutputProvider.Information("Looks like this is already installed. Bailing out.");
                         return;
                     }
+                    
+                    var backupPath = profilePath + ".orig";
+                    commandOutputProvider.Warning($"Backing up to {backupPath}");
+                    fileSystem.CopyFile(profilePath, backupPath);
                 }
 
                 commandOutputProvider.Information($"Updating profile at {profilePath}");
