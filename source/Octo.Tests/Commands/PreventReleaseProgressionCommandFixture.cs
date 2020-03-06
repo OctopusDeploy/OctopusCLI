@@ -123,7 +123,7 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void ShouldThrowCorrectException_WhenReleaseIssNotFound()
+        public void ShouldThrowCorrectException_WhenReleaseIsNotFound()
         {
             Repository.Projects.GetReleaseByVersion(projectResource, releaseResource.Version).Returns((ReleaseResource)null);
 
