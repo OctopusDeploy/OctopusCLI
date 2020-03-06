@@ -56,7 +56,7 @@ namespace Octopus.Cli.Commands.Releases
             {
                 project.SpaceId,
                 Project = new { project.Id, project.Name },
-                Release = new { release.Id, release.Version, IsPreventedFromProgressing = false },
+                Release = new { release.Id, release.Version, IsPreventedFromProgressing = false }
             });
         }
     }
