@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using NSubstitute;
 using NUnit.Framework;
@@ -31,14 +34,64 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public async Task ShouldSupportPowershell()
+        public async Task ShouldSupportPwsh()
         {
             await installAutoCompleteCommand.Execute(new[] {"--shell=pwsh"});
-            var profile = UserProfileHelper.GetPwshProfileForOperatingSystem();
+            var profile = UserProfileHelper.PwshProfile;
             
             fileSystem.Received()
                 .OverwriteFile(profile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.PwshProfileScript)));
         }
+#if NETFRAMEWORK        
+        [Test]
+        public async Task ShouldSupportPowershell()
+        {
+            await installAutoCompleteCommand.Execute(new[] {"--shell=powershell"});
+            var profile = UserProfileHelper.PowershellProfile;
+
+            fileSystem.Received()
+                .OverwriteFile(profile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.PwshProfileScript)));
+        }
+#endif        
+#if NETCOREAPP
+        [Test]
+        public async Task ShouldPreventInstallationOfPowershellOnLinux()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                try
+                {
+                    await installAutoCompleteCommand.Execute(new[] {"--shell=powershell"});
+                }
+                catch (NotSupportedException)
+                {
+                    Assert.Pass();
+                }
+                Assert.Fail($"Expected a {nameof(NotSupportedException)}");
+            }
+            else
+            {
+                Assert.Ignore("This test doesn't run on windows environments.");
+            }
+        }
+
+        [Test]
+        public async Task ShouldAllowInstallationOfPowershellOnWindows()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                await installAutoCompleteCommand.Execute(new[] {"--shell=powershell"});
+                var profile = UserProfileHelper.PowershellProfile;
+
+                fileSystem.Received()
+                    .OverwriteFile(profile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.PwshProfileScript)));
+            }
+            else
+            {
+                Assert.Ignore("This test doesn't run on non-windows environments.");
+            }
+        }
+#endif
 
         [Test]
         public async Task ShouldSupportBourneAgainShell()
@@ -63,6 +116,22 @@ namespace Octo.Tests.Commands
             void SetupMockExistingProfileFile()
             {
                 fileSystem.FileExists(UserProfileHelper.BashProfile).Returns(true);
+            }
+        }
+
+        [Test]
+        public async Task ShouldEnsureProfileDirectoryExists()
+        {
+            SetupMockNoProfileFile();
+
+            await installAutoCompleteCommand.Execute(new[] {"--shell=bash"});
+            
+            fileSystem.Received()
+                .EnsureDirectoryExists(Path.GetDirectoryName(UserProfileHelper.BashProfile));
+
+            void SetupMockNoProfileFile()
+            {
+                fileSystem.FileExists(UserProfileHelper.BashProfile).Returns(false);
             }
         }
 

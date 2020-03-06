@@ -14,12 +14,14 @@ namespace Octopus.Cli.Commands
 {
     public enum SupportedShell
     {
+        Unspecified,
         Pwsh,
         Zsh,
         Bash,
+        Powershell
     }
     
-    [Command(name: "install-autocomplete", Description = "Install a shell auto-complete script into your shell profile, if they aren't already there. Supports Powershell (pwsh), Z Shell (zsh), Bourne Again Shell (bash) & Friendly Interactive Shell (fish).")]
+    [Command(name: "install-autocomplete", Description = "Install a shell auto-complete script into your shell profile, if they aren't already there. Supports pwsh, zsh, bash & powershell.")]
     public class InstallAutoCompleteCommand : CommandBase, ICommand
     {
         private readonly IOctopusFileSystem fileSystem;
@@ -30,12 +32,12 @@ namespace Octopus.Cli.Commands
 
             var options = Options.For("Install AutoComplete");
             options.Add("shell=",
-                "The type of shell to install auto-complete scripts for. This will alter your shell configuration files. Supported shells: zsh, bash and pwsh",
+                "The type of shell to install auto-complete scripts for. This will alter your shell configuration files. Supported shells: zsh, bash, pwsh and powershell.",
                 v => ShellSelection = Enum.TryParse(v, ignoreCase: true, out SupportedShell type) 
                     ? type 
-                    : throw new InvalidCastException($"Unable to install autocomplete scripts into the {v} shell. Supported shells are zsh, bash and pwsh."));
+                    : throw new InvalidCastException($"Unable to install autocomplete scripts into the {v} shell. Supported shells are zsh, bash, pwsh and powershell."));
             options.Add("dryRun",
-                "Dry run will output the proposed changes to console, instead of writing to disk.",
+                "[Optional] Dry run will output the proposed changes to console, instead of writing to disk.",
                 v => DryRun = true);
         }
 
@@ -46,6 +48,9 @@ namespace Octopus.Cli.Commands
         public Task Execute(string[] commandLineArguments)
         {
             Options.Parse(commandLineArguments);
+            if (ShellSelection == SupportedShell.Unspecified) throw new CommandException("Please specify the type of shell to install autocompletion for: --shell=XYZ");
+
+            
             commandOutputProvider.PrintHeader();
             if (DryRun) commandOutputProvider.Warning("DRY RUN");
             commandOutputProvider.Information($"Install auto-complete scripts for {ShellSelection}");
@@ -54,13 +59,16 @@ namespace Octopus.Cli.Commands
                 switch (ShellSelection)
                 {
                     case SupportedShell.Pwsh:
-                        InstallForPowershell();
+                        InstallForPwsh();
                         break;
                     case SupportedShell.Zsh:
                         InstallForZsh();
                         break;
                     case SupportedShell.Bash:
                         InstallForBash();
+                        break;
+                    case SupportedShell.Powershell:
+                        InstallForPowershell();
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(ShellSelection));
@@ -95,6 +103,7 @@ namespace Octopus.Cli.Commands
             else
             {
                 commandOutputProvider.Information($"Creating profile at {profilePath}");
+                fileSystem.EnsureDirectoryExists(Path.GetDirectoryName(profilePath));
             }
 
             tempOutput.AppendLine(UserProfileHelper.AllShellsPrefix);
@@ -113,7 +122,7 @@ namespace Octopus.Cli.Commands
                 commandOutputProvider.Warning("All Done! Please reload your shell or dot source your profile to get started! Use the <tab> key to autocomplete.");
             }
         }
-        
+
         private void InstallForBash()
         {
             Install(
@@ -128,10 +137,30 @@ namespace Octopus.Cli.Commands
                 UserProfileHelper.ZshProfileScript);
         }
 
+        private void InstallForPwsh()
+        {
+            var profilePath = UserProfileHelper.PwshProfile;
+            Install(profilePath, UserProfileHelper.PwshProfileScript);
+        }
+
         private void InstallForPowershell()
         {
-            var profilePath = UserProfileHelper.GetPwshProfileForOperatingSystem();
-            Install(profilePath, UserProfileHelper.PwshProfileScript);
+#if NETFRAMEWORK
+            Install(
+                UserProfileHelper.PowershellProfileLocation,
+                UserProfileHelper.PwshProfileScript);
+#else
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Install(
+                    UserProfileHelper.PowershellProfile,
+                    UserProfileHelper.PwshProfileScript);
+            }
+            else
+            {
+                throw new NotSupportedException("Unable to install for powershell on non-windows platforms. Please use --shell=pwsh instead.");
+            }
+#endif
         }
     }
     public static class UserProfileHelper
@@ -147,8 +176,14 @@ namespace Octopus.Cli.Commands
 }
 compctl -K _octo_zsh_complete octo";
 
-        public static readonly string PwshProfileLocationWindows = $"{HomeDirectory}\\Documents\\WindowsPowerShell\\Microsoft.PowerShell_profile.ps1";
-        public static readonly string PwshProfileLocationNix =  $"{HomeDirectory}/.config/powershell/Microsoft.PowerShell_profile.ps1";
+        public static readonly string PowershellProfile = 
+            $"{System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments)}{Path.DirectorySeparatorChar}" +
+            $"WindowsPowerShell{Path.DirectorySeparatorChar}Microsoft.PowerShell_profile.ps1";
+        
+        public static readonly string PwshProfile =  
+            $"{HomeDirectory}{Path.DirectorySeparatorChar}.config{Path.DirectorySeparatorChar}powershell" +
+            $"{Path.DirectorySeparatorChar}Microsoft.PowerShell_profile.ps1";
+        
         public const string PwshProfileScript =
 @"Register-ArgumentCompleter -Native -CommandName octo -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
@@ -170,12 +205,5 @@ complete -F _octo_bash_complete octo";
 
         public const string AllShellsPrefix = "# start: octo CLI Autocomplete script";
         public const string AllShellsSuffix = "# end: octo CLI Autocomplete script";
-
-        public static string GetPwshProfileForOperatingSystem()
-        {
-            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? PwshProfileLocationWindows
-                : PwshProfileLocationNix;
-        }
     }
 }
