@@ -40,7 +40,7 @@ namespace Octopus.Cli.Commands.Deployment
             options.Add("deploymenttimeout=", "[Optional] Specifies maximum time (timespan format) that the console session will wait for the deployment to finish(default 00:10:00). This will not stop the deployment. Requires --waitfordeployment parameter set.", v => DeploymentTimeout = TimeSpan.Parse(v));
             options.Add("cancelontimeout", "[Optional] Whether to cancel the deployment if the deployment timeout is reached (flag, default false).", v => CancelOnTimeout = true);
             options.Add("deploymentchecksleepcycle=", "[Optional] Specifies how much time (timespan format) should elapse between deployment status checks (default 00:00:10)", v => DeploymentStatusCheckSleepCycle = TimeSpan.Parse(v));
-            options.Add("guidedfailure=", "[Optional] Whether to use Guided Failure mode. (True or False. If not specified, will use default setting from environment)", v => UseGuidedFailure = bool.Parse(v));
+            options.Add("guidedfailure=", "[Optional] Whether to use guided failure mode. (True or False. If not specified, will use default setting from environment)", v => UseGuidedFailure = bool.Parse(v));
             options.Add("specificmachines=", "[Optional] A comma-separated list of machine names to target in the deployed environment. If not specified all machines in the environment will be considered.", v => SpecificMachineNames.AddRange(v.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(m => m.Trim())));
             options.Add("excludemachines=", "[Optional] A comma-separated list of machine names to exclude in the deployed environment. If not specified all machines in the environment will be considered.", v => ExcludedMachineNames.AddRange(v.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(m => m.Trim())));
             options.Add("force", "[Optional] If a project is configured to skip packages with already-installed versions, override this setting to force re-deployment (flag, default false).", v => ForcePackageRedeployment = true);
@@ -513,7 +513,7 @@ namespace Octopus.Cli.Commands.Deployment
                     select d;
                 if (guidedFailureDeployments.Any())
                 {
-                    commandOutputProvider.Warning("One or more deployments are using Guided Failure. Use the links below to check if intervention is required:");
+                    commandOutputProvider.Warning("One or more deployments are using guided failure. Use the links below to check if intervention is required:");
                     foreach (var guidedFailureDeployment in guidedFailureDeployments)
                     {
                         var environment = await Repository.Environments.Get(guidedFailureDeployment.Link("Environment")).ConfigureAwait(false);
