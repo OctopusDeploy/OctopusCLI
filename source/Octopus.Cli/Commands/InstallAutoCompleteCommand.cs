@@ -165,7 +165,11 @@ namespace Octopus.Cli.Commands
     }
     public static class UserProfileHelper
     {
+#if NETFRAMEWORK
+        public static readonly string EnvHome = "HOMEPATH";
+#else
         public static readonly string EnvHome = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "HOMEPATH" : "HOME";
+#endif
         public static readonly string HomeDirectory = System.Environment.GetEnvironmentVariable(EnvHome);
         public static readonly string ZshProfile = $"{HomeDirectory}/.zshrc";
         public const string ZshProfileScript = 
