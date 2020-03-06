@@ -12,18 +12,17 @@ namespace Octopus.Cli.Commands
     public class CompleteCommand : CommandBase, ICommand
     {
         private ICommandLocator commands;
-        private IReadOnlyDictionary<string, string[]> completionMap;
+
         public CompleteCommand(ICommandLocator commands, ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
             this.commands = commands;
-            this.completionMap = GetCompletionMap();
         }
 
         public Task Execute(string[] commandLineArguments)
         {
             Options.Parse(commandLineArguments);
             commandOutputProvider.PrintMessages = true;
-            //var completionMap = GetCompletionMap();
+            var completionMap = GetCompletionMap();
             var suggestions = CommandSuggester.SuggestCommandsFor(commandLineArguments, completionMap);
             foreach (var s in suggestions)
             {
