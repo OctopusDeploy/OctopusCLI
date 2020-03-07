@@ -91,7 +91,7 @@ namespace Octo.Tests.Commands
 
             Func<Task> exec = () => unblockReleaseCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
-                .WithMessage("Please specify a release version");
+                .WithMessage("Please specify a release version number using the version parameter: --version=1.0.5");
         }
 
         [TestCase("abcdef666")]
@@ -104,7 +104,7 @@ namespace Octo.Tests.Commands
 
             Func<Task> exec = () => unblockReleaseCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
-                .WithMessage("Invalid release version format, please refer to https://semver.org/ for a valid format.");
+                .WithMessage("Please provide a valid release version format, you can refer to https://semver.org/ for a valid format: --version=1.0.5");
         }
 
         [TestCase("version")]

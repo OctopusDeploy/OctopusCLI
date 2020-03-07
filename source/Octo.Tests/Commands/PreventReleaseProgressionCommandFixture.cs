@@ -91,7 +91,7 @@ namespace Octo.Tests.Commands
 
             Func<Task> exec = () => preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
-                .WithMessage("Please specify a reason why you would like to prevent this release from progressing to next phase");
+                .WithMessage("Please specify a reason why you would like to prevent this release from progressing to next phase using the reason parameter: --reason=Contract Tests Failed");
         }
 
         [TestCase(null)]
@@ -105,7 +105,7 @@ namespace Octo.Tests.Commands
 
             Func<Task> exec = () => preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
-                .WithMessage("Please specify a release version");
+                .WithMessage("Please specify a release version number using the version parameter: --version=1.0.5");
         }
 
         [TestCase("abc")]
@@ -119,7 +119,7 @@ namespace Octo.Tests.Commands
 
             Func<Task> exec = () => preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
-                .WithMessage("Invalid release version format, please refer to https://semver.org/ for a valid format.");
+                .WithMessage("Please provide a valid release version format, you can refer to https://semver.org/ for a valid format: --version=1.0.5");
         }
 
         [TestCase("version")]

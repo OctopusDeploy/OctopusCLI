@@ -34,9 +34,9 @@ namespace Octopus.Cli.Commands.Releases
         protected override async Task ValidateParameters()
         {
             if (string.IsNullOrWhiteSpace(ProjectNameOrId)) throw new CommandException("Please specify a project name or ID using the parameter: --project=XYZ");
-            if (string.IsNullOrWhiteSpace(ReleaseVersionNumber)) throw new CommandException("Please specify a release version");
-            if (!SemanticVersion.TryParse(ReleaseVersionNumber, out _)) throw new CommandException("Invalid release version format, please refer to https://semver.org/ for a valid format.");
-            if (string.IsNullOrWhiteSpace(ReasonToPrevent)) throw new CommandException("Please specify a reason why you would like to prevent this release from progressing to next phase");
+            if (string.IsNullOrWhiteSpace(ReleaseVersionNumber)) throw new CommandException("Please specify a release version number using the version parameter: --version=1.0.5");
+            if (!SemanticVersion.TryParse(ReleaseVersionNumber, out _)) throw new CommandException("Please provide a valid release version format, you can refer to https://semver.org/ for a valid format: --version=1.0.5");
+            if (string.IsNullOrWhiteSpace(ReasonToPrevent)) throw new CommandException("Please specify a reason why you would like to prevent this release from progressing to next phase using the reason parameter: --reason=Contract Tests Failed");
             
             await base.ValidateParameters().ConfigureAwait(false);
         }
