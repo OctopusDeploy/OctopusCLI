@@ -64,7 +64,7 @@ namespace Octo.Tests.Commands
 
             attribute.Name.Should().Be("unblock-release");
 
-            attribute.Aliases.Length.Should().Be(1);
+            attribute.Aliases.Should().HaveCount(1);
             attribute.Aliases.Should().Contain("resume-release-progression");
         }
 
