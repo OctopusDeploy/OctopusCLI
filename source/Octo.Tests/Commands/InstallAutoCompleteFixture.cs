@@ -71,7 +71,7 @@ namespace Octo.Tests.Commands
             }
             else
             {
-                Assert.Ignore("This test doesn't run on windows environments.");
+                Assert.Inconclusive("This test doesn't run on windows environments.");
             }
         }
 
