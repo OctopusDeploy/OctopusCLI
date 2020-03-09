@@ -16,7 +16,7 @@ namespace Octo.Tests.Commands
         public void ShouldBeDecorratedWithTheCommandAttribute()
         {
             var commandClassNamesWithoutCorrectAttribute = Assembly.GetAssembly(typeof(ICommand)).GetTypes()
-                .Where(t => typeof(ICommand).IsAssignableFrom(t) &&
+                .Where(t => t.IsAssignableTo<ICommand>() &&
                             t.GetCustomAttribute<CommandAttribute>() == null &&
                             !t.IsAbstract &&
                             !t.IsInterface)
