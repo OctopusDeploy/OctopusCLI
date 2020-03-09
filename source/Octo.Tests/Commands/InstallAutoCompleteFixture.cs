@@ -94,7 +94,7 @@ namespace Octo.Tests.Commands
 #endif
 
         [Test]
-        public async Task ShouldSupportBourneAgainShell()
+        public async Task ShouldSupportBash()
         {
             await installAutoCompleteCommand.Execute(new[] {"--shell=bash"});
 
