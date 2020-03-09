@@ -24,7 +24,7 @@ namespace Octo.Tests.Commands
                 .ToList()
                 .AsReadOnly();
 
-            commandClassNamesWithoutCorrectAttribute.Should().BeEmpty($"Each command which implements '{nameof(ICommand)}' interface must be attached with '{nameof(CommandAttribute)}'. " +
+            commandClassNamesWithoutCorrectAttribute.Should().BeEmpty($"Each command which implements '{nameof(ICommand)}' interface must be decorated with '{nameof(CommandAttribute)}'. " +
                                                                       $"The following command classes: ({string.Join(", ", commandClassNamesWithoutCorrectAttribute)}) are not good enough for you?");
         }
 
