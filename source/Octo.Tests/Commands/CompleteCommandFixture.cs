@@ -32,7 +32,7 @@ namespace Octo.Tests.Commands
             commandLocator = Substitute.For<ICommandLocator>();
             logger = new LoggerConfiguration().WriteTo.TextWriter(output).CreateLogger();
             commandOutputProvider = new CommandOutputProvider(logger);
-            commandLocator.List().Returns(new []
+            commandLocator.List().Returns(new ICommandMetadata[]
             {
                 new CommandAttribute("test"), 
                 new CommandAttribute("help")

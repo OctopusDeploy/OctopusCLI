@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
-using Octopus.Cli.Model;
 using Octopus.Cli.Util;
 
 namespace Octopus.Cli.Commands
@@ -11,7 +9,7 @@ namespace Octopus.Cli.Commands
     [Command("complete", Description = "Supports command line auto completion.")]
     public class CompleteCommand : CommandBase, ICommand
     {
-        private ICommandLocator commands;
+        private readonly ICommandLocator commands;
 
         public CompleteCommand(ICommandLocator commands, ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {

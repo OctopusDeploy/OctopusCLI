@@ -1,15 +1,10 @@
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using Markdig.Extensions.ListExtras;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
-using Serilog.Events;
 
 namespace Octopus.Cli.Commands
 {
@@ -54,7 +49,7 @@ namespace Octopus.Cli.Commands
             
             commandOutputProvider.PrintHeader();
             if (DryRun) commandOutputProvider.Warning("DRY RUN");
-            commandOutputProvider.Information($"Install auto-complete scripts for {ShellSelection}");
+            commandOutputProvider.Information($"Installing auto-complete scripts for {ShellSelection}");
             return Task.Run(() =>
             {
                 switch (ShellSelection)
@@ -94,7 +89,7 @@ namespace Octopus.Cli.Commands
                     }
                     
                     var backupPath = profilePath + ".orig";
-                    commandOutputProvider.Warning($"Backing up to {backupPath}");
+                    commandOutputProvider.Information($"Backing up to {backupPath}");
                     fileSystem.CopyFile(profilePath, backupPath);
                 }
 
@@ -163,60 +158,5 @@ namespace Octopus.Cli.Commands
             }
 #endif
         }
-    }
-    public static class UserProfileHelper
-    {
-#if NETFRAMEWORK
-        public static readonly string EnvHome = "HOMEPATH";
-#else
-        public static readonly string EnvHome = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "HOMEPATH" : "HOME";
-#endif
-        public static readonly string HomeDirectory = System.Environment.GetEnvironmentVariable(EnvHome);
-        public static readonly string BinaryLocation = Assembly.GetExecutingAssembly().Location;
-
-        // ZSH
-        public static readonly string ZshProfile = $"{HomeDirectory}/.zshrc";
-
-        public const string ZshProfileScript = @"_octo_zsh_complete()
-{
-    local completions=(""$(octo complete $words)"")
-    reply=( ""${(ps:\n:)completions}"" )
-}
-compctl -K _octo_zsh_complete octo
-compctl -K _octo_zsh_complete Octo";
-
-        // POWERSHELL & PWSH
-        public static readonly string PowershellProfile = 
-            $"{System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments)}{Path.DirectorySeparatorChar}" +
-            $"WindowsPowerShell{Path.DirectorySeparatorChar}Microsoft.PowerShell_profile.ps1";
-        
-        public static readonly string PwshProfile =  
-            $"{HomeDirectory}{Path.DirectorySeparatorChar}.config{Path.DirectorySeparatorChar}powershell" +
-            $"{Path.DirectorySeparatorChar}Microsoft.PowerShell_profile.ps1";
-        
-        public const string PwshProfileScript =
-@"
-Register-ArgumentCompleter -Native -CommandName octo -ScriptBlock {
-    param($wordToComplete, $commandAst, $cursorPosition)
-    $parms = $commandAst.ToString() -replace 'octo ',''
-    octo complete $parms.Split(' ') | % {
-        [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterName', $_)
-    }
-}";
-        
-        // BASH
-        public static readonly string BashProfile = $"{HomeDirectory}/.bashrc";
-        public const string BashProfileScript = 
-@"_octo_bash_complete()
-{
-    local params=${COMP_WORDS[@]:1}
-    local completions=""$(octo complete ${params})""
-    COMPREPLY=( $(compgen -W ""$completions"") )
-}
-complete -F _octo_bash_complete octo
-complete -F _octo_bash_complete Octo";
-
-        public const string AllShellsPrefix = "# start: octo CLI Autocomplete script";
-        public const string AllShellsSuffix = "# end: octo CLI Autocomplete script";
     }
 }

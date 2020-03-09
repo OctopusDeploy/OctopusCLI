@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Model;
 using Octopus.Cli.Util;
-using Serilog;
 
 namespace Octopus.Cli.Commands
 {
