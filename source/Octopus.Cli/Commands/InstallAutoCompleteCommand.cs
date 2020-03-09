@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -171,15 +172,20 @@ namespace Octopus.Cli.Commands
         public static readonly string EnvHome = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "HOMEPATH" : "HOME";
 #endif
         public static readonly string HomeDirectory = System.Environment.GetEnvironmentVariable(EnvHome);
+        public static readonly string BinaryLocation = Assembly.GetExecutingAssembly().Location;
+
+        // ZSH
         public static readonly string ZshProfile = $"{HomeDirectory}/.zshrc";
-        public const string ZshProfileScript = 
-@"_octo_zsh_complete()
+
+        public const string ZshProfileScript = @"_octo_zsh_complete()
 {
     local completions=(""$(octo complete $words)"")
     reply=( ""${(ps:\n:)completions}"" )
 }
-compctl -K _octo_zsh_complete octo";
+compctl -K _octo_zsh_complete octo
+compctl -K _octo_zsh_complete Octo";
 
+        // POWERSHELL & PWSH
         public static readonly string PowershellProfile = 
             $"{System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments)}{Path.DirectorySeparatorChar}" +
             $"WindowsPowerShell{Path.DirectorySeparatorChar}Microsoft.PowerShell_profile.ps1";
@@ -189,14 +195,16 @@ compctl -K _octo_zsh_complete octo";
             $"{Path.DirectorySeparatorChar}Microsoft.PowerShell_profile.ps1";
         
         public const string PwshProfileScript =
-@"Register-ArgumentCompleter -Native -CommandName octo -ScriptBlock {
+@"
+Register-ArgumentCompleter -Native -CommandName octo -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
-    $parms = ($commandAst.ToString()).Replace('octo ','')
+    $parms = $commandAst.ToString() -replace 'octo ',''
     octo complete $parms.Split(' ') | % {
         [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterName', $_)
     }
 }";
-
+        
+        // BASH
         public static readonly string BashProfile = $"{HomeDirectory}/.bashrc";
         public const string BashProfileScript = 
 @"_octo_bash_complete()
@@ -205,7 +213,8 @@ compctl -K _octo_zsh_complete octo";
     local completions=""$(octo complete ${params})""
     COMPREPLY=( $(compgen -W ""$completions"") )
 }
-complete -F _octo_bash_complete octo";
+complete -F _octo_bash_complete octo
+complete -F _octo_bash_complete Octo";
 
         public const string AllShellsPrefix = "# start: octo CLI Autocomplete script";
         public const string AllShellsSuffix = "# end: octo CLI Autocomplete script";
