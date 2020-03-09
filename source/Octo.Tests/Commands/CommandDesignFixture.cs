@@ -13,7 +13,7 @@ namespace Octo.Tests.Commands
     public class CommandConventionFixture
     {
         [Test]
-        public void ShouldAttachWithCorrectAttribute()
+        public void ShouldBeDecorratedWithTheCommandAttribute()
         {
             var commandClassNamesWithoutCorrectAttribute = Assembly.GetAssembly(typeof(ICommand)).GetTypes()
                 .Where(t => typeof(ICommand).IsAssignableFrom(t) &&
