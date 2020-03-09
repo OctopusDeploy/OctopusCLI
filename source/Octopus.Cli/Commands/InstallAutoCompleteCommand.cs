@@ -84,7 +84,7 @@ namespace Octopus.Cli.Commands
                 {
                     if (profileText.Contains(UserProfileHelper.AllShellsPrefix) || profileText.Contains(UserProfileHelper.AllShellsSuffix) || profileText.Contains(scriptToInject))
                     {
-                        commandOutputProvider.Information("Looks like this is already installed. Bailing out.");
+                        commandOutputProvider.Information("Looks like command line completion is already installed. Nothing to do.");
                         return;
                     }
                     
