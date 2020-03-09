@@ -36,22 +36,27 @@ namespace Octopus.Cli.Util
                 {
                     // e.g. `octo subcommand --searchTerm`
                     var subCommandName = words.Where(w => IsSubCommand(w, allSubCommands)).Last();
-                    suggestions.AddRange(GetSubCommandOptions(completionItems, subCommandName, searchTerm));
+                    suggestions.AddRange(GetSubCommandOptionSuggestions(completionItems, subCommandName, searchTerm));
                 }
                 else
                 {
                     // e.g. `octo --searchTerm`
-                    return GetOctoOptions(completionItems, searchTerm);
+                    return GetBaseOptionSuggestions(completionItems, searchTerm);
                 }
             }
             else if (ZeroOrOneSubCommands(words, allSubCommands))
             {
                 // e.g. `octo searchterm` or just `octo`
-                suggestions.AddRange(completionItems.Keys.Where(s =>
-                    s.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase)));
+                suggestions.AddRange(GetSubCommandSuggestions(completionItems, searchTerm));
             }
 
             return suggestions;
+        }
+
+        private static IEnumerable<string> GetSubCommandSuggestions(IReadOnlyDictionary<string, string[]> completionItems, string searchTerm)
+        {
+            return completionItems.Keys.Where(s =>
+                s.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase));
         }
 
         private static bool ZeroOrOneSubCommands(string[] words, List<string> allSubCommands)
@@ -59,22 +64,22 @@ namespace Octopus.Cli.Util
             return words.Where(w => IsSubCommand(w, allSubCommands)).Count() <= 1;
         }
 
-        private static IEnumerable<string> GetSubCommandOptions(IReadOnlyDictionary<string, string[]> completionItems, string subCommandName, string searchTerm)
+        private static IEnumerable<string> GetSubCommandOptionSuggestions(IReadOnlyDictionary<string, string[]> completionItems, string subCommandName, string searchTerm)
         {
             if (completionItems.TryGetValue(subCommandName, out var options))
             {
                 return options
-                    .Where(name => name.StartsWith(searchTerm))
+                    .Where(name => name.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase))
                     .ToList();
             }
 
             return new string[] {};
         }
 
-        private static IEnumerable<string> GetOctoOptions(IReadOnlyDictionary<string, string[]> completionItems, string searchTerm)
+        private static IEnumerable<string> GetBaseOptionSuggestions(IReadOnlyDictionary<string, string[]> completionItems, string searchTerm)
         {
             // If you type 'octo', you'll be redirected to the 'help' command, so show these options
-            return GetSubCommandOptions(completionItems, "help", searchTerm);
+            return GetSubCommandOptionSuggestions(completionItems, "help", searchTerm);
         }
 
         private static bool IsSubCommand(string arg, List<string> subCommandList)
