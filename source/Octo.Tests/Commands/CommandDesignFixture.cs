@@ -10,13 +10,13 @@ using Octopus.Cli.Infrastructure;
 namespace Octo.Tests.Commands
 {
     [TestFixture]
-    public class CommandDesignFixture
+    public class CommandConventionFixture
     {
         [Test]
-        public void ShouldAttachWithCorrectAttribute()
+        public void ShouldBeDecorratedWithTheCommandAttribute()
         {
             var commandClassNamesWithoutCorrectAttribute = Assembly.GetAssembly(typeof(ICommand)).GetTypes()
-                .Where(t => typeof(ICommand).IsAssignableFrom(t) &&
+                .Where(t => t.IsAssignableTo<ICommand>() &&
                             t.GetCustomAttribute<CommandAttribute>() == null &&
                             !t.IsAbstract &&
                             !t.IsInterface)
@@ -24,7 +24,7 @@ namespace Octo.Tests.Commands
                 .ToList()
                 .AsReadOnly();
 
-            commandClassNamesWithoutCorrectAttribute.Should().BeEmpty($"Each command which implements '{nameof(ICommand)}' interface must be attached with '{nameof(CommandAttribute)}'. " +
+            commandClassNamesWithoutCorrectAttribute.Should().BeEmpty($"Each command which implements '{nameof(ICommand)}' interface must be decorated with '{nameof(CommandAttribute)}'. " +
                                                                       $"The following command classes: ({string.Join(", ", commandClassNamesWithoutCorrectAttribute)}) are not good enough for you?");
         }
 
