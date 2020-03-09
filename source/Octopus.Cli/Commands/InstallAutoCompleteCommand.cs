@@ -148,7 +148,7 @@ namespace Octopus.Cli.Commands
         {
 #if NETFRAMEWORK
             Install(
-                UserProfileHelper.PowershellProfileLocation,
+                UserProfileHelper.PowershellProfile,
                 UserProfileHelper.PwshProfileScript);
 #else
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

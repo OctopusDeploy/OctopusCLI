@@ -20,16 +20,17 @@ namespace Octopus.Cli.Commands
 
         public Task Execute(string[] commandLineArguments)
         {
-            Options.Parse(commandLineArguments);
-            commandOutputProvider.PrintMessages = true;
-            var completionMap = GetCompletionMap();
-            var suggestions = CommandSuggester.SuggestCommandsFor(commandLineArguments, completionMap);
-            foreach (var s in suggestions)
+            return Task.Run(() =>
             {
-                commandOutputProvider.Information(s);
-            }
-            
-            return Task.CompletedTask;
+                Options.Parse(commandLineArguments);
+                commandOutputProvider.PrintMessages = true;
+                var completionMap = GetCompletionMap();
+                var suggestions = CommandSuggester.SuggestCommandsFor(commandLineArguments, completionMap);
+                foreach (var s in suggestions)
+                {
+                    commandOutputProvider.Information(s);
+                }
+            });
         }
 
         private IReadOnlyDictionary<string, string[]> GetCompletionMap()
