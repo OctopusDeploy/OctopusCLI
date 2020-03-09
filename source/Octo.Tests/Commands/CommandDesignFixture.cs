@@ -10,7 +10,7 @@ using Octopus.Cli.Infrastructure;
 namespace Octo.Tests.Commands
 {
     [TestFixture]
-    public class CommandDesignFixture
+    public class CommandConventionFixture
     {
         [Test]
         public void ShouldAttachWithCorrectAttribute()
