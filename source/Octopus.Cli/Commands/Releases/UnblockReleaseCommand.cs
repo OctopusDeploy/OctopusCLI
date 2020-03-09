@@ -19,7 +19,7 @@ namespace Octopus.Cli.Commands.Releases
         {
             var options = Options.For("Unblocking release.");
             options.Add("project=", "Name or ID of the project", v => ProjectNameOrId = v);
-            options.Add("version=|releaseNumber=", "Release number to use for auto deployments.",
+            options.Add("version=|releaseNumber=", "Release version/number.",
                 v => ReleaseVersionNumber = v);
         }
 
