@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using NSubstitute;
@@ -89,7 +91,7 @@ namespace Octo.Tests.Commands
             }
             else
             {
-                Assert.Ignore("This test doesn't run on non-windows environments.");
+                Assert.Inconclusive("This test doesn't run on non-windows environments.");
             }
         }
 
@@ -104,21 +106,33 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public async Task ShouldTakeABackup()
+        [TestCaseSource(nameof(GetBackupTestCases))]
+        public async Task ShouldTakeABackup((string shellType, string shellProfile) shellData)
         {
             SetupMockExistingProfileFile();
 
-            await installAutoCompleteCommand.Execute(new[] {"--shell=bash"});
+            await installAutoCompleteCommand.Execute(new[] {$"--shell={shellData.shellType}"});
             
             fileSystem.Received()
-                .CopyFile(UserProfileHelper.BashProfile, UserProfileHelper.BashProfile + ".orig");
+                .CopyFile(shellData.shellProfile, shellData.shellProfile + ".orig");
 
             void SetupMockExistingProfileFile()
             {
-                fileSystem.FileExists(UserProfileHelper.BashProfile).Returns(true);
+                fileSystem.FileExists(shellData.shellProfile).Returns(true);
             }
         }
 
+        private static IEnumerable<(string, string)> GetBackupTestCases()
+        {
+            yield return (SupportedShell.Bash.ToString(), UserProfileHelper.BashProfile);
+            if (ExecutionEnvironment.IsRunningOnWindows)
+            {
+                yield return (SupportedShell.Powershell.ToString(), UserProfileHelper.PowershellProfile);    
+            }
+            yield return (SupportedShell.Pwsh.ToString(), UserProfileHelper.PwshProfile);
+            yield return (SupportedShell.Zsh.ToString(), UserProfileHelper.ZshProfile);
+        }
+        
         [Test]
         public async Task ShouldEnsureProfileDirectoryExists()
         {
