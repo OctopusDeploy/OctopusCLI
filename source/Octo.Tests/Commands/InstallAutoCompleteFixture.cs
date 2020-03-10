@@ -9,6 +9,7 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 using Octopus.Cli.Commands;
+using Octopus.Cli.Commands.ShellCompletion;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
 
@@ -20,45 +21,82 @@ namespace Octo.Tests.Commands
         private InstallAutoCompleteCommand installAutoCompleteCommand;
         private ICommandOutputProvider commandOutputProvider;
         private IOctopusFileSystem fileSystem;
+        private ZshCompletionInstaller zshCompletionInstaller;
+        private BashCompletionInstaller bashCompletionInstaller;
+        private PwshCompletionInstaller pwshCompletionInstaller;
+        private PowershellCompletionInstaller powershellCompletionInstaller;
+        private ShellCompletionInstaller[] installers;
 
         [SetUp]
         public void SetUp()
         {
             fileSystem = Substitute.For<IOctopusFileSystem>();
             commandOutputProvider = Substitute.For<ICommandOutputProvider>();
-            installAutoCompleteCommand = new InstallAutoCompleteCommand(commandOutputProvider, fileSystem);
-        }
-        
-        [Test]
-        public async Task ShouldSupportZShell()
-        {
-            await installAutoCompleteCommand.Execute(new[] {"--shell=zsh"});
-            var zshProfile = UserProfileHelper.ZshProfile;
-            fileSystem.Received()
-                .OverwriteFile(zshProfile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.ZshProfileScript)));
+            zshCompletionInstaller = new ZshCompletionInstaller(commandOutputProvider, fileSystem);
+            pwshCompletionInstaller = new PwshCompletionInstaller(commandOutputProvider, fileSystem);
+            bashCompletionInstaller = new BashCompletionInstaller(commandOutputProvider, fileSystem);
+            powershellCompletionInstaller = new PowershellCompletionInstaller(commandOutputProvider, fileSystem);
+            
+            installers = new ShellCompletionInstaller[]
+            {
+                zshCompletionInstaller, bashCompletionInstaller, pwshCompletionInstaller, powershellCompletionInstaller
+            };
+            
+            installAutoCompleteCommand = new InstallAutoCompleteCommand(commandOutputProvider, fileSystem, installers);
         }
 
         [Test]
-        public async Task ShouldSupportPwsh()
+        public async Task ShouldSupportAllShellInstallers()
         {
-            await installAutoCompleteCommand.Execute(new[] {"--shell=pwsh"});
-            var profile = UserProfileHelper.PwshProfile;
-            
-            fileSystem.Received()
-                .OverwriteFile(profile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.PwshProfileScript)));
+            foreach (var installer in installers)
+            {
+                await installAutoCompleteCommand.Execute(new[] {$"--shell={installer.SupportedShell.ToString()}"});
+                var zshProfile = installer.ProfileLocation;
+                fileSystem.Received()
+                    .OverwriteFile(zshProfile, Arg.Is<string>(arg => arg.Contains(installer.ProfileScript)));
+            }
         }
-    
-        [Test]
-        public async Task ShouldSupportPowershell()
-        {
-            if (!ExecutionEnvironment.IsRunningOnWindows) Assert.Inconclusive("This test requires windows.");
-            
-            await installAutoCompleteCommand.Execute(new[] {"--shell=powershell"});
-            var profile = UserProfileHelper.PowershellProfile;
 
-            fileSystem.Received()
-                .OverwriteFile(profile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.PwshProfileScript)));
-        }
+        // [Test]
+        // public async Task ShouldSupportZShell()
+        // {
+        //     await installAutoCompleteCommand.Execute(new[] {"--shell=zsh"});
+        //     var zshProfile = $"{System.Environment.GetEnvironmentVariable("HOME")}/.zshrc";
+        //     fileSystem.Received()
+        //         .OverwriteFile(zshProfile, Arg.Is<string>(arg => arg.Contains(zshProfile)));
+        // }
+        //
+        // [Test]
+        // public async Task ShouldSupportPwsh()
+        // {
+        //     await installAutoCompleteCommand.Execute(new[] {"--shell=pwsh"});
+        //     var profile = pwshCompletionInstaller.ProfileLocation;
+        //     
+        //     fileSystem.Received()
+        //         .OverwriteFile(profile, Arg.Is<string>(arg => arg.Contains(pwshCompletionInstaller.ProfileScript)));
+        // }
+        //
+        // [Test]
+        // public async Task ShouldSupportPowershell()
+        // {
+        //     if (!ExecutionEnvironment.IsRunningOnWindows) Assert.Inconclusive("This test requires windows.");
+        //     
+        //     await installAutoCompleteCommand.Execute(new[] {"--shell=powershell"});
+        //     var profile = UserProfileHelper.PowershellProfile;
+        //
+        //     fileSystem.Received()
+        //         .OverwriteFile(profile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.PwshProfileScript)));
+        // }
+        //
+        // [Test]
+        // public async Task ShouldSupportBash()
+        // {
+        //     await installAutoCompleteCommand.Execute(new[] {"--shell=bash"});
+        //
+        //     fileSystem.Received()
+        //         .OverwriteFile(UserProfileHelper.BashProfile,
+        //             Arg.Is<string>(arg => arg.Contains(UserProfileHelper.BashProfileScript)));
+        // }
 
         [Test]
         public async Task ShouldThrowOnIllegalShellValues()
@@ -100,11 +138,14 @@ namespace Octo.Tests.Commands
         {
             if (ExecutionEnvironment.IsRunningOnWindows)
             {
-                await installAutoCompleteCommand.Execute(new[] {"--shell=powershell"});
-                var profile = UserProfileHelper.PowershellProfile;
+                await installAutoCompleteCommand.Execute(new[]
+                {
+                    $"--shell={powershellCompletionInstaller.SupportedShell.ToString()}"
+                });
+                var profile = powershellCompletionInstaller.ProfileLocation;
 
                 fileSystem.Received()
-                    .OverwriteFile(profile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.PwshProfileScript)));
+                    .OverwriteFile(profile, Arg.Is<string>(arg => arg.Contains(powershellCompletionInstaller.ProfileScript)));
             }
             else
             {
@@ -113,72 +154,58 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public async Task ShouldSupportBash()
+        public async Task ShouldTakeABackup()
         {
-            await installAutoCompleteCommand.Execute(new[] {"--shell=bash"});
+            foreach (var installer in installers)
+            {
+                SetupMockExistingProfileFile(installer);
 
-            fileSystem.Received()
-                .OverwriteFile(UserProfileHelper.BashProfile,
-                    Arg.Is<string>(arg => arg.Contains(UserProfileHelper.BashProfileScript)));
-        }
-
-        [Test]
-        [TestCaseSource(nameof(GetBackupTestCases))]
-        public async Task ShouldTakeABackup((string shellType, string shellProfile) shellData)
-        {
-            SetupMockExistingProfileFile();
-
-            await installAutoCompleteCommand.Execute(new[] {$"--shell={shellData.shellType}"});
+                await installAutoCompleteCommand.Execute(new[] {$"--shell={installer.SupportedShell.ToString()}"});
             
-            fileSystem.Received()
-                .CopyFile(shellData.shellProfile, shellData.shellProfile + ".orig");
-
-            void SetupMockExistingProfileFile()
-            {
-                fileSystem.FileExists(shellData.shellProfile).Returns(true);
+                fileSystem.Received()
+                    .CopyFile(installer.ProfileLocation, installer.ProfileLocation + ".orig");
+                
+                fileSystem.ClearReceivedCalls();
             }
-        }
-
-        private static IEnumerable<(string, string)> GetBackupTestCases()
-        {
-            yield return (SupportedShell.Bash.ToString(), UserProfileHelper.BashProfile);
-            if (ExecutionEnvironment.IsRunningOnWindows)
+            
+            void SetupMockExistingProfileFile(ShellCompletionInstaller installer)
             {
-                yield return (SupportedShell.Powershell.ToString(), UserProfileHelper.PowershellProfile);    
-            }
-            yield return (SupportedShell.Pwsh.ToString(), UserProfileHelper.PwshProfile);
-            yield return (SupportedShell.Zsh.ToString(), UserProfileHelper.ZshProfile);
+                fileSystem.FileExists(installer.ProfileLocation).Returns(true);
+            }    
         }
         
         [Test]
         public async Task ShouldEnsureProfileDirectoryExists()
         {
-            SetupMockNoProfileFile();
-
-            await installAutoCompleteCommand.Execute(new[] {"--shell=bash"});
-            
-            fileSystem.Received()
-                .EnsureDirectoryExists(Path.GetDirectoryName(UserProfileHelper.BashProfile));
-
-            void SetupMockNoProfileFile()
+            foreach (var installer in installers)
             {
-                fileSystem.FileExists(UserProfileHelper.BashProfile).Returns(false);
+                SetupMockNoProfileFile(installer);
+
+                await installAutoCompleteCommand.Execute(new[] {$"--shell={installer.SupportedShell.ToString()}"});
+                fileSystem.Received()
+                    .EnsureDirectoryExists(Path.GetDirectoryName(installer.ProfileLocation));
+                fileSystem.ClearReceivedCalls();
+            }
+            
+            void SetupMockNoProfileFile(ShellCompletionInstaller installer)
+            {
+                fileSystem.FileExists(installer.ProfileLocation).Returns(false);
             }
         }
 
         [Test]
-        public async Task ShouldNotWriteToDiskIfDryRun()
+        public async Task ShouldNotWriteToDiskAndWriteToConsoleIfDryRun()
         {
-            await installAutoCompleteCommand.Execute(new[] {"--shell=bash", "--dryRun"});
-            fileSystem.DidNotReceive()
-                .OverwriteFile(UserProfileHelper.BashProfile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.BashProfileScript)));
-        }
-        
-        [Test]
-        public async Task ShouldWriteToConsoleOutputIfDryRun()
-        {
-            await installAutoCompleteCommand.Execute(new[] {"--shell=zsh", "--dryRun"});
-            commandOutputProvider.Received().Information(Arg.Is<string>(arg => arg.Contains(UserProfileHelper.ZshProfileScript)));
+            foreach (var installer in installers)
+            {
+                await installAutoCompleteCommand.Execute(new[] {$"--shell={installer.SupportedShell.ToString()}", "--dryRun"});
+                fileSystem.DidNotReceive()
+                    .OverwriteFile(installer.ProfileLocation, Arg.Is<string>(arg => arg.Contains(installer.ProfileScript)));
+                commandOutputProvider.Received()
+                    .Information(Arg.Is<string>(arg => arg.Contains(installer.ProfileScript)));
+                fileSystem.ClearReceivedCalls();
+                commandOutputProvider.ClearReceivedCalls();
+            }
         }
     }
 }
