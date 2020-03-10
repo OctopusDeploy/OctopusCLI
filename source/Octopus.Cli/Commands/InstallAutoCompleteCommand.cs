@@ -89,7 +89,7 @@ namespace Octopus.Cli.Commands
                     }
                     
                     var backupPath = profilePath + ".orig";
-                    commandOutputProvider.Information($"Backing up to {backupPath}");
+                    commandOutputProvider.Information($"Backing up the existing profile to {backupPath}");
                     fileSystem.CopyFile(profilePath, backupPath);
                 }
 
