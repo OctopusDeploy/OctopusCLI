@@ -141,12 +141,7 @@ namespace Octopus.Cli.Commands
 
         private void InstallForPowershell()
         {
-#if NETFRAMEWORK
-            Install(
-                UserProfileHelper.PowershellProfile,
-                UserProfileHelper.PwshProfileScript);
-#else
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (ExecutionEnvironment.IsRunningOnWindows)
             {
                 Install(
                     UserProfileHelper.PowershellProfile,
@@ -156,7 +151,6 @@ namespace Octopus.Cli.Commands
             {
                 throw new NotSupportedException("Unable to install for powershell on non-windows platforms. Please use --shell=pwsh instead.");
             }
-#endif
         }
     }
 }

@@ -1,19 +1,29 @@
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using Octopus.Cli.Infrastructure;
+using Octopus.Cli.Util;
 
 namespace Octopus.Cli.Commands
 {
     public static class UserProfileHelper
     {
-#if NETFRAMEWORK
-        public static readonly string EnvHome = "HOMEPATH";
-#else
-        public static readonly string EnvHome = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "HOMEPATH" : "HOME";
-#endif
-        public static readonly string HomeDirectory = System.Environment.GetEnvironmentVariable(EnvHome);
+
+        public static char DirectorySeparator = Path.DirectorySeparatorChar;
+        private static string LinuxHomeLocation => System.Environment.GetEnvironmentVariable("HOME");
+        private static string PowershellProfileFilename => "Microsoft.PowerShell_profile.ps1";
+        private static string LinuxPwshConfigLocation => Path.Combine(LinuxHomeLocation, ".config", "powershell");
+        private static string WindowsPwshConfigLocation => Path.Combine(
+            System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments),
+                "Powershell"
+            );
+        private static string WindowsPowershellConfigLocation => Path.Combine(
+            System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments),
+            "WindowsPowershell"
+        );
 
         // ZSH
-        public static readonly string ZshProfile = $"{HomeDirectory}/.zshrc";
+        public static readonly string ZshProfile = $"{LinuxHomeLocation}/.zshrc";
 
         public const string ZshProfileScript = @"_octo_zsh_complete()
 {
@@ -24,14 +34,13 @@ compctl -K _octo_zsh_complete octo
 compctl -K _octo_zsh_complete Octo";
 
         // POWERSHELL & PWSH
-        public static readonly string PowershellProfile = 
-            $"{System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments)}{Path.DirectorySeparatorChar}" +
-            $"WindowsPowerShell{Path.DirectorySeparatorChar}Microsoft.PowerShell_profile.ps1";
+        public static readonly string PowershellProfile =
+            Path.Combine(WindowsPowershellConfigLocation, PowershellProfileFilename);
         
-        public static readonly string PwshProfile =  
-            $"{HomeDirectory}{Path.DirectorySeparatorChar}.config{Path.DirectorySeparatorChar}powershell" +
-            $"{Path.DirectorySeparatorChar}Microsoft.PowerShell_profile.ps1";
-        
+        public static readonly string PwshProfile =
+            ExecutionEnvironment.IsRunningOnWindows
+                ? Path.Combine(WindowsPwshConfigLocation, PowershellProfileFilename)
+                : Path.Combine(LinuxPwshConfigLocation, PowershellProfileFilename);
         public const string PwshProfileScript =
             @"
 Register-ArgumentCompleter -Native -CommandName octo -ScriptBlock {
@@ -43,7 +52,7 @@ Register-ArgumentCompleter -Native -CommandName octo -ScriptBlock {
 }";
         
         // BASH
-        public static readonly string BashProfile = $"{HomeDirectory}/.bashrc";
+        public static readonly string BashProfile = $"{LinuxHomeLocation}/.bashrc";
         public const string BashProfileScript = 
             @"_octo_bash_complete()
 {

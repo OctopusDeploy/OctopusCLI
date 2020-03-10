@@ -42,22 +42,23 @@ namespace Octo.Tests.Commands
             fileSystem.Received()
                 .OverwriteFile(profile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.PwshProfileScript)));
         }
-#if NETFRAMEWORK        
+    
         [Test]
         public async Task ShouldSupportPowershell()
         {
+            if (!ExecutionEnvironment.IsRunningOnWindows) Assert.Inconclusive("This test requires windows.");
+            
             await installAutoCompleteCommand.Execute(new[] {"--shell=powershell"});
             var profile = UserProfileHelper.PowershellProfile;
 
             fileSystem.Received()
                 .OverwriteFile(profile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.PwshProfileScript)));
         }
-#endif        
-#if NETCOREAPP
+        
         [Test]
         public async Task ShouldPreventInstallationOfPowershellOnLinux()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (ExecutionEnvironment.IsRunningOnNix || ExecutionEnvironment.IsRunningOnMac)
             {
                 try
                 {
@@ -78,7 +79,7 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldAllowInstallationOfPowershellOnWindows()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (ExecutionEnvironment.IsRunningOnWindows)
             {
                 await installAutoCompleteCommand.Execute(new[] {"--shell=powershell"});
                 var profile = UserProfileHelper.PowershellProfile;
@@ -91,7 +92,6 @@ namespace Octo.Tests.Commands
                 Assert.Ignore("This test doesn't run on non-windows environments.");
             }
         }
-#endif
 
         [Test]
         public async Task ShouldSupportBash()
