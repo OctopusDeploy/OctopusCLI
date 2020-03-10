@@ -5,6 +5,7 @@ using System.Net;
 using System.Reflection;
 using Autofac;
 using Octopus.Cli.Commands.Releases;
+using Octopus.Cli.Commands.ShellCompletion;
 using Octopus.Cli.Diagnostics;
 using Octopus.Cli.Exporters;
 using Octopus.Cli.Importers;
@@ -95,6 +96,10 @@ namespace Octopus.Cli
             builder.RegisterType<OctopusRepositoryFactory>().As<IOctopusAsyncRepositoryFactory>();
 
             builder.RegisterType<OctopusPhysicalFileSystem>().As<IOctopusFileSystem>();
+            builder.RegisterAssemblyTypes(thisAssembly)
+                .Where(t => t.IsSubclassOf(typeof(ShellCompletionInstaller)))
+                .As<ShellCompletionInstaller>()
+                .AsSelf();
             
             return builder.Build();
         }
