@@ -1,8 +1,12 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Octopus.Cli.Util
 {
+    [SuppressMessage("ReSharper", "DE0009")]
+    [SuppressMessage("ReSharper", "DE0007")]
+    [SuppressMessage("ReSharper", "PC003")]
     public static class ExecutionEnvironment
     {
         /// <summary>
