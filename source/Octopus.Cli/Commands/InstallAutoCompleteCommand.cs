@@ -52,10 +52,12 @@ namespace Octopus.Cli.Commands
 
         public Task Execute(string[] commandLineArguments)
         {
+            var invalidShellSelectionMessage = $"Please specify the type of shell to install autocompletion for: --shell=XYZ. Valid values are {supportedShells}.";
             Options.Parse(commandLineArguments);
-            if (ShellSelection == SupportedShell.Unspecified) throw new CommandException($"Please specify the type of shell to install autocompletion for: --shell=XYZ. Valid values are {supportedShells}.");
 
-            
+            if (ShellSelection == SupportedShell.Unspecified) throw new CommandException(invalidShellSelectionMessage);
+
+
             commandOutputProvider.PrintHeader();
             if (DryRun) commandOutputProvider.Warning("DRY RUN");
             commandOutputProvider.Information($"Installing auto-complete scripts for {ShellSelection}");
@@ -76,7 +78,7 @@ namespace Octopus.Cli.Commands
                         InstallForPowershell();
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(ShellSelection));
+                        throw new CommandException(invalidShellSelectionMessage);
                 }
                 
             });
@@ -158,7 +160,7 @@ namespace Octopus.Cli.Commands
             }
             else
             {
-                throw new NotSupportedException("Unable to install for powershell on non-windows platforms. Please use --shell=pwsh instead.");
+                throw new CommandException("Unable to install for powershell on non-windows platforms. Please use --shell=pwsh instead.");
             }
         }
     }

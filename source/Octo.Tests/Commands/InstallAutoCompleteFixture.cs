@@ -4,9 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using FluentAssertions;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 using Octopus.Cli.Commands;
+using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
 
 namespace Octo.Tests.Commands
@@ -56,6 +59,20 @@ namespace Octo.Tests.Commands
             fileSystem.Received()
                 .OverwriteFile(profile, Arg.Is<string>(arg => arg.Contains(UserProfileHelper.PwshProfileScript)));
         }
+
+        [Test]
+        public async Task ShouldThrowOnIllegalShellValues()
+        {
+            try
+            {
+                await installAutoCompleteCommand.Execute(new[] {"--shell=666"});
+            }
+            catch (CommandException)
+            {
+                Assert.Pass();
+            }
+            Assert.Fail($"Expected a {nameof(CommandException)} to be thrown.");
+        }
         
         [Test]
         public async Task ShouldPreventInstallationOfPowershellOnLinux()
@@ -66,11 +83,11 @@ namespace Octo.Tests.Commands
                 {
                     await installAutoCompleteCommand.Execute(new[] {"--shell=powershell"});
                 }
-                catch (NotSupportedException)
+                catch (CommandException)
                 {
                     Assert.Pass();
                 }
-                Assert.Fail($"Expected a {nameof(NotSupportedException)}");
+                Assert.Fail($"Expected a {nameof(CommandException)}");
             }
             else
             {
