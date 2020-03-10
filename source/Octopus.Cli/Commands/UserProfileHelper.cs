@@ -8,7 +8,6 @@ namespace Octopus.Cli.Commands
 {
     public static class UserProfileHelper
     {
-
         private static string LinuxHomeLocation => System.Environment.GetEnvironmentVariable("HOME");
         private static string PowershellProfileFilename => "Microsoft.PowerShell_profile.ps1";
         private static string LinuxPwshConfigLocation => Path.Combine(LinuxHomeLocation, ".config", "powershell");
@@ -44,8 +43,8 @@ compctl -K _octo_zsh_complete Octo";
             @"
 Register-ArgumentCompleter -Native -CommandName octo -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
-    $parms = $commandAst.ToString() -replace 'octo ',''
-    octo complete $parms.Split(' ') | % {
+    $parms = $commandAst.ToString().Split(' ') | select -skip 1
+    octo complete $parms | % {
         [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterName', $_)
     }
 }";
