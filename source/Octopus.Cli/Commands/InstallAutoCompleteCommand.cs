@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Octopus.Cli.Commands.ShellCompletion;
 using Octopus.Cli.Infrastructure;
@@ -22,7 +20,6 @@ namespace Octopus.Cli.Commands
     [Command(name: "install-autocomplete", Description = "Install a shell auto-complete script into your shell profile, if they aren't already there. Supports pwsh, zsh, bash & powershell.")]
     public class InstallAutoCompleteCommand : CommandBase, ICommand
     {
-        private readonly IOctopusFileSystem fileSystem;
         private readonly IEnumerable<ShellCompletionInstaller> installers;
 
         private readonly string supportedShells = 
@@ -30,9 +27,8 @@ namespace Octopus.Cli.Commands
                 .Except(new [] {SupportedShell.Unspecified.ToString()})
                 .ReadableJoin();
         
-        public InstallAutoCompleteCommand(ICommandOutputProvider commandOutputProvider, IOctopusFileSystem fileSystem, IEnumerable<ShellCompletionInstaller> installers) : base(commandOutputProvider)
+        public InstallAutoCompleteCommand(ICommandOutputProvider commandOutputProvider, IEnumerable<ShellCompletionInstaller> installers) : base(commandOutputProvider)
         {
-            this.fileSystem = fileSystem;
             this.installers = installers;
 
             var options = Options.For("Install AutoComplete");

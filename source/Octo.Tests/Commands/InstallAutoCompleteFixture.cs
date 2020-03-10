@@ -1,12 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using FluentAssertions;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 using Octopus.Cli.Commands;
 using Octopus.Cli.Commands.ShellCompletion;
@@ -125,14 +120,14 @@ namespace Octo.Tests.Commands
         [TestCaseSource(nameof(GetShellCompletionInstallers))]
         public async Task ShouldTakeABackup(ShellCompletionInstaller installer)
         {
-            SetupMockExistingProfileFile(installer);
+            SetupMockExistingProfileFile();
 
             await installAutoCompleteCommand.Execute(new[] {$"--shell={installer.SupportedShell.ToString()}"});
         
             fileSystem.Received()
                 .CopyFile(installer.ProfileLocation, installer.ProfileLocation + ".orig");
             
-            void SetupMockExistingProfileFile(ShellCompletionInstaller installer)
+            void SetupMockExistingProfileFile()
             {
                 fileSystem.FileExists(installer.ProfileLocation).Returns(true);
             }    
@@ -142,13 +137,13 @@ namespace Octo.Tests.Commands
         [TestCaseSource(nameof(GetShellCompletionInstallers))]
         public async Task ShouldEnsureProfileDirectoryExists(ShellCompletionInstaller installer)
         {
-            SetupMockNoProfileFile(installer);
+            SetupMockNoProfileFile();
 
             await installAutoCompleteCommand.Execute(new[] {$"--shell={installer.SupportedShell.ToString()}"});
             fileSystem.Received()
                 .EnsureDirectoryExists(Path.GetDirectoryName(installer.ProfileLocation));
             
-            void SetupMockNoProfileFile(ShellCompletionInstaller installer)
+            void SetupMockNoProfileFile()
             {
                 fileSystem.FileExists(installer.ProfileLocation).Returns(false);
             }

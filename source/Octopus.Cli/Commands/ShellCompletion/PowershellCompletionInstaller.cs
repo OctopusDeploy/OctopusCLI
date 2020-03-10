@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
