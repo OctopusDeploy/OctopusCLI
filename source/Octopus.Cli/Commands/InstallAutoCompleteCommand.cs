@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,13 +26,20 @@ namespace Octopus.Cli.Commands
         public InstallAutoCompleteCommand(ICommandOutputProvider commandOutputProvider, IOctopusFileSystem fileSystem) : base(commandOutputProvider)
         {
             this.fileSystem = fileSystem;
-
+            var supportedShells = 
+                Enum.GetNames(typeof(SupportedShell))
+                    .Except(new [] {SupportedShell.Unspecified.ToString()})
+                    .ReadableJoin();
             var options = Options.For("Install AutoComplete");
             options.Add("shell=",
-                "The type of shell to install auto-complete scripts for. This will alter your shell configuration files. Supported shells: zsh, bash, pwsh and powershell.",
-                v => ShellSelection = Enum.TryParse(v, ignoreCase: true, out SupportedShell type) 
-                    ? type 
-                    : throw new InvalidCastException($"Unable to install autocomplete scripts into the {v} shell. Supported shells are zsh, bash, pwsh and powershell."));
+                $"The type of shell to install auto-complete scripts for. This will alter your shell configuration files. Supported shells are {supportedShells}.",
+                v =>
+                {
+                    ShellSelection = Enum.TryParse(v, ignoreCase: true, out SupportedShell type)
+                        ? type
+                        : throw new CommandException(
+                            $"Unable to install autocomplete scripts into the {v} shell. Supported shells are {supportedShells}.");
+                });
             options.Add("dryRun",
                 "[Optional] Dry run will output the proposed changes to console, instead of writing to disk.",
                 v => DryRun = true);
