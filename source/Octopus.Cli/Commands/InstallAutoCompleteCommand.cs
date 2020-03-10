@@ -79,7 +79,6 @@ namespace Octopus.Cli.Commands
                     default:
                         throw new CommandException(invalidShellSelectionMessage);
                 }
-                
             });
         }
 
