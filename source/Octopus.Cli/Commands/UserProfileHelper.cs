@@ -9,7 +9,6 @@ namespace Octopus.Cli.Commands
     public static class UserProfileHelper
     {
 
-        public static char DirectorySeparator = Path.DirectorySeparatorChar;
         private static string LinuxHomeLocation => System.Environment.GetEnvironmentVariable("HOME");
         private static string PowershellProfileFilename => "Microsoft.PowerShell_profile.ps1";
         private static string LinuxPwshConfigLocation => Path.Combine(LinuxHomeLocation, ".config", "powershell");
