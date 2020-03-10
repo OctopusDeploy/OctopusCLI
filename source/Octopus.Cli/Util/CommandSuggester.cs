@@ -41,7 +41,7 @@ namespace Octopus.Cli.Util
                 else
                 {
                     // e.g. `octo --searchTerm`
-                    return GetBaseOptionSuggestions(completionItems, searchTerm);
+                    return GetBaseOptionSuggestions(completionItems, searchTerm).OrderBy(name => name);
                 }
             }
             else if (ZeroOrOneSubCommands(words, allSubCommands))
@@ -50,7 +50,7 @@ namespace Octopus.Cli.Util
                 suggestions.AddRange(GetSubCommandSuggestions(completionItems, searchTerm));
             }
 
-            return suggestions;
+            return suggestions.OrderBy(name => name);
         }
 
         private static IEnumerable<string> GetSubCommandSuggestions(IReadOnlyDictionary<string, string[]> completionItems, string searchTerm)
