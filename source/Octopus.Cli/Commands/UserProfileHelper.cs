@@ -62,6 +62,6 @@ complete -F _octo_bash_complete octo
 complete -F _octo_bash_complete Octo";
 
         public const string AllShellsPrefix = "# start: Octopus CLI (octo) Autocomplete script";
-        public const string AllShellsSuffix = "# end: octo CLI Autocomplete script";
+        public const string AllShellsSuffix = "# end: Octopus CLI (octo) Autocomplete script";
     }
 }
