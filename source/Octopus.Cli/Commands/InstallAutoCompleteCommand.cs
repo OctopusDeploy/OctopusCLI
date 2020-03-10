@@ -22,14 +22,15 @@ namespace Octopus.Cli.Commands
     public class InstallAutoCompleteCommand : CommandBase, ICommand
     {
         private readonly IOctopusFileSystem fileSystem;
-
+        private readonly string supportedShells = 
+            Enum.GetNames(typeof(SupportedShell))
+                .Except(new [] {SupportedShell.Unspecified.ToString()})
+                .ReadableJoin();
+        
         public InstallAutoCompleteCommand(ICommandOutputProvider commandOutputProvider, IOctopusFileSystem fileSystem) : base(commandOutputProvider)
         {
             this.fileSystem = fileSystem;
-            var supportedShells = 
-                Enum.GetNames(typeof(SupportedShell))
-                    .Except(new [] {SupportedShell.Unspecified.ToString()})
-                    .ReadableJoin();
+            
             var options = Options.For("Install AutoComplete");
             options.Add("shell=",
                 $"The type of shell to install auto-complete scripts for. This will alter your shell configuration files. Supported shells are {supportedShells}.",
@@ -52,7 +53,7 @@ namespace Octopus.Cli.Commands
         public Task Execute(string[] commandLineArguments)
         {
             Options.Parse(commandLineArguments);
-            if (ShellSelection == SupportedShell.Unspecified) throw new CommandException("Please specify the type of shell to install autocompletion for: --shell=XYZ");
+            if (ShellSelection == SupportedShell.Unspecified) throw new CommandException($"Please specify the type of shell to install autocompletion for: --shell=XYZ. Valid values are {supportedShells}.");
 
             
             commandOutputProvider.PrintHeader();
