@@ -351,7 +351,7 @@ Task("CreateLinuxPackages")
         Env = new string[] { 
             $"VERSION={nugetVersion}",
             "OCTOPUSCLI_BINARIES=/app/",
-            "ARTIFACTS=/out"
+            "OUT_PATH=/out"
         },
         Volume = new string[] { 
             $"{Environment.CurrentDirectory}/BuildAssets:/build",

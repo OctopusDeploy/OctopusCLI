@@ -1,9 +1,17 @@
 #!/bin/bash
 
-if [[ -z "$PUBLISH_LINUX_EXTERNAL" || -z "$PUBLISH_ARTIFACTORY_USERNAME" || -z "$PUBLISH_ARTIFACTORY_PASSWORD" \
-   || -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" ]]; then
-  echo -e 'This script requires the following environment variables to be set:
-  PUBLISH_LINUX_EXTERNAL, PUBLISH_ARTIFACTORY_USERNAME, PUBLISH_ARTIFACTORY_PASSWORD, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY' >&2
+if [[ -z "$PUBLISH_LINUX_EXTERNAL" ]]; then
+  echo 'This script requires the environment variable PUBLISH_LINUX_EXTERNAL - specify "true" to publish to the external public feed.' >&2
+  exit 1
+fi
+if [[ -z "$PUBLISH_ARTIFACTORY_USERNAME" || -z "$PUBLISH_ARTIFACTORY_PASSWORD" ]]; then
+  echo -e 'This script requires the environment variables PUBLISH_ARTIFACTORY_USERNAME and PUBLISH_ARTIFACTORY_PASSWORD - an account on'\
+    '\nthe artifactory instance with permissions up to "Manage" on the apt repos.' >&2
+  exit 1
+fi
+if [[ -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" ]]; then
+  echo -e 'This script requires the environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY - credentials to sync repo updates'\
+    '\nto S3.' >&2
   exit 1
 fi
 

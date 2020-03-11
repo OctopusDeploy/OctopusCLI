@@ -1,8 +1,15 @@
 #!/bin/bash
 
-if [[ -z "$VERSION" || -z "$OCTOPUSCLI_BINARIES" || -z "$ARTIFACTS" ]]; then
-  echo -e 'This script requires the following environment variables to be set:
-  VERSION, OCTOPUSCLI_BINARIES, ARTIFACTS' >&2
+if [[ -z "$VERSION" ]]; then
+  echo 'This script requires the environment variable VERSION - the version being packaged.' >&2
+  exit 1
+fi
+if [[ -z "$OCTOPUSCLI_BINARIES" ]]; then
+  echo 'This script requires the environment variable OCTOPUSCLI_BINARIES - the path containing octo and related files.' >&2
+  exit 1
+fi
+if [[ -z "$OUT_PATH" ]]; then
+  echo 'This script requires the environment variable OUT_PATH - the path where packages should be written.' >&2
   exit 1
 fi
 
@@ -63,4 +70,4 @@ fpm --version "$VERSION" \
 # Note: Microsoft recommends dep 'lttng-ust' but it seems to be unavailable in CentOS 7, so we're omitting it for now.
 # As it's related to tracing, hopefully it will not be required for normal usage.
 
-mv -f *.{deb,rpm} $ARTIFACTS || exit
+mv -f *.{deb,rpm} "$OUT_PATH" || exit
