@@ -351,7 +351,7 @@ Task("CreateLinuxPackages")
         Env = new string[] { 
             $"VERSION={nugetVersion}",
             "OCTOPUSCLI_BINARIES=/app/",
-            "ARTIFACTS=/out"
+            "OUT_PATH=/out"
         },
         Volume = new string[] { 
             $"{Environment.CurrentDirectory}/BuildAssets:/build",
@@ -369,7 +369,9 @@ Task("CreateLinuxPackages")
     CopyFileToDirectory($"{assetDir}/repos/publish-apt.sh", $"{artifactsDir}/linuxpackages");
     CopyFileToDirectory($"{assetDir}/repos/publish-rpm.sh", $"{artifactsDir}/linuxpackages");
     CopyFileToDirectory($"{assetDir}/repos/test-apt.sh", $"{artifactsDir}/linuxpackages");
+    CopyFileToDirectory($"{assetDir}/repos/test-apt-dists.sh", $"{artifactsDir}/linuxpackages");
     CopyFileToDirectory($"{assetDir}/repos/test-rpm.sh", $"{artifactsDir}/linuxpackages");
+    CopyFileToDirectory($"{assetDir}/repos/test-rpm-dists.sh", $"{artifactsDir}/linuxpackages");
     TarGzip($"{artifactsDir}/linuxpackages", $"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}");
     var buildSystem = BuildSystemAliases.BuildSystem(Context);
     buildSystem.TeamCity.PublishArtifacts($"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}.tar.gz");
@@ -391,7 +393,7 @@ private void SignBinaries(string path)
 
 	Sign(files, new SignToolSignSettings {
 			ToolPath = MakeAbsolute(File("./certificates/signtool.exe")),
-            TimeStampUri = new Uri("http://timestamp.globalsign.com/scripts/timestamp.dll"),
+            TimeStampUri = new Uri("http://timestamp.verisign.com/scripts/timstamp.dll"),
             CertPath = signingCertificatePath,
             Password = signingCertificatePassword
     });
