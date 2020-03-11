@@ -32,8 +32,6 @@ namespace Octopus.Cli.Commands.Releases
 
         public string ReasonToPrevent { get; set; }
 
-        public bool IsPreventionErrorsIgnored { get; set; }
-
         protected override async Task ValidateParameters()
         {
             if (string.IsNullOrWhiteSpace(ProjectNameOrId)) throw new CommandException("Please specify a project name or ID using the parameter: --project=XYZ");
