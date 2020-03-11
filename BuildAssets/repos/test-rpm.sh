@@ -41,7 +41,9 @@ else
       --auto-attach 2>&1
   )" || { echo "Error while registering Red Hat subscription:" >&2; echo "$SUB_OUT" >&2; exit 1; }
   ERR_OUT="$(
-    yum --quiet --assumeyes install yum-plugin-ovl 2>&1 && \
+    if [[ "$(source /etc/os-release && echo "${VERSION_ID:0:1}")" -lt 8 ]]; then
+      yum --quiet --assumeyes install yum-plugin-ovl 2>&1 || exit
+    fi
     yum --quiet --assumeyes install tentacle octopuscli 2>&1
   )"
   STATUS=$?

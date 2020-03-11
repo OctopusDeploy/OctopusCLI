@@ -49,7 +49,6 @@ else
       --auto-attach 2>&1
   )" || { echo "Error while registering Red Hat subscription:" >&2; echo "$SUB_OUT" >&2; exit 1; }
   ERR_OUT="$(
-    yum --quiet --assumeyes install yum-plugin-ovl 2>&1 && \
     yum --quiet --assumeyes localinstall /pkgs/octopuscli*.rpm 2>&1
   )"
   STATUS=$?
