@@ -17,7 +17,8 @@ else
   ORIGIN="http://prerelease.rpm.octopus.com"
 fi
 
-# The following should be kept in sync with our documented download instructions (but more automated and quieter).
+# The following commands are intended to test our instructions at: https://octopus.com/downloads/octopuscli
+# Keep the process similar to how they might be applied (in a more automatic and quiet way)
 
 echo "## Configuring yum"
 curl --silent --show-error --fail --location "$ORIGIN/tentacle.repo" --output /etc/yum.repos.d/tentacle.repo || exit

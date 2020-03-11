@@ -22,7 +22,8 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update --quiet 2 || exit
 apt-get install --no-install-recommends --yes apt-utils >/dev/null 2>&1 || exit # silence debconf warnings
 
-# The following should be kept in sync with our documented download instructions (but more automated and quieter).
+# The following commands are intended to test our instructions at: https://octopus.com/downloads/octopuscli
+# Keep the process similar to how they might be applied (in a more automatic and quiet way)
 
 echo "## Configuring apt"
 DIST=$({ grep --perl --no-filename --only-matching --no-messages \
