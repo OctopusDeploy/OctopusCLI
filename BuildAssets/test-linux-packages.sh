@@ -27,7 +27,7 @@ TEST_DEB_SH='
 
   # Install octo
   dpkg -i /pkgs/octopuscli*.deb >/dev/null 2>&1 # Silenced and expected to fail due to missing deps, which apt can fix
-  apt-get --no-install-recommends --yes --fix-broken install >/dev/null 2>&1 || exit
+  apt-get --no-install-recommends --yes --fix-broken install 2>&1 >/dev/null || exit
   apt-get --no-install-recommends --yes install ca-certificates >/dev/null || exit
 '"$TEST_SH"
 
