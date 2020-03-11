@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading.Tasks;
+using Autofac;
 using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
@@ -8,6 +9,7 @@ using Octopus.Cli.Commands;
 using Octopus.Cli.Commands.Releases;
 using Octopus.Cli.Infrastructure;
 using Octopus.Client.Exceptions;
+using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
 using Octopus.Client.Serialization;
 
@@ -53,7 +55,7 @@ namespace Octo.Tests.Commands
         [Test]
         public void ShouldImplementCorrectInterface()
         {
-            typeof(ISupportFormattedOutput).IsAssignableFrom(typeof(PreventReleaseProgressionCommand)).Should().BeTrue();
+            typeof(PreventReleaseProgressionCommand).IsAssignableTo<ISupportFormattedOutput>().Should().BeTrue();
         }
 
         [Test]
@@ -63,7 +65,7 @@ namespace Octo.Tests.Commands
 
             attribute.Should().NotBeNull();
 
-            attribute.Name.Should().Be("prevent-release-progression");
+            attribute.Name.Should().Be("prevent-releaseprogression");
         }
 
         [TestCase(null)]
@@ -126,6 +128,9 @@ namespace Octo.Tests.Commands
         [TestCase("releaseNumber")]
         public async Task ShouldSupportBothReleaseNumberAndVersionArgForReleaseVersionNumberProperty(string argName)
         {
+            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved) };
+            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
+
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--{argName}={releaseResource.Version}");
             CommandLineArgs.Add($"--reason={ReasonToPrevent}");
@@ -150,9 +155,11 @@ namespace Octo.Tests.Commands
             exec.ShouldThrow<OctopusResourceNotFoundException>();
         }
 
-        [Test]
-        public async Task ShouldPreventReleaseProgressionCorrectly()
+        [Test] public async Task ShouldPreventReleaseProgressionCorrectly_WhenReleaseProgressionIsNotYetPrevented()
         {
+            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved) };
+            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
+
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
             CommandLineArgs.Add($"--reason={ReasonToPrevent}");
@@ -165,7 +172,30 @@ namespace Octo.Tests.Commands
 
             await Repository.Projects.Received(1).FindByName(projectResource.Name);
             await Repository.Projects.Received(1).GetReleaseByVersion(projectResource, releaseResource.Version);
+            await Repository.Defects.Received(1).GetDefects(releaseResource);
             await Repository.Defects.Received(1).RaiseDefect(releaseResource, ReasonToPrevent);
+        }
+
+        [Test]
+        public async Task ShouldPreventReleaseProgressionCorrectly_WhenReleaseProgressionIsAlreadyPrevented()
+        {
+            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Unresolved), new DefectResource("Test Defect", DefectStatus.Resolved) };
+            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
+
+            CommandLineArgs.Add($"--project={projectResource.Name}");
+            CommandLineArgs.Add($"--version={releaseResource.Version}");
+            CommandLineArgs.Add($"--reason={ReasonToPrevent}");
+
+            await preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
+
+            preventReleaseProgressionCommand.ProjectNameOrId.Should().Be(projectResource.Name);
+            preventReleaseProgressionCommand.ReleaseVersionNumber.Should().Be(releaseResource.Version);
+            preventReleaseProgressionCommand.ReasonToPrevent.Should().Be(ReasonToPrevent);
+
+            await Repository.Projects.Received(1).FindByName(projectResource.Name);
+            await Repository.Projects.Received(1).GetReleaseByVersion(projectResource, releaseResource.Version);
+            await Repository.Defects.Received(1).GetDefects(releaseResource);
+            await Repository.Defects.DidNotReceive().RaiseDefect(releaseResource, ReasonToPrevent);
         }
 
         [Test]
@@ -179,6 +209,10 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldPrintJsonOutputCorrectly()
         {
+            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved) };
+            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
+
+
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
             CommandLineArgs.Add($"--reason={ReasonToPrevent}");

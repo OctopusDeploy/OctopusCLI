@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading.Tasks;
+using Autofac;
 using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
@@ -8,22 +9,23 @@ using Octopus.Cli.Commands;
 using Octopus.Cli.Commands.Releases;
 using Octopus.Cli.Infrastructure;
 using Octopus.Client.Exceptions;
+using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
 using Octopus.Client.Serialization;
 
 namespace Octo.Tests.Commands
 {
     [TestFixture]
-    public class UnblockReleaseCommandFixture : ApiCommandFixtureBase
+    public class AllowReleaseProgressionCommandFixture : ApiCommandFixtureBase
     {
-        UnblockReleaseCommand unblockReleaseCommand;
+        AllowReleaseProgressionCommand allowReleaseProgressionCommand;
         ProjectResource projectResource;
         ReleaseResource releaseResource;
 
         [SetUp]
         public void SetUp()
         {
-            unblockReleaseCommand = new UnblockReleaseCommand(ClientFactory, RepositoryFactory, FileSystem, CommandOutputProvider);
+            allowReleaseProgressionCommand = new AllowReleaseProgressionCommand(ClientFactory, RepositoryFactory, FileSystem, CommandOutputProvider);
 
             projectResource = new ProjectResource
             {
@@ -46,26 +48,23 @@ namespace Octo.Tests.Commands
         [Test]
         public void ShouldBeSubClassOfCorrectBaseClass()
         {
-            typeof(UnblockReleaseCommand).IsSubclassOf(typeof(ApiCommand)).Should().BeTrue();
+            typeof(AllowReleaseProgressionCommand).IsSubclassOf(typeof(ApiCommand)).Should().BeTrue();
         }
 
         [Test]
         public void ShouldImplementCorrectInterface()
         {
-            typeof(ISupportFormattedOutput).IsAssignableFrom(typeof(UnblockReleaseCommand)).Should().BeTrue();
+            typeof(AllowReleaseProgressionCommand).IsAssignableTo<ISupportFormattedOutput>().Should().BeTrue();
         }
 
         [Test]
         public void ShouldBeAttachedWithCorrectAttribute()
         {
-            var attribute = typeof(UnblockReleaseCommand).GetCustomAttribute<CommandAttribute>();
+            var attribute = typeof(AllowReleaseProgressionCommand).GetCustomAttribute<CommandAttribute>();
 
             attribute.Should().NotBeNull();
 
-            attribute.Name.Should().Be("unblock-release");
-
-            attribute.Aliases.Should().HaveCount(1);
-            attribute.Aliases.Should().Contain("resume-release-progression");
+            attribute.Name.Should().Be("allow-releaseprogression");
         }
 
         [TestCase(null)]
@@ -76,7 +75,7 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add($"--project={projectIdOrName}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
 
-            Func<Task> exec = () => unblockReleaseCommand.Execute(CommandLineArgs.ToArray());
+            Func<Task> exec = () => allowReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
                 .WithMessage("Please specify a project name or ID using the parameter: --project=XYZ");
         }
@@ -89,7 +88,7 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseVersionNumber}");
 
-            Func<Task> exec = () => unblockReleaseCommand.Execute(CommandLineArgs.ToArray());
+            Func<Task> exec = () => allowReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
                 .WithMessage("Please specify a release version number using the version parameter: --version=1.0.5");
         }
@@ -102,7 +101,7 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseVersionNumber}");
 
-            Func<Task> exec = () => unblockReleaseCommand.Execute(CommandLineArgs.ToArray());
+            Func<Task> exec = () => allowReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
                 .WithMessage("Please provide a valid release version format, you can refer to https://semver.org/ for a valid format: --version=1.0.5");
         }
@@ -111,13 +110,16 @@ namespace Octo.Tests.Commands
         [TestCase("releaseNumber")]
         public async Task ShouldSupportBothReleaseNumberAndVersionArgForReleaseVersionNumberProperty(string argName)
         {
+            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Unresolved) };
+            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
+
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--{argName}={releaseResource.Version}");
 
-            await unblockReleaseCommand.Execute(CommandLineArgs.ToArray());
+            await allowReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
 
-            unblockReleaseCommand.ReleaseVersionNumber.Should().Be(releaseResource.Version);
-            await Repository.Projects.Received(1).GetReleaseByVersion(projectResource, unblockReleaseCommand.ReleaseVersionNumber);
+            allowReleaseProgressionCommand.ReleaseVersionNumber.Should().Be(releaseResource.Version);
+            await Repository.Projects.Received(1).GetReleaseByVersion(projectResource, allowReleaseProgressionCommand.ReleaseVersionNumber);
         }
 
         [Test]
@@ -128,43 +130,70 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
 
-            Func<Task> exec = () => unblockReleaseCommand.Execute(CommandLineArgs.ToArray());
+            Func<Task> exec = () => allowReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
 
             exec.ShouldThrow<OctopusResourceNotFoundException>();
         }
 
         [Test]
-        public async Task ShouldUnblockReleaseCorrectly()
+        public async Task ShouldAllowReleaseProgressionCorrectly_WhenReleaseProgressionIsNotYetAllowed()
         {
+            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Unresolved), new DefectResource("Test Defect", DefectStatus.Resolved) };
+            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
+
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
 
-            await unblockReleaseCommand.Execute(CommandLineArgs.ToArray());
+            await allowReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
 
-            unblockReleaseCommand.ProjectNameOrId.Should().Be(projectResource.Name);
-            unblockReleaseCommand.ReleaseVersionNumber.Should().Be(releaseResource.Version);
+            allowReleaseProgressionCommand.ProjectNameOrId.Should().Be(projectResource.Name);
+            allowReleaseProgressionCommand.ReleaseVersionNumber.Should().Be(releaseResource.Version);
 
             await Repository.Projects.Received(1).FindByName(projectResource.Name);
             await Repository.Projects.Received(1).GetReleaseByVersion(projectResource, releaseResource.Version);
+            await Repository.Defects.Received(1).GetDefects(releaseResource);
             await Repository.Defects.Received(1).ResolveDefect(releaseResource);
+        }
+
+        [Test]
+        public async Task ShouldAllowReleaseProgressionCorrectly_WhenReleaseProgressionIsAlreadyAllowed()
+        {
+            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved), new DefectResource("Test Defect", DefectStatus.Resolved) };
+            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
+
+            CommandLineArgs.Add($"--project={projectResource.Name}");
+            CommandLineArgs.Add($"--version={releaseResource.Version}");
+
+            await allowReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
+
+            allowReleaseProgressionCommand.ProjectNameOrId.Should().Be(projectResource.Name);
+            allowReleaseProgressionCommand.ReleaseVersionNumber.Should().Be(releaseResource.Version);
+
+            await Repository.Projects.Received(1).FindByName(projectResource.Name);
+            await Repository.Projects.Received(1).GetReleaseByVersion(projectResource, releaseResource.Version);
+            await Repository.Defects.Received(1).GetDefects(releaseResource);
+            await Repository.Defects.DidNotReceive().ResolveDefect(releaseResource);
         }
 
         [Test]
         public void ShouldPrintDefaultOutputCorrectly()
         {
-            unblockReleaseCommand.PrintDefaultOutput();
+            allowReleaseProgressionCommand.PrintDefaultOutput();
 
-            LogOutput.ToString().Trim().Should().Be("Unblocked successfully.");
+            LogOutput.ToString().Trim().Should().Be("Allowed successfully.");
         }
 
         [Test]
         public async Task ShouldPrintJsonOutputCorrectly()
         {
+            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved), new DefectResource("Test Defect", DefectStatus.Resolved) };
+            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
+
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
             CommandLineArgs.Add("--outputFormat=json");
 
-            await unblockReleaseCommand.Execute(CommandLineArgs.ToArray());
+            await allowReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
 
             var logOutput = LogOutput.ToString().Trim();
             var expectedLogOutput = JsonSerialization.SerializeObject(new

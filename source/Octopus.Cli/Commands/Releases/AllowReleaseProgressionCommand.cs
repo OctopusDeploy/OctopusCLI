@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
@@ -8,18 +9,18 @@ using Octopus.Client.Model;
 
 namespace Octopus.Cli.Commands.Releases
 {
-    [Command("unblock-release", "resume-release-progression", Description = "Unblock a release from progressing to next phase.")]
-    public class UnblockReleaseCommand : ApiCommand, ISupportFormattedOutput
+    [Command("allow-releaseprogression", Description = "Allow a release from progressing to next phase.")]
+    public class AllowReleaseProgressionCommand : ApiCommand, ISupportFormattedOutput
     {
         ProjectResource project;
         ReleaseResource release;
 
-        public UnblockReleaseCommand(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider)
+        public AllowReleaseProgressionCommand(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
-            var options = Options.For("Unblocking release.");
+            var options = Options.For("Allowing release progression.");
             options.Add("project=", "Name or ID of the project", v => ProjectNameOrId = v);
-            options.Add("version=|releaseNumber=", "Release version/number.",
+            options.Add("version=|releaseNumber=", "Release version/number",
                 v => ReleaseVersionNumber = v);
         }
 
@@ -43,12 +44,20 @@ namespace Octopus.Cli.Commands.Releases
             release = await Repository.Projects.GetReleaseByVersion(project, ReleaseVersionNumber).ConfigureAwait(false);
             if (release == null) throw new OctopusResourceNotFoundException($"Unable to locate a release with version/release number '{ReleaseVersionNumber}'.");
 
+            var isReleaseAllowedFromProgressionAlready = (await Repository.Defects.GetDefects(release).ConfigureAwait(false)).Items.All(i => i.Status == DefectStatus.Resolved);
+            if (isReleaseAllowedFromProgressionAlready)
+            {
+                commandOutputProvider.Information($"Release with version/release number '{ReleaseVersionNumber}' is already allowed to progress to next phase.");
+
+                return;
+            }
+
             await Repository.Defects.ResolveDefect(release).ConfigureAwait(false);
         }
 
         public void PrintDefaultOutput()
         {
-            commandOutputProvider.Information("Unblocked successfully.");
+            commandOutputProvider.Information("Allowed successfully.");
         }
 
         public void PrintJsonOutput()

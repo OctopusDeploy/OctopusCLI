@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
@@ -8,7 +9,7 @@ using Octopus.Client.Model;
 
 namespace Octopus.Cli.Commands.Releases
 {
-    [Command("prevent-release-progression", Description = "Prevent a release from progressing to next phase.")]
+    [Command("prevent-releaseprogression", Description = "Prevent a release from progressing to next phase.")]
     public class PreventReleaseProgressionCommand : ApiCommand, ISupportFormattedOutput
     {
         ProjectResource project;
@@ -19,9 +20,9 @@ namespace Octopus.Cli.Commands.Releases
         {
             var options = Options.For("Preventing release progression.");
             options.Add("project=", "Name or ID of the project", v => ProjectNameOrId = v);
-            options.Add("version=|releaseNumber=", "Release version/number.",
+            options.Add("version=|releaseNumber=", "Release version/number",
                 v => ReleaseVersionNumber = v);
-            options.Add("reason=", "Reason to prevent this release from progressing to next phase.",
+            options.Add("reason=", "Reason to prevent this release from progressing to next phase",
                 v => ReasonToPrevent = v);
         }
 
@@ -30,6 +31,8 @@ namespace Octopus.Cli.Commands.Releases
         public string ReleaseVersionNumber { get; set; }
 
         public string ReasonToPrevent { get; set; }
+
+        public bool IsPreventionErrorsIgnored { get; set; }
 
         protected override async Task ValidateParameters()
         {
@@ -46,8 +49,16 @@ namespace Octopus.Cli.Commands.Releases
             project = await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
 
             release = await Repository.Projects.GetReleaseByVersion(project, ReleaseVersionNumber).ConfigureAwait(false);
-            if (release == null) throw new OctopusResourceNotFoundException($"Unable to locate a release with version/release number '${ReleaseVersionNumber}'.");
-            
+            if (release == null) throw new OctopusResourceNotFoundException($"Unable to locate a release with version/release number '{ReleaseVersionNumber}'.");
+
+            var isReleasePreventedFromProgressionAlready = (await Repository.Defects.GetDefects(release).ConfigureAwait(false)).Items.Any(i => i.Status == DefectStatus.Unresolved);
+            if (isReleasePreventedFromProgressionAlready)
+            {
+                commandOutputProvider.Information($"Release with version/release number '{ReleaseVersionNumber}' is already prevented from progressing to next phase.");
+
+                return;
+            }
+
             await Repository.Defects.RaiseDefect(release, ReasonToPrevent).ConfigureAwait(false);
         }
 
