@@ -1,5 +1,9 @@
 #!/bin/bash
 
+which docker >/dev/null || {
+  echo 'This script requires docker.' >&2
+  exit 1
+}
 if [[ -z "$PUBLISH_LINUX_EXTERNAL" ]]; then
   echo 'This script requires the environment variable PUBLISH_LINUX_EXTERNAL - specify "true" to test the external public feed.' >&2
   exit 1

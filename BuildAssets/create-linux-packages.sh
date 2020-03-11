@@ -1,5 +1,9 @@
 #!/bin/bash
 
+which fpm >/dev/null || {
+  echo 'This script requires fpm and related tools, found in the container "octopusdeploy/bionic-fpm".' >&2
+  exit 1
+}
 if [[ -z "$VERSION" ]]; then
   echo 'This script requires the environment variable VERSION - the version being packaged.' >&2
   exit 1

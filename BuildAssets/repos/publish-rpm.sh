@@ -1,5 +1,9 @@
 #!/bin/bash
 
+which curl rclone >/dev/null || {
+  echo 'This script requires curl and rclone, found in the container "octopusdeploy/publish-linux".' >&2
+  exit 1
+}
 if [[ -z "$PUBLISH_LINUX_EXTERNAL" ]]; then
   echo 'This script requires the environment variable PUBLISH_LINUX_EXTERNAL - specify "true" to publish to the external public feed.' >&2
   exit 1
