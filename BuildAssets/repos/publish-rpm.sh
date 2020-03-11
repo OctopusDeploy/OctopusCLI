@@ -50,8 +50,6 @@ curl "${CURL_UPL_OPTS[@]}" --request PUT --upload-file "$PKG" \
   || exit
 
 echo "Waiting for reindex"
-sleep 5
-# Note: reindex is automatic, but triggering it synchronously provides an indication when it has completed
 curl "${CURL_UPL_OPTS[@]}" --request POST \
   "https://octopusdeploy.jfrog.io/octopusdeploy/api/yum/$REPO_KEY?async=0" || exit
 
