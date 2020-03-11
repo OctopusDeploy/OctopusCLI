@@ -286,7 +286,7 @@ namespace Octopus.Cli.Infrastructure
                 throw new ArgumentOutOfRangeException(nameof(index));
             if (c.Option.OptionValueType == OptionValueType.Required &&
                 index >= values.Count)
-                throw new OptionException($"Missing required value for option '{c.OptionName}'.", c.OptionName);
+                throw new CommandException($"Missing required value for option '{c.OptionName}'.");
         }
 
         #endregion
