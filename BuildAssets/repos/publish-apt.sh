@@ -1,4 +1,5 @@
 #!/bin/bash
+# Publish the first .deb in the working directory to an Artifactory apt repository, then sync the repository to S3.
 
 which curl rclone >/dev/null || {
   echo 'This script requires curl and rclone, found in the container "octopusdeploy/publish-linux".' >&2

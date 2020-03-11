@@ -1,4 +1,5 @@
 #!/bin/bash
+# Install tentacle, octopuscli from one of our rpm feeds, and perform a basic smoke test.
 
 if [[ -z "$PUBLISH_LINUX_EXTERNAL" ]]; then
   echo 'This script requires the environment variable PUBLISH_LINUX_EXTERNAL - specify "true" to test the external public feed.' >&2

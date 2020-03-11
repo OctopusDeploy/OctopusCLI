@@ -1,4 +1,5 @@
 #!/bin/bash
+# Test that .deb and .rpm packages in the working directory install an octo command that can list-environments.
 
 which docker >/dev/null || {
   echo 'This script requires docker.' >&2

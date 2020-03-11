@@ -1,4 +1,5 @@
 #!/bin/bash
+# Smoke test one of our apt feeds in various dockerized distros.
 
 which docker >/dev/null || {
   echo 'This script requires docker.' >&2
