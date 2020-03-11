@@ -36,11 +36,11 @@ repo_gpgcheck=1
 echo "[tentacle]
 name=Octopus Tentacle
 $REPO_BODY" | curl "${CURL_UPL_OPTS[@]}" --request PUT --upload-file - \
-  "https://octopusdeploy.jfrog.io/octopusdeploy/rpm-prerelease/tentacle.repo" || exit
+  "https://octopusdeploy.jfrog.io/octopusdeploy/$REPO_KEY/tentacle.repo" || exit
 echo "[octopuscli]
 name=Octopus CLI
 $REPO_BODY" | curl "${CURL_UPL_OPTS[@]}" --request PUT --upload-file - \
-  "https://octopusdeploy.jfrog.io/octopusdeploy/rpm-prerelease/octopuscli.repo" || exit
+  "https://octopusdeploy.jfrog.io/octopusdeploy/$REPO_KEY/octopuscli.repo" || exit
 
 echo "Uploading package to Artifactory"
 PKG=$(ls -1 *.rpm | head -n1)
