@@ -15,7 +15,7 @@ fi
 test_in_docker () {
   echo "# Testing in '$1'"
   docker pull "$1" >/dev/null || exit
-  docker run --rm --volume $(pwd):/pkgs \
+  docker run --rm --volume $(pwd):/pkgs --hostname "testrpm$RANDOM" \
     --env PUBLISH_LINUX_EXTERNAL --env OCTOPUS_CLI_SERVER --env OCTOPUS_CLI_API_KEY --env OCTOPUS_SPACE \
     --env OCTOPUS_EXPECT_ENV --env REDHAT_SUBSCRIPTION_USERNAME --env REDHAT_SUBSCRIPTION_PASSWORD \
     "$1" bash -c 'cd /pkgs && bash test-rpm.sh' || exit

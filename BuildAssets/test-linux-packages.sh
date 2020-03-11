@@ -57,8 +57,9 @@ fi
 test_in_docker () {
   echo "== Testing in '$1' =="
   docker pull "$1" >/dev/null || exit
-  docker run --rm --volume "$(pwd):/pkgs" --env OCTOPUS_CLI_SERVER --env OCTOPUS_CLI_API_KEY --env OCTOPUS_SPACE \
-    --env OCTOPUS_EXPECT_ENV --env REDHAT_SUBSCRIPTION_USERNAME --env REDHAT_SUBSCRIPTION_PASSWORD "$1" bash -c "$2" || exit
+  docker run --rm --volume "$(pwd):/pkgs" --hostname "testpkgs$RANDOM" --env OCTOPUS_CLI_SERVER --env OCTOPUS_CLI_API_KEY \
+    --env OCTOPUS_SPACE --env OCTOPUS_EXPECT_ENV --env REDHAT_SUBSCRIPTION_USERNAME --env REDHAT_SUBSCRIPTION_PASSWORD \
+    "$1" bash -c "$2" || exit
 }
 
 test_in_docker debian:stable-slim "$TEST_DEB_SH"
