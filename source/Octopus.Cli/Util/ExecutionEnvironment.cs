@@ -4,9 +4,9 @@ using System.Runtime.InteropServices;
 
 namespace Octopus.Cli.Util
 {
-    [SuppressMessage("ReSharper", "DE0009")]
-    [SuppressMessage("ReSharper", "DE0007")]
-    [SuppressMessage("ReSharper", "PC003")]
+    [SuppressMessage("ReSharper", "DE0009")] // suppresses a deprecation warning for Environment.OSVersion 
+    [SuppressMessage("ReSharper", "DE0007")] // suppresses a deprecation warning for PlatformID.Win*
+    [SuppressMessage("ReSharper", "PC003")]  // suppresses a warning that libc!uname is unavailable in UWP
     public static class ExecutionEnvironment
     {
         /// <summary>
