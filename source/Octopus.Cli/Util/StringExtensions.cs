@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Octopus.Cli.Infrastructure;
 
 namespace Octopus.Cli.Util
@@ -14,6 +15,21 @@ namespace Octopus.Cli.Util
         public static string NewlineSeperate(this IEnumerable<object> items)
         {
             return string.Join(Environment.NewLine, items);
+        }
+
+        public static string NormalizeNewLinesForWindows(this string originalString)
+        {
+            return Regex.Replace(originalString, @"\r\n|\n\r|\n|\r", "\r\n");
+        }
+        
+        public static string NormalizeNewLinesForNix(this string originalString)
+        {
+            return Regex.Replace(originalString, @"\r\n|\n\r|\n|\r", "\n");
+        }
+        
+        public static string NormalizeNewLines(this string originalString)
+        {
+            return Regex.Replace(originalString, @"\r\n|\n\r|\n|\r", Environment.NewLine);
         }
 
         public static void CheckForIllegalPathCharacters(this string path, string name)

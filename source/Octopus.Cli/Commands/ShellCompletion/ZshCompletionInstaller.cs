@@ -13,7 +13,7 @@ namespace Octopus.Cli.Commands.ShellCompletion
     reply=( ""${(ps:\n:)completions}"" )
 }
 compctl -K _octo_zsh_complete octo
-compctl -K _octo_zsh_complete Octo";
+compctl -K _octo_zsh_complete Octo".NormalizeNewLinesForNix();
         public ZshCompletionInstaller(ICommandOutputProvider commandOutputProvider, IOctopusFileSystem fileSystem) : base(commandOutputProvider, fileSystem) { }
     }
 }

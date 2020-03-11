@@ -14,6 +14,8 @@ namespace Octopus.Cli.Commands.ShellCompletion
         public override string ProfileLocation => ExecutionEnvironment.IsRunningOnWindows
             ? Path.Combine(WindowsPwshConfigLocation, PowershellProfileFilename)
             : Path.Combine(LinuxPwshConfigLocation, PowershellProfileFilename);
+
+        public override string ProfileScript => base.ProfileScript.NormalizeNewLines();
         public PwshCompletionInstaller(ICommandOutputProvider commandOutputProvider, IOctopusFileSystem fileSystem) : base(commandOutputProvider, fileSystem) { }
     }
 }

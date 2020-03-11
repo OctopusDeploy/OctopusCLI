@@ -14,7 +14,7 @@ namespace Octopus.Cli.Commands.ShellCompletion
     COMPREPLY=( $(compgen -W ""$completions"") )
 }
 complete -F _octo_bash_complete octo
-complete -F _octo_bash_complete Octo";
+complete -F _octo_bash_complete Octo".NormalizeNewLinesForNix();
         public BashCompletionInstaller(ICommandOutputProvider commandOutputProvider, IOctopusFileSystem fileSystem) : base(commandOutputProvider, fileSystem) { }
     }
 }

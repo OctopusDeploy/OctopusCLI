@@ -161,5 +161,72 @@ namespace Octo.Tests.Commands
             fileSystem.ClearReceivedCalls();
             commandOutputProvider.ClearReceivedCalls();
         }
+
+        [Test]
+        public async Task PwshCompletionInstaller_ShouldUseCorrectNewlinesForPlatform()
+        {
+            var pwshInstaller = new PwshCompletionInstaller(commandOutputProvider, fileSystem);
+            await installAutoCompleteCommand.Execute(new[] {$"--shell={pwshInstaller.SupportedShell.ToString()}", "--dryRun"});
+            if (ExecutionEnvironment.IsRunningOnWindows)
+            {
+                commandOutputProvider.Received().Information(Arg.Is<string>(arg => arg.Contains(pwshInstaller.ProfileScript.NormalizeNewLinesForWindows())));
+            }
+
+            if (ExecutionEnvironment.IsRunningOnMac || ExecutionEnvironment.IsRunningOnNix)
+            {
+                commandOutputProvider.Received().Information(Arg.Is<string>(arg => arg.Contains(pwshInstaller.ProfileScript.NormalizeNewLinesForNix())));
+            }
+        }
+
+        [Test]
+        public async Task PowershellCompletionInstaller_ShouldUseWindowsLineEndings()
+        {
+            if (ExecutionEnvironment.IsRunningOnWindows)
+            {
+                var powershellInstaller = new PowershellCompletionInstaller(commandOutputProvider, fileSystem);
+                await installAutoCompleteCommand.Execute(new[]
+                    {$"--shell={powershellInstaller.SupportedShell.ToString()}", "--dryRun"});
+                commandOutputProvider.Received().Information(Arg.Is<string>(arg =>
+                    arg.Contains(powershellInstaller.ProfileScript.NormalizeNewLinesForWindows())));
+            }
+            else
+            {
+                Assert.Inconclusive("This test doesn't run on non-windows environments.");
+            }
+        }
+        
+        [Test]
+        public async Task BashCompletionInstaller_ShouldUseNixLineEndings()
+        {
+            if (ExecutionEnvironment.IsRunningOnMac || ExecutionEnvironment.IsRunningOnNix)
+            {
+                var bashInstaller = new BashCompletionInstaller(commandOutputProvider, fileSystem);
+                await installAutoCompleteCommand.Execute(new[]
+                    {$"--shell={bashInstaller.SupportedShell.ToString()}", "--dryRun"});
+                commandOutputProvider.Received().Information(Arg.Is<string>(arg =>
+                    arg.Contains(bashInstaller.ProfileScript.NormalizeNewLinesForNix())));
+            }
+            else
+            {
+                Assert.Inconclusive("This test doesn't run on windows environments.");
+            }
+        }
+        
+        [Test]
+        public async Task ZshCompletionInstaller_ShouldUseNixLineEndings()
+        {
+            if (ExecutionEnvironment.IsRunningOnMac || ExecutionEnvironment.IsRunningOnNix)
+            {
+                var zshInstaller = new ZshCompletionInstaller(commandOutputProvider, fileSystem);
+                await installAutoCompleteCommand.Execute(new[]
+                    {$"--shell={zshInstaller.SupportedShell.ToString()}", "--dryRun"});
+                commandOutputProvider.Received().Information(Arg.Is<string>(arg =>
+                    arg.Contains(zshInstaller.ProfileScript.NormalizeNewLinesForNix())));
+            }
+            else
+            {
+                Assert.Inconclusive("This test doesn't run on windows environments.");
+            }
+        }
     }
 }
