@@ -47,7 +47,7 @@ namespace Octopus.Cli.Commands.Releases
             var isReleaseAllowedFromProgressionAlready = (await Repository.Defects.GetDefects(release).ConfigureAwait(false)).Items.All(i => i.Status == DefectStatus.Resolved);
             if (isReleaseAllowedFromProgressionAlready)
             {
-                commandOutputProvider.Information($"Release with version/release number '{ReleaseVersionNumber}' is already allowed to progress to next phase.");
+                commandOutputProvider.Debug($"Release with version/release number '{ReleaseVersionNumber}' is already allowed to progress to next phase.");
 
                 return;
             }

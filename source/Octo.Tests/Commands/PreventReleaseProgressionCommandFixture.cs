@@ -212,7 +212,6 @@ namespace Octo.Tests.Commands
             var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved) };
             Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
 
-
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
             CommandLineArgs.Add($"--reason={ReasonToPrevent}");
