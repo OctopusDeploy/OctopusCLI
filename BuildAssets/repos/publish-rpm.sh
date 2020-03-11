@@ -47,7 +47,7 @@ $REPO_BODY" | curl "${CURL_UPL_OPTS[@]}" --request PUT --upload-file - \
   "https://octopusdeploy.jfrog.io/octopusdeploy/$REPO_KEY/octopuscli.repo" || exit
 
 echo "Uploading package to Artifactory"
-PKG=$(ls -1 *.rpm | head -n1)
+PKG=$(set -o pipefail; ls -1 *.rpm | head -n1) || exit
 PKGBN=$(basename "$PKG")
 curl "${CURL_UPL_OPTS[@]}" --request PUT --upload-file "$PKG" \
   "https://octopusdeploy.jfrog.io/octopusdeploy/$REPO_KEY/x86_64/$PKGBN" \
@@ -71,5 +71,7 @@ echo "Replacing changed files then deleting on S3"
 rclone sync "${RCLONE_SYNC_OPTS[@]}" --delete-after 2>&1 || exit
 
 echo "Asserting current public key on S3"
+set -o pipefail
 curl --silent --show-error --fail --location https://octopusdeploy.jfrog.io/octopusdeploy/api/gpg/key/public \
   | rclone rcat ":s3:$BUCKET/public.key" "${RCLONE_OPTS[@]}" 2>&1 || exit
+set +o pipefail
