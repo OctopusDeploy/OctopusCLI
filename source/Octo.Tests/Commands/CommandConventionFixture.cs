@@ -23,9 +23,9 @@ namespace Octo.Tests.Commands
         [TestCaseSource(nameof(SubclassesOfApiCommand))]
         public void AllSubclassesOfApiCommandShouldEitherOverrideExecuteMethodOrImplementISupportFormattedOutputInterface(Type commandType)
         {
-            const string methodName = "Execute";
             var isImplementedWithCorrectInterface = typeof(ISupportFormattedOutput).IsAssignableFrom(commandType);
-            
+
+            const string methodName = "Execute";
             var isMethodOverridenCorrectly = commandType.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
                 .Any(m => m.Name == methodName &&
                           m.GetBaseDefinition()?.IsVirtual == true &&
@@ -42,14 +42,14 @@ namespace Octo.Tests.Commands
         private static IEnumerable<TestCaseData> Commands()
         {
             return CommandTypes()
-                .Select(t => new TestCaseData(t));
+                .Select(t => new TestCaseData(t).SetName(t.Name));
         }
 
         private static IEnumerable<TestCaseData> SubclassesOfApiCommand()
         {
             return CommandTypes()
                 .Where(t => t.IsSubclassOf(typeof(ApiCommand)))
-                .Select(t => new TestCaseData(t));
+                .Select(t => new TestCaseData(t).SetName(t.Name));
         }
 
         private static IEnumerable<Type> CommandTypes()
