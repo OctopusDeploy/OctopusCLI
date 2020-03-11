@@ -43,6 +43,9 @@ namespace Octo.Tests.Commands
                 Version = "0.0.1"
             };
             Repository.Projects.GetReleaseByVersion(projectResource, releaseResource.Version).Returns(releaseResource);
+
+            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved) };
+            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
         }
 
         [Test]
@@ -110,9 +113,6 @@ namespace Octo.Tests.Commands
         [TestCase("releaseNumber")]
         public async Task ShouldSupportBothReleaseNumberAndVersionArgForReleaseVersionNumberProperty(string argName)
         {
-            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Unresolved) };
-            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
-
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--{argName}={releaseResource.Version}");
 
@@ -158,9 +158,6 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldAllowReleaseProgressionCorrectly_WhenReleaseProgressionIsAlreadyAllowed()
         {
-            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved), new DefectResource("Test Defect", DefectStatus.Resolved) };
-            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
-
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
 
@@ -186,9 +183,6 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldPrintJsonOutputCorrectly()
         {
-            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved), new DefectResource("Test Defect", DefectStatus.Resolved) };
-            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
-
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
             CommandLineArgs.Add("--outputFormat=json");

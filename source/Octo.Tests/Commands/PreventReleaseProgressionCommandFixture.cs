@@ -44,6 +44,9 @@ namespace Octo.Tests.Commands
                 Version = "0.0.1"
             };
             Repository.Projects.GetReleaseByVersion(projectResource, releaseResource.Version).Returns(releaseResource);
+
+            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved) };
+            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
         }
 
         [Test]
@@ -128,9 +131,6 @@ namespace Octo.Tests.Commands
         [TestCase("releaseNumber")]
         public async Task ShouldSupportBothReleaseNumberAndVersionArgForReleaseVersionNumberProperty(string argName)
         {
-            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved) };
-            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
-
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--{argName}={releaseResource.Version}");
             CommandLineArgs.Add($"--reason={ReasonToPrevent}");
@@ -155,11 +155,9 @@ namespace Octo.Tests.Commands
             exec.ShouldThrow<OctopusResourceNotFoundException>();
         }
 
-        [Test] public async Task ShouldPreventReleaseProgressionCorrectly_WhenReleaseProgressionIsNotYetPrevented()
+        [Test] 
+        public async Task ShouldPreventReleaseProgressionCorrectly_WhenReleaseProgressionIsNotYetPrevented()
         {
-            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved) };
-            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
-
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
             CommandLineArgs.Add($"--reason={ReasonToPrevent}");
@@ -209,9 +207,6 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldPrintJsonOutputCorrectly()
         {
-            var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved) };
-            Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
-
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
             CommandLineArgs.Add($"--reason={ReasonToPrevent}");
