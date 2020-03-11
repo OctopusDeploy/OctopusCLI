@@ -36,13 +36,18 @@ else
   #   - Register with Red Hat to enable yum
   #   - Install yum-plugin-ovl to reduce chance of "Rpmdb checksum is invalid"
   #   - Suppress output unless there is a failure, because yum is noisy in these RHEL containers
-  SUB_OUT="$(subscription-manager register --username "$REDHAT_SUBSCRIPTION_USERNAME" --password "$REDHAT_SUBSCRIPTION_PASSWORD" \
-    --auto-attach 2>&1)" || { echo "Error while registering Red Hat subscription:" >&2; echo "$SUB_OUT" >&2; exit 1; }
-  ERR_OUT="$(yum --quiet --assumeyes install yum-plugin-ovl 2>&1 && \
-    yum --quiet --assumeyes install tentacle octopuscli 2>&1)"
+  SUB_OUT="$(
+    subscription-manager register --username "$REDHAT_SUBSCRIPTION_USERNAME" --password "$REDHAT_SUBSCRIPTION_PASSWORD" \
+      --auto-attach 2>&1
+  )" || { echo "Error while registering Red Hat subscription:" >&2; echo "$SUB_OUT" >&2; exit 1; }
+  ERR_OUT="$(
+    yum --quiet --assumeyes install yum-plugin-ovl 2>&1 && \
+    yum --quiet --assumeyes install tentacle octopuscli 2>&1
+  )"
   STATUS=$?
-  SUB_OUT="$(subscription-manager unsubscribe --all 2>&1)" \
-    || { echo "Error while removing Red Hat subscription:" >&2; echo "$SUB_OUT" >&2; exit 1; }
+  SUB_OUT="$(
+    subscription-manager unsubscribe --all 2>&1
+  )" || { echo "Error while removing Red Hat subscription:" >&2; echo "$SUB_OUT" >&2; exit 1; }
   if [[ $STATUS -ne 0 ]]; then
     echo "Error while installing packages:" >&2
     echo "$ERR_OUT" >&2
