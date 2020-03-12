@@ -41,6 +41,15 @@ var octopusCliFolder = "./source/Octopus.Cli";
 var dotNetOctoCliFolder = "./source/Octopus.DotNet.Cli";
 var dotNetOctoPublishFolder = $"{publishDir}/dotnetocto";
 var dotNetOctoMergedFolder =  $"{publishDir}/dotnetocto-Merged";
+var timestampUrls = new string[]
+{
+    "http://test.bogus.place.local",
+	"http://timestamp.comodoca.com/rfc3161",
+    "http://tsa.starfieldtech.com",
+    "http://timestamp.globalsign.com/scripts/timestamp.dll",
+	"http://www.startssl.com/timestamp",
+	"http://timestamp.verisign.com/scripts/timstamp.dll",
+};
 
 string nugetVersion;
 
@@ -391,12 +400,21 @@ private void SignBinaries(string path)
     files.Add(GetFiles(path + "/**/octo"));
     files.Add(GetFiles(path + "/**/dotnet-octo.dll"));
 
-	Sign(files, new SignToolSignSettings {
-			ToolPath = MakeAbsolute(File("./certificates/signtool.exe")),
-            TimeStampUri = new Uri("http://timestamp.verisign.com/scripts/timstamp.dll"),
-            CertPath = signingCertificatePath,
-            Password = signingCertificatePassword
-    });
+    foreach(var url in timestampUrls) 
+    {
+        try 
+        {
+            Sign(files, new SignToolSignSettings {
+                ToolPath = MakeAbsolute(File("./certificates/signtool.exe")),
+                TimeStampUri = new Uri(url),
+                CertPath = signingCertificatePath,
+                Password = signingCertificatePassword
+            });
+        } catch(Exception ex) {
+            Warning(ex.Message);
+			Warning($"Failed to timestamp files using {url}. Maybe we can try another timestamp service...");
+        }
+    }
 }
 
 private void TarGzip(string path, string outputFile, bool insertCapitalizedOctoWrapper = false, bool insertCapitalizedDotNetWrapper = false)
