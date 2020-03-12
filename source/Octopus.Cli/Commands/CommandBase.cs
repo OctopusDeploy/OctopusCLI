@@ -5,7 +5,6 @@ using System.Reflection;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Model;
 using Octopus.Cli.Util;
-using Serilog;
 
 namespace Octopus.Cli.Commands
 {
@@ -34,7 +33,7 @@ namespace Octopus.Cli.Commands
             }
         }
 
-        protected Options Options { get; } = new Options();
+        protected internal Options Options { get; } = new Options();
 
         public OutputFormat OutputFormat { get; set; }
 
