@@ -75,4 +75,11 @@ fpm --version "$VERSION" \
 # Note: Microsoft recommends dep 'lttng-ust' but it seems to be unavailable in CentOS 7, so we're omitting it for now.
 # As it's related to tracing, hopefully it will not be required for normal usage.
 
+# Remove build files
+rm -f tmp_usr_bin/octo || exit
+if [[ -d tmp_usr_bin ]]; then
+  rmdir tmp_usr_bin || exit
+fi
+
+# Move to output path
 mv -f *.{deb,rpm} "$OUT_PATH" || exit
