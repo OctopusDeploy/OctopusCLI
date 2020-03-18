@@ -11,7 +11,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands.Deployment
 {
-    [Command("delete-autodeployoverride", Description = "Delete auto deploy release overrides.")]
+    [Command("delete-autodeployoverride", Description = "Deletes auto deploy release overrides.")]
     public class DeleteAutoDeployOverrideCommand : ApiCommand, ISupportFormattedOutput
     {
         IReadOnlyList<TenantResource> tenants;

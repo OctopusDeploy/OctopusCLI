@@ -9,7 +9,7 @@ using Octopus.Client.Model;
 
 namespace Octopus.Cli.Commands.Releases
 {
-    [Command("prevent-releaseprogression", Description = "Prevent a release from progressing to next phase.")]
+    [Command("prevent-releaseprogression", Description = "Prevents a release from progressing to next phase.")]
     public class PreventReleaseProgressionCommand : ApiCommand, ISupportFormattedOutput
     {
         ProjectResource project;

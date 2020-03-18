@@ -9,7 +9,7 @@ using Octopus.Client.Model;
 
 namespace Octopus.Cli.Commands.WorkerPool
 {
-    [Command("list-workerpools", Description = "List worker pools.")]
+    [Command("list-workerpools", Description = "Lists worker pools.")]
     public class ListWorkerPoolsCommand : ApiCommand, ISupportFormattedOutput
     {
         List<WorkerPoolResource> pools;
