@@ -12,7 +12,7 @@ using Serilog;
 
 namespace Octopus.Cli.Commands.Deployment
 {
-    [Command("list-latestdeployments", Description = "List the releases last-deployed in each environment.")]
+    [Command("list-latestdeployments", Description = "Lists the releases last-deployed in each environment.")]
     public class ListLatestDeploymentsCommand : ApiCommand, ISupportFormattedOutput
     {
         readonly HashSet<string> environments = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
