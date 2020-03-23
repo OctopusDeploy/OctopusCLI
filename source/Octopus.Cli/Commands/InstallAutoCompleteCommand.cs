@@ -56,7 +56,6 @@ namespace Octopus.Cli.Commands
             Options.Parse(commandLineArguments);
             if (ShellSelection == SupportedShell.Unspecified) throw new CommandException(invalidShellSelectionMessage);
 
-
             commandOutputProvider.PrintHeader();
             if (DryRun) commandOutputProvider.Warning("DRY RUN");
             commandOutputProvider.Information($"Installing auto-complete scripts for {ShellSelection}");

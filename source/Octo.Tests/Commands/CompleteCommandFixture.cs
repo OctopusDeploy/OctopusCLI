@@ -12,7 +12,7 @@ using Serilog;
 namespace Octo.Tests.Commands
 {
     [TestFixture]
-    public class CompleteCommandFixture 
+    public class CompleteCommandFixture
     {
         CompleteCommand completeCommand;
         private ICommandOutputProvider commandOutputProvider;
@@ -34,7 +34,7 @@ namespace Octo.Tests.Commands
             commandOutputProvider = new CommandOutputProvider(logger);
             commandLocator.List().Returns(new ICommandMetadata[]
             {
-                new CommandAttribute("test"), 
+                new CommandAttribute("test"),
                 new CommandAttribute("help")
             });
             commandLocator.Find("help").Returns(new HelpCommand(commandLocator, commandOutputProvider));
@@ -45,8 +45,8 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldReturnSubCommandSuggestions()
         {
-            await completeCommand.Execute(new[] { "he" });
-            
+            await completeCommand.Execute(new[] {"he"});
+
             output.ToString()
                 .Should()
                 .Contain("help")
@@ -65,30 +65,30 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldReturnCommonOptionsWhenSingleEmptyParameter()
         {
-           await completeCommand.Execute(new[] {"--"});
-           output.ToString()
-               .Should()
-               .Contain("--helpOutputFormat");
+            await completeCommand.Execute(new[] {"--"});
+            output.ToString()
+                .Should()
+                .Contain("--helpOutputFormat");
         }
-        
+
         [Test]
         public async Task ShouldReturnOptionSuggestions()
         {
-           await completeCommand.Execute(new[] {"--helpOut"});
-           output.ToString()
-               .Should()
-               .Contain("--helpOutputFormat")
-               .And.NotContain("--help\n");
+            await completeCommand.Execute(new[] {"--helpOut"});
+            output.ToString()
+                .Should()
+                .Contain("--helpOutputFormat")
+                .And.NotContain("--help\n");
         }
 
         [Test]
         public async Task ShouldReturnAllSubCommandsWhenEmptyArguments()
         {
-           await completeCommand.Execute(new[] {""});
-           output.ToString()
-               .Should()
-               .Contain("help")
-               .And.Contain("test");
+            await completeCommand.Execute(new[] {""});
+            output.ToString()
+                .Should()
+                .Contain("help")
+                .And.Contain("test");
         }
 
         [Test]
