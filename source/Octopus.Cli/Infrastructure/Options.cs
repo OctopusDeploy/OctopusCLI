@@ -692,7 +692,7 @@ namespace Octopus.Cli.Infrastructure
 #pragma warning disable 618
             var currentOption = GetOptionForName("<>");
 #pragma warning restore 618
-            var unprocessed = arguments.Where(argument => Predicate(argument, optionContext, currentOption, ref process));
+            var unprocessed = arguments.Where(argument => ParseOption(argument, optionContext, currentOption, ref process));
             var r = unprocessed.ToList();
             optionContext.Option?.Invoke(optionContext);
 
@@ -704,7 +704,7 @@ namespace Octopus.Cli.Infrastructure
             return r;
         }
 
-        private bool Predicate(string argument, OptionContext optionContext, Option currentOption, ref bool continueProcessing)
+        private bool ParseOption(string argument, OptionContext optionContext, Option currentOption, ref bool continueProcessing)
         {
             if (++optionContext.OptionIndex >= 0 && (continueProcessing || currentOption != null))
             {
