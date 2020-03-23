@@ -89,7 +89,7 @@ namespace Octopus.Cli.Commands.Package
                     compressionLevel = CompressionLevel.Optimal;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(level), level, null);
+                    throw new CommandException($"Unexpected compression value `{level}'. Valid values are {Enum.GetNames(typeof(PackageCompressionLevel)).ReadableJoin()}.");
             }
 
             commandOutputProvider.Information($"Setting Zip compression level to {compressionLevel.ToString()}");
