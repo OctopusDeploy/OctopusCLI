@@ -6,7 +6,7 @@ using Octopus.Cli.Util;
 
 namespace Octo.Tests.Commands
 {
-    public class SpeakCommand : CommandBase, ICommand
+    public class SpeakCommand : CommandBase
     {
         //public OptionSet Options
         //{
@@ -27,7 +27,7 @@ namespace Octo.Tests.Commands
         //    commandOutputProvider.PrintCommandHelpFooter("executable", "speak", writer);
         //}
 
-        public Task Execute(string[] commandLineArguments)
+        public override Task Execute(string[] commandLineArguments)
         {
             return Task.Run(() => Assert.Fail("This should not be called"));
         }

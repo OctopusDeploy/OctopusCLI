@@ -8,7 +8,7 @@ using Octopus.Cli.Util;
 namespace Octopus.Cli.Commands
 {
     [Command("help", "?", "h", Description = "Prints this help text.")]
-    public class HelpCommand : CommandBase, ICommand
+    public class HelpCommand : CommandBase
     {
         readonly ICommandLocator commands;
         string executable;
@@ -18,7 +18,7 @@ namespace Octopus.Cli.Commands
             this.commands = commands;
         }
 
-        public Task Execute(string[] commandLineArguments)
+        public override Task Execute(string[] commandLineArguments)
         {
             return Task.Run(() =>
             {

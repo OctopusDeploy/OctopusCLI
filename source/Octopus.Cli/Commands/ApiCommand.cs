@@ -19,7 +19,7 @@ using Serilog.Events;
 
 namespace Octopus.Cli.Commands
 {
-    public abstract class ApiCommand : CommandBase, ICommand
+    public abstract class ApiCommand : CommandBase
     {
         /// <summary>
         /// The environment variable that can hold the Octopus Server
@@ -115,7 +115,7 @@ namespace Octopus.Cli.Commands
 
         protected IOctopusFileSystem FileSystem { get; }
 
-        public async Task Execute(string[] commandLineArguments)
+        public override async Task Execute(string[] commandLineArguments)
         {
             var remainingArguments = Options.Parse(commandLineArguments);
 
