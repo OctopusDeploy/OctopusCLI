@@ -23,7 +23,7 @@ namespace Octopus.Cli.Commands.Releases
             var options = Options.For("Release Promotion");
             options.Add("project=", "Name or ID of the project", v => ProjectNameOrId = v);
             options.Add("from=", "Name or ID of the environment to get the current deployment from, e.g., 'Staging' or 'Environments-2'.", v => FromEnvironmentNameOrId = v);
-            options.Add("to=|deployto=", "Name or ID of the environment to deploy to, e.g., 'Production' or 'Environments-1'.", v => DeployToEnvironmentNamesOrIds.Add(v));
+            options.Add("to=|deployTo=", "Name or ID of the environment to deploy to, e.g., 'Production' or 'Environments-1'.", v => DeployToEnvironmentNamesOrIds.Add(v));
             options.Add("updateVariables", "Overwrite the variable snapshot for the release by re-importing the variables from the project", v => UpdateVariableSnapshot = true);
         }
 
@@ -32,7 +32,7 @@ namespace Octopus.Cli.Commands.Releases
 
         protected override async Task ValidateParameters()
         {
-            if (DeployToEnvironmentNamesOrIds.Count == 0) throw new CommandException("Please specify an environment name or ID using the parameter: --deployto=XYZ");
+            if (DeployToEnvironmentNamesOrIds.Count == 0) throw new CommandException("Please specify an environment name or ID using the parameter: --deployTo=XYZ");
             if (string.IsNullOrWhiteSpace(FromEnvironmentNameOrId)) throw new CommandException("Please specify a source environment name or ID using the parameter: --from=XYZ");
 
             await base.ValidateParameters().ConfigureAwait(false);

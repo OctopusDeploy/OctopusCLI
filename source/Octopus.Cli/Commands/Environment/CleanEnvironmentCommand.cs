@@ -34,7 +34,7 @@ namespace Octopus.Cli.Commands.Environment
             var options = Options.For("Cleanup");
             options.Add("environment=", "Name of an environment to clean up.", v => environmentName = v);
             options.Add("status=", $"Status of Machines clean up ({string.Join(", ", HealthStatusProvider.StatusNames)}). Can be specified many times.", v => statuses.Add(v));
-            options.Add("health-status=|healthstatus=", $"Health status of Machines to clean up ({string.Join(", ", HealthStatusProvider.HealthStatusNames)}). Can be specified many times.", v => healthStatuses.Add(v));
+            options.Add("health-status=|healthStatus=", $"Health status of Machines to clean up ({string.Join(", ", HealthStatusProvider.HealthStatusNames)}). Can be specified many times.", v => healthStatuses.Add(v));
             options.Add("disabled=", "[Optional] Disabled status filter of Machine to clean up.", v => SetFlagState(v, ref isDisabled));
             options.Add("calamari-outdated=", "[Optional] State of Calamari to clean up. By default ignores Calamari state.", v => SetFlagState(v, ref isCalamariOutdated));
             options.Add("tentacle-outdated=", "[Optional] State of Tentacle version to clean up. By default ignores Tentacle state", v => SetFlagState(v, ref isTentacleOutdated));
