@@ -52,7 +52,7 @@ namespace Octopus.Cli.Commands
 
         public Task Execute(string[] commandLineArguments)
         {
-            var invalidShellSelectionMessage = $"Please specify the type of shell to install autocompletion for: --shell=XYZ. Valid values are {supportedShells}.";
+            var invalidShellSelectionMessage = $"Please specify the type of shell to install auto-completion for: --shell=XYZ. Valid values are {supportedShells}.";
             Options.Parse(commandLineArguments);
             if (ShellSelection == SupportedShell.Unspecified) throw new CommandException(invalidShellSelectionMessage);
 

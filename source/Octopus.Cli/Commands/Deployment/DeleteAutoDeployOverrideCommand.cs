@@ -29,7 +29,7 @@ namespace Octopus.Cli.Commands.Deployment
             options.Add("tenant=",
                 "[Optional] Name of a tenant the override will apply to. Specify this argument multiple times to add multiple tenants or use `*` wildcard for all tenants.",
                 t => TenantNames.Add(t));
-            options.Add("tenanttag=",
+            options.Add("tenantTag=",
                 "[Optional] A tenant tag used to match tenants that the override will apply to. Specify this argument multiple times to add multiple tenant tags",
                 tt => TenantTags.Add(tt));
 
