@@ -22,14 +22,14 @@ namespace Octopus.Cli.Commands.Deployment
             base(octopusClientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Delete auto deploy release override");
-            options.Add("project=", "Name of the project", v => ProjectName = v);
-            options.Add("environment=",
+            options.Add<string>("project=", "Name of the project", v => ProjectName = v);
+            options.Add<string>("environment=",
                 "Name of an environment the override will apply to. Specify this argument multiple times to add multiple environments.",
                 v => EnvironmentNames.Add(v));
-            options.Add("tenant=",
+            options.Add<string>("tenant=",
                 "[Optional] Name of a tenant the override will apply to. Specify this argument multiple times to add multiple tenants or use `*` wildcard for all tenants.",
                 t => TenantNames.Add(t));
-            options.Add("tenanttag=",
+            options.Add<string>("tenanttag=",
                 "[Optional] A tenant tag used to match tenants that the override will apply to. Specify this argument multiple times to add multiple tenant tags",
                 tt => TenantTags.Add(tt));
 

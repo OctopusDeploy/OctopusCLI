@@ -54,7 +54,7 @@ namespace Octopus.Cli.Commands.Package
                 nugetPkgBuilder.Save(outStream);
         }
 
-        public void SetCompression(string level)
+        public void SetCompression(PackageCompressionLevel level)
         {
             // does nothing
             return;

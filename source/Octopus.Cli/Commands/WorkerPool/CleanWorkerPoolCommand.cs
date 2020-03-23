@@ -15,7 +15,7 @@ namespace Octopus.Cli.Commands.WorkerPool
     public class CleanWorkerPoolCommand : ApiCommand, ISupportFormattedOutput
     {
         string poolName;
-        readonly HashSet<string> healthStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        readonly HashSet<MachineModelHealthStatus> healthStatuses = new HashSet<MachineModelHealthStatus>();
         private bool? isDisabled;
         private bool? isCalamariOutdated;
         private bool? isTentacleOutdated;
@@ -28,11 +28,11 @@ namespace Octopus.Cli.Commands.WorkerPool
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("WorkerPool Cleanup");
-            options.Add("workerpool=", "Name of a worker pool to clean up.", v => poolName = v);
-            options.Add("health-status=", $"Health status of Workers to clean up ({string.Join(", ", HealthStatusProvider.HealthStatusNames)}). Can be specified many times.", v => healthStatuses.Add(v));
-            options.Add("disabled=", "[Optional] Disabled status filter of Worker to clean up.", v => SetFlagState(v, ref isDisabled));
-            options.Add("calamari-outdated=", "[Optional] State of Calamari to clean up. By default ignores Calamari state.", v => SetFlagState(v, ref isCalamariOutdated));
-            options.Add("tentacle-outdated=", "[Optional] State of Tentacle version to clean up. By default ignores Tentacle state", v => SetFlagState(v, ref isTentacleOutdated));
+            options.Add<string>("workerpool=", "Name of a worker pool to clean up.", v => poolName = v);
+            options.Add<MachineModelHealthStatus>("health-status=", $"Health status of Workers to clean up. Valid values are {HealthStatusProvider.HealthStatusNames.ReadableJoin()}. Can be specified many times.", v => healthStatuses.Add(v));
+            options.Add<bool>("disabled=", "[Optional] Disabled status filter of Worker to clean up.", v => isDisabled = v);
+            options.Add<bool>("calamari-outdated=", "[Optional] State of Calamari to clean up. By default ignores Calamari state.", v => isCalamariOutdated = v);
+            options.Add<bool>("tentacle-outdated=", "[Optional] State of Tentacle version to clean up. By default ignores Tentacle state", v => isTentacleOutdated = v);
         }
 
         public async Task Request()
@@ -88,7 +88,7 @@ namespace Octopus.Cli.Commands.WorkerPool
         private async Task<IEnumerable<WorkerResource>> FilterByState(IEnumerable<WorkerResource> workers)
         {
             var rootDocument = await Repository.LoadRootDocument().ConfigureAwait(false);
-            var provider = new HealthStatusProvider(Repository, new HashSet<string>(StringComparer.OrdinalIgnoreCase), healthStatuses, commandOutputProvider, rootDocument);
+            var provider = new HealthStatusProvider(Repository, new HashSet<MachineModelStatus>(), healthStatuses, commandOutputProvider, rootDocument);
             workers = provider.Filter(workers);
 
             if (isDisabled.HasValue)

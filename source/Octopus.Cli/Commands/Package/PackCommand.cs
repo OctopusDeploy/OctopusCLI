@@ -31,36 +31,36 @@ namespace Octopus.Cli.Commands.Package
         SemanticVersion version;
         IPackageBuilder packageBuilder;
         string allReleaseNotes;
-        string compressionLevel;
+        PackageCompressionLevel packageCompressionLevel;
 
         public PackCommand(IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
             this.fileSystem = fileSystem;
 
             var common = Options.For("Advanced options");
-            common.Add("include=", "[Optional, Multiple] Add a file pattern to include, relative to the base path e.g. /bin/*.dll - if none are specified, defaults to **", v => includes.Add(v));
-            common.Add("overwrite", "[Optional] Allow an existing package file of the same ID/version to be overwritten", v => overwrite = true);
+            common.Add<string>("include=", "[Optional, Multiple] Add a file pattern to include, relative to the base path e.g. /bin/*.dll - if none are specified, defaults to **", v => includes.Add(v));
+            common.Add<bool>("overwrite", "[Optional] Allow an existing package file of the same ID/version to be overwritten", v => overwrite = true);
 
             var zip = Options.For("Zip packages");
-            zip.Add("compressionlevel=", "[Optional] Set compression level of package: none, fast, optimal (default).", c => compressionLevel = c);
+            zip.Add<PackageCompressionLevel>("compressionlevel=", "[Optional] Set compression level of package: none, fast, optimal (default).", c => packageCompressionLevel = c);
 
             var nuget = Options.For("NuGet packages");
-            nuget.Add("author=", "[Optional, Multiple] Add an author to the package metadata; defaults to the current user", v => authors.Add(v));
-            nuget.Add("title=", "[Optional] The title of the package", v => title = v);
-            nuget.Add("description=", "[Optional] A description of the package; defaults to a generic description", v => description = v);
-            nuget.Add("releaseNotes=", "[Optional] Release notes for this version of the package", v => releaseNotes = v);
-            nuget.Add("releaseNotesFile=", "[Optional] A file containing release notes for this version of the package", v => releaseNotesFile = v);
+            nuget.Add<string>("author=", "[Optional, Multiple] Add an author to the package metadata; defaults to the current user", v => authors.Add(v));
+            nuget.Add<string>("title=", "[Optional] The title of the package", v => title = v);
+            nuget.Add<string>("description=", "[Optional] A description of the package; defaults to a generic description", v => description = v);
+            nuget.Add<string>("releaseNotes=", "[Optional] Release notes for this version of the package", v => releaseNotes = v);
+            nuget.Add<string>("releaseNotesFile=", "[Optional] A file containing release notes for this version of the package", v => releaseNotesFile = v);
             
             var basic = Options.For("Basic options");
-            basic.Add("id=", "The ID of the package; e.g. MyCompany.MyApp", v => id = v);
-            basic.Add("format=", "Package format. Options are: NuPkg, Zip. Defaults to NuPkg, though we recommend Zip going forward", fmt => packageBuilder = SelectFormat(fmt));
-            basic.Add("version=", "[Optional] The version of the package; must be a valid SemVer; defaults to a timestamp-based version", v => version = string.IsNullOrWhiteSpace(v) ? null : new SemanticVersion(v));
-            basic.Add("outFolder=", "[Optional] The folder into which the generated NUPKG file will be written; defaults to '.'", v => { v.CheckForIllegalPathCharacters(nameof(outFolder)); outFolder = v;});
-            basic.Add("basePath=", "[Optional] The root folder containing files and folders to pack; defaults to '.'", v => { v.CheckForIllegalPathCharacters(nameof(basePath)); basePath = v;});
-            basic.Add("verbose", "[Optional] verbose output", v => verbose = true);
+            basic.Add<string>("id=", "The ID of the package; e.g. MyCompany.MyApp", v => id = v);
+            basic.Add<PackageFormat>("format=", "Package format. Options are: NuPkg, Zip. Defaults to NuPkg, though we recommend Zip going forward", fmt => packageBuilder = SelectFormat(fmt));
+            basic.Add<string>("version=", "[Optional] The version of the package; must be a valid SemVer; defaults to a timestamp-based version", v => version = string.IsNullOrWhiteSpace(v) ? null : new SemanticVersion(v));
+            basic.Add<string>("outFolder=", "[Optional] The folder into which the generated NUPKG file will be written; defaults to '.'", v => { v.CheckForIllegalPathCharacters(nameof(outFolder)); outFolder = v;});
+            basic.Add<string>("basePath=", "[Optional] The root folder containing files and folders to pack; defaults to '.'", v => { v.CheckForIllegalPathCharacters(nameof(basePath)); basePath = v;});
+            basic.Add<bool>("verbose", "[Optional] verbose output", v => verbose = true);
             basic.AddLogLevelOptions();
 
-            packageBuilder = SelectFormat("nupkg");
+            packageBuilder = SelectFormat(PackageFormat.Nupkg);
         }
 
        public Task Execute(string[] commandLineArguments)
@@ -137,7 +137,7 @@ namespace Octopus.Cli.Commands.Package
                 if (!string.IsNullOrWhiteSpace(title))
                     metadata.Title = title;
 
-                packageBuilder.SetCompression(compressionLevel);
+                packageBuilder.SetCompression(packageCompressionLevel);
                 if (verbose)
                     commandOutputProvider.Information("Verbose logging");
                 commandOutputProvider.Information("Packing {id:l} version {Version}...", id, version);
@@ -155,14 +155,14 @@ namespace Octopus.Cli.Commands.Package
             });
         }
 
-        IPackageBuilder SelectFormat(string fmt)
+        IPackageBuilder SelectFormat(PackageFormat fmt)
         {
-            switch (fmt.ToLowerInvariant())
+            switch (fmt)
             {
-                case "zip":
+                case PackageFormat.Zip:
                     return new ZipPackageBuilder(fileSystem, commandOutputProvider);
-                case "nupkg":
-                case "nuget":
+                case PackageFormat.Nupkg:
+                case PackageFormat.Nuget:
                     return new NuGetPackageBuilder(fileSystem, commandOutputProvider);
                 default:
                     throw new CommandException("Unknown package format: " + fmt);

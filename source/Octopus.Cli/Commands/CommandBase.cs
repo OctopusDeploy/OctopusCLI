@@ -19,13 +19,12 @@ namespace Octopus.Cli.Commands
             this.commandOutputProvider = commandOutputProvider;
             
             var options = Options.For("Common options");
-            options.Add("help", "[Optional] Print help for a command", x => printHelp = true);
-            options.Add("helpOutputFormat=", "[Optional] Output format for help, only valid option is json", SetHelpOutputFormat);
+            options.Add<bool>("help", "[Optional] Print help for a command", x => printHelp = true);
+            options.Add<OutputFormat>("helpOutputFormat=", $"[Optional] Output format for help, valid options are {Enum.GetNames(typeof(OutputFormat)).ReadableJoin("or")}", s => HelpOutputFormat = s);
             formattedOutputInstance = this as ISupportFormattedOutput;
             if (formattedOutputInstance != null)
             {
-                options.Add("outputFormat=", "[Optional] Output format, only valid option is json",
-                    SetOutputFormat);
+                options.Add<OutputFormat>("outputFormat=", $"[Optional] Output format, valid options are {Enum.GetNames(typeof(OutputFormat)).ReadableJoin("or")}", s => OutputFormat = s);
             }
             else
             {
@@ -68,22 +67,6 @@ namespace Octopus.Cli.Commands
             }
         }
 
-        private void SetOutputFormat(string s)
-        {
-            OutputFormat = ParseOutputFormat(s);
-        }
-        
-        private void SetHelpOutputFormat(string s)
-        {
-            HelpOutputFormat = ParseOutputFormat(s);
-        }
-
-        private OutputFormat ParseOutputFormat(string s)
-        {
-            OutputFormat outputFormat;
-            return Enum.TryParse(s, true, out outputFormat) ? outputFormat : OutputFormat.Default;
-        }
-
         private void PrintDefaultHelpOutput(TextWriter writer, string executable, string commandName, string description)
         {
             commandOutputProvider.PrintCommandHelpHeader(executable, commandName, description, writer);
@@ -104,8 +87,10 @@ namespace Octopus.Cli.Commands
                         Name = p.Names.First(),
                         Usage = string.Format("{0}{1}{2}", p.Prototype.Length == 1 ? "-" : "--", p.Prototype,
                             p.Prototype.EndsWith("=") ? "VALUE" : string.Empty),
-                        Value = p.OptionValueType.ToString(),
-                        p.Description
+                        p.Description,
+                        Type = p.Type.Name,
+                        Sensitive = p.Sensitive ? (bool?)true : null,
+                        Values = (p.Type.IsEnum) ? Enum.GetNames(p.Type) : null 
                     })
                 })
             }, writer);

@@ -18,8 +18,8 @@ namespace Octopus.Cli.Commands.Environment
     public class CleanEnvironmentCommand : ApiCommand, ISupportFormattedOutput
     {
         string environmentName;
-        readonly HashSet<string> statuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        readonly HashSet<string> healthStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        readonly HashSet<MachineModelStatus> statuses = new HashSet<MachineModelStatus>();
+        readonly HashSet<MachineModelHealthStatus> healthStatuses = new HashSet<MachineModelHealthStatus>();
         private bool? isDisabled;
         private bool? isCalamariOutdated;
         private bool? isTentacleOutdated;
@@ -32,12 +32,12 @@ namespace Octopus.Cli.Commands.Environment
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Cleanup");
-            options.Add("environment=", "Name of an environment to clean up.", v => environmentName = v);
-            options.Add("status=", $"Status of Machines clean up ({string.Join(", ", HealthStatusProvider.StatusNames)}). Can be specified many times.", v => statuses.Add(v));
-            options.Add("health-status=|healthstatus=", $"Health status of Machines to clean up ({string.Join(", ", HealthStatusProvider.HealthStatusNames)}). Can be specified many times.", v => healthStatuses.Add(v));
-            options.Add("disabled=", "[Optional] Disabled status filter of Machine to clean up.", v => SetFlagState(v, ref isDisabled));
-            options.Add("calamari-outdated=", "[Optional] State of Calamari to clean up. By default ignores Calamari state.", v => SetFlagState(v, ref isCalamariOutdated));
-            options.Add("tentacle-outdated=", "[Optional] State of Tentacle version to clean up. By default ignores Tentacle state", v => SetFlagState(v, ref isTentacleOutdated));
+            options.Add<string>("environment=", "Name of an environment to clean up.", v => environmentName = v);
+            options.Add<MachineModelStatus>("status=", $"Status of Machines clean up ({string.Join(", ", HealthStatusProvider.StatusNames)}). Can be specified many times.", v => statuses.Add(v));
+            options.Add<MachineModelHealthStatus>("health-status=|healthstatus=", $"Health status of Machines to clean up ({string.Join(", ", HealthStatusProvider.HealthStatusNames)}). Can be specified many times.", v => healthStatuses.Add(v));
+            options.Add<bool>("disabled=", "[Optional] Disabled status filter of Machine to clean up.", v => isDisabled = v);
+            options.Add<bool>("calamari-outdated=", "[Optional] State of Calamari to clean up. By default ignores Calamari state.", v => isCalamariOutdated = v);
+            options.Add<bool>("tentacle-outdated=", "[Optional] State of Tentacle version to clean up. By default ignores Tentacle state", v => isTentacleOutdated = v);
         }
 
         public async Task Request()
@@ -113,7 +113,9 @@ namespace Octopus.Cli.Commands.Environment
 
         private string GetStateFilterDescription()
         {
-            var description =  string.Join(",", statuses.Concat(healthStatuses));
+            var description =  string.Join(",", 
+                statuses.Select(x => x.ToString())
+                    .Concat(healthStatuses.Select(x => x.ToString())));
 
             if (isDisabled.HasValue)
             {

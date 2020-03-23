@@ -23,10 +23,10 @@ namespace Octopus.Cli.Commands.Package
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Build information pushing");
-            options.Add("package-id=", "The ID of the package. Specify multiple packages by specifying this argument multiple times: \n--package-id 'MyCompany.MyApp' --package-id 'MyCompany.MyApp2'.", packageId => PackageIds.Add(packageId));
-            options.Add("version=", "The version of the package; defaults to a timestamp-based version", v => Version = v);
-            options.Add("file=", "Octopus Build Information Json file.", file => File = file);
-            options.Add("overwrite-mode=", "If the build information already exists in the repository, the default behavior is to reject the new build information being pushed (FailIfExists). You can use the overwrite mode to OverwriteExisting or IgnoreIfExists.", mode => OverwriteMode = (OverwriteMode)Enum.Parse(typeof(OverwriteMode), mode, true));
+            options.Add<string>("package-id=", "The ID of the package. Specify multiple packages by specifying this argument multiple times: \n--package-id 'MyCompany.MyApp' --package-id 'MyCompany.MyApp2'.", packageId => PackageIds.Add(packageId));
+            options.Add<string>("version=", "The version of the package; defaults to a timestamp-based version", v => Version = v);
+            options.Add<string>("file=", "Octopus Build Information Json file.", file => File = file);
+            options.Add<OverwriteMode>("overwrite-mode=", "If the build information already exists in the repository, the default behavior is to reject the new build information being pushed (FailIfExists). You can use the overwrite mode to OverwriteExisting or IgnoreIfExists.", mode => OverwriteMode = mode);
 
             pushedBuildInformation = new List<OctopusPackageVersionBuildInformationMappedResource>();
         }

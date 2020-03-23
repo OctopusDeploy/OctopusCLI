@@ -113,8 +113,8 @@ namespace Octo.Tests.Commands
         public TestCommand(ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
             var options = Options.For("Test group");
-            options.Add("apiKey", "api key", v => ApiKey = v);
-            options.Add("url", "url", v => Url = v);
+            options.Add<string>("apiKey", "api key", v => ApiKey = v);
+            options.Add<string>("url", "url", v => Url = v);
         }
 
         public string Url { get; set; }

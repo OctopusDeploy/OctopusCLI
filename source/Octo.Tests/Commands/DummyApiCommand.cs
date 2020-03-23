@@ -14,7 +14,7 @@ namespace Octo.Tests.Commands
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Dummy");
-            options.Add("pill=", "Red or Blue. Blue, the story ends. Red, stay in Wonderland and see how deep the rabbit hole goes.", v => pill = v);
+            options.Add<string>("pill=", "Red or Blue. Blue, the story ends. Red, stay in Wonderland and see how deep the rabbit hole goes.", v => pill = v);
             commandOutputProvider.Debug("Pill: " + pill);
         }
 

@@ -21,10 +21,10 @@ namespace Octopus.Cli.Commands.Releases
             : base(repositoryFactory, fileSystem, clientFactory, commandOutputProvider)
         {
             var options = Options.For("Release Promotion");
-            options.Add("project=", "Name or ID of the project", v => ProjectNameOrId = v);
-            options.Add("from=", "Name or ID of the environment to get the current deployment from, e.g., 'Staging' or 'Environments-2'.", v => FromEnvironmentNameOrId = v);
-            options.Add("to=|deployto=", "Name or ID of the environment to deploy to, e.g., 'Production' or 'Environments-1'.", v => DeployToEnvironmentNamesOrIds.Add(v));
-            options.Add("updateVariables", "Overwrite the variable snapshot for the release by re-importing the variables from the project", v => UpdateVariableSnapshot = true);
+            options.Add<string>("project=", "Name or ID of the project", v => ProjectNameOrId = v);
+            options.Add<string>("from=", "Name or ID of the environment to get the current deployment from, e.g., 'Staging' or 'Environments-2'.", v => FromEnvironmentNameOrId = v);
+            options.Add<string>("to=|deployto=", "Name or ID of the environment to deploy to, e.g., 'Production' or 'Environments-1'.", v => DeployToEnvironmentNamesOrIds.Add(v));
+            options.Add<bool>("updateVariables", "Overwrite the variable snapshot for the release by re-importing the variables from the project", v => UpdateVariableSnapshot = true);
         }
 
         public string FromEnvironmentNameOrId { get; set; }

@@ -16,14 +16,14 @@ namespace Octopus.Cli.Commands
     /// </summary>
     public class HealthStatusProvider
     {
-        private readonly HashSet<string> statuses;
-        private readonly HashSet<string> healthStatuses;
+        private readonly HashSet<MachineModelStatus> statuses;
+        private readonly HashSet<MachineModelHealthStatus> healthStatuses;
         private readonly ICommandOutputProvider commandOutputProvider;
 
         public static readonly string[] StatusNames = Enum.GetNames(typeof(MachineModelStatus));
         public static readonly string[] HealthStatusNames = Enum.GetNames(typeof(MachineModelHealthStatus));
 
-        public HealthStatusProvider(IOctopusAsyncRepository repository, HashSet<string> statuses, HashSet<string> healthStatuses, ICommandOutputProvider commandOutputProvider, RootResource rootDocument)
+        public HealthStatusProvider(IOctopusAsyncRepository repository, HashSet<MachineModelStatus> statuses, HashSet<MachineModelHealthStatus> healthStatuses, ICommandOutputProvider commandOutputProvider, RootResource rootDocument)
         {
             this.statuses = statuses;
             this.healthStatuses = healthStatuses;
@@ -48,17 +48,6 @@ namespace Octopus.Cli.Commands
                     throw new CommandException("The `--health-status` parameter is only available on Octopus Server instances from 3.4.0 onwards.");
                 }
             }
-
-            var missingStatuses = statuses.Where(s => !StatusNames.Contains(s, StringComparer.OrdinalIgnoreCase)).ToList();
-            if (missingStatuses.Any())
-                throw new CommandException(
-                    $"The following status value is unknown: {string.Join(", ", missingStatuses)}. Please choose from {string.Join(", ", StatusNames)}");
-
-
-            var missingHealthStatuses = healthStatuses.Where(s => !HealthStatusNames.Contains(s, StringComparer.OrdinalIgnoreCase)).ToList();
-            if (missingHealthStatuses.Any())
-                throw new CommandException(
-                    $"The following health status value is unknown: {string.Join(", ", missingHealthStatuses)}. Please choose from {string.Join(", ", HealthStatusNames)}");
         }
 
         public string GetStatus(MachineBasedResource machineResource)
@@ -89,12 +78,7 @@ namespace Octopus.Cli.Commands
             if (statuses.Count > 0)
             {
                 commandOutputProvider.Debug("Loading statuses...");
-                foreach (var status in statuses)
-                {
-                    MachineModelStatus result;
-                    if (Enum.TryParse(status, true, out result))
-                        statusFilter.Add(result);
-                }
+                statusFilter.AddRange(statuses);
             }
 
             return statusFilter.Any()
@@ -108,12 +92,7 @@ namespace Octopus.Cli.Commands
             if (healthStatuses.Count > 0)
             {
                 commandOutputProvider.Debug("Loading health statuses...");
-                foreach (var status in healthStatuses)
-                {
-                    MachineModelHealthStatus result;
-                    if (Enum.TryParse(status, true, out result))
-                        statusFilter.Add(result);
-                }
+                statusFilter.AddRange(healthStatuses);
             }
 
             return statusFilter.Any()

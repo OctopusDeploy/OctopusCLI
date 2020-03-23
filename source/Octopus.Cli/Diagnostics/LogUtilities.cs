@@ -36,7 +36,7 @@ namespace Octopus.Cli.Diagnostics
         {
             var description = $"[Optional] The log level. Valid options are {GetValidOptions()}. " +
                               $"Defaults to '{DefaultLogLevel.ToString().ToLowerInvariant()}'.";
-            options.Add("logLevel=", description, s => LevelSwitch.MinimumLevel = ParseLogLevel(s));
+            options.Add<LogEventLevel>("logLevel=", description, s => LevelSwitch.MinimumLevel = s);
         }
 
         private static string GetValidOptions()

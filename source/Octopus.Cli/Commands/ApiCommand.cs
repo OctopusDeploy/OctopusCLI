@@ -59,16 +59,16 @@ namespace Octopus.Cli.Commands
             this.FileSystem = fileSystem;
 
             var options = Options.For("Common options");
-            options.Add("server=", $"[Optional] The base URL for your Octopus Server, e.g., 'https://octopus.example.com/'. This URL can also be set in the {ServerUrlEnvVar} environment variable.", v => serverBaseUrl = v);
-            options.Add("apiKey=", $"[Optional] Your API key. Get this from the user profile page. Your must provide an apiKey or username and password. If the guest account is enabled, a key of API-GUEST can be used. This key can also be set in the {ApiKeyEnvVar} environment variable.", v => apiKey = v);
-            options.Add("user=", $"[Optional] Username to use when authenticating with the server. Your must provide an apiKey or username and password. This Username can also be set in the {UsernameEnvVar} environment variable.", v => username = v);
-            options.Add("pass=", $"[Optional] Password to use when authenticating with the server. This Password can also be set in the {PasswordEnvVar} environment variable.", v => password = v);
+            options.Add<string>("server=", $"[Optional] The base URL for your Octopus Server, e.g., 'https://octopus.example.com/'. This URL can also be set in the {ServerUrlEnvVar} environment variable.", v => serverBaseUrl = v);
+            options.Add<string>("apiKey=", $"[Optional] Your API key. Get this from the user profile page. Your must provide an apiKey or username and password. If the guest account is enabled, a key of API-GUEST can be used. This key can also be set in the {ApiKeyEnvVar} environment variable.", v => apiKey = v, sensitive: true);
+            options.Add<string>("user=", $"[Optional] Username to use when authenticating with the server. Your must provide an apiKey or username and password. This Username can also be set in the {UsernameEnvVar} environment variable.", v => username = v);
+            options.Add<string>("pass=", $"[Optional] Password to use when authenticating with the server. This Password can also be set in the {PasswordEnvVar} environment variable.", v => password = v, sensitive: true);
 
-            options.Add("configFile=", "[Optional] Text file of default values, with one 'key = value' per line.", v => ReadAdditionalInputsFromConfigurationFile(v));
-            options.Add("debug", "[Optional] Enable debug logging", v => enableDebugging = true);
-            options.Add("ignoreSslErrors", "[Optional] Set this flag if your Octopus Server uses HTTPS but the certificate is not trusted on this machine. Any certificate errors will be ignored. WARNING: this option may create a security vulnerability.", v => ignoreSslErrors = true);
-            options.Add("enableServiceMessages", "[Optional] Enable TeamCity or Team Foundation Build service messages when logging.", v => commandOutputProvider.EnableServiceMessages());
-            options.Add("timeout=", $"[Optional] Timeout in seconds for network operations. Default is {ApiConstants.DefaultClientRequestTimeout/1000}.", v =>
+            options.Add<string>("configFile=", "[Optional] Text file of default values, with one 'key = value' per line.", v => ReadAdditionalInputsFromConfigurationFile(v));
+            options.Add<bool>("debug", "[Optional] Enable debug logging", v => enableDebugging = true);
+            options.Add<bool>("ignoreSslErrors", "[Optional] Set this flag if your Octopus Server uses HTTPS but the certificate is not trusted on this machine. Any certificate errors will be ignored. WARNING: this option may create a security vulnerability.", v => ignoreSslErrors = true);
+            options.Add<bool>("enableServiceMessages", "[Optional] Enable TeamCity or Team Foundation Build service messages when logging.", v => commandOutputProvider.EnableServiceMessages());
+            options.Add<string>("timeout=", $"[Optional] Timeout in seconds for network operations. Default is {ApiConstants.DefaultClientRequestTimeout/1000}.", v =>
             {
                 if (int.TryParse(v, out var parsedInt))
                     clientOptions.Timeout = TimeSpan.FromSeconds(parsedInt);
@@ -77,18 +77,12 @@ namespace Octopus.Cli.Commands
                 else
                     throw new CommandException($"Unable to parse '{v}' as a timespan or an integer.");
             });
-            options.Add("proxy=", $"[Optional] The URL of the proxy to use, e.g., 'https://proxy.example.com'.", v => clientOptions.Proxy = v);
-            options.Add("proxyUser=", $"[Optional] The username for the proxy.", v => clientOptions.ProxyUsername = v);
-            options.Add("proxyPass=", $"[Optional] The password for the proxy. If both the username and password are omitted and proxyAddress is specified, the default credentials are used. ", v => clientOptions.ProxyPassword = v);
-            options.Add("space=", $"[Optional] The name or ID of a space within which this command will be executed. The default space will be used if it is omitted. ", v => spaceNameOrId = v);
+            options.Add<string>("proxy=", $"[Optional] The URL of the proxy to use, e.g., 'https://proxy.example.com'.", v => clientOptions.Proxy = v);
+            options.Add<string>("proxyUser=", $"[Optional] The username for the proxy.", v => clientOptions.ProxyUsername = v);
+            options.Add<string>("proxyPass=", $"[Optional] The password for the proxy. If both the username and password are omitted and proxyAddress is specified, the default credentials are used. ", v => clientOptions.ProxyPassword = v, sensitive: true);
+            options.Add<string>("space=", $"[Optional] The name or ID of a space within which this command will be executed. The default space will be used if it is omitted. ", v => spaceNameOrId = v);
 #if NETFRAMEWORK
-            options.Add("keepalive=", "[Optional] How frequently (in seconds) to send a TCP keepalive packet.", input =>
-            {
-                if (int.TryParse(input, out var parsedInt))
-                    keepAlive = parsedInt * 1000;
-                else
-                    throw new CommandException($"Unable to parse '{input}' as an integer.");
-            });
+            options.Add<int>("keepalive=", "[Optional] How frequently (in seconds) to send a TCP keepalive packet.", input => keepAlive = input * 1000);
 #endif
             options.AddLogLevelOptions();
         }

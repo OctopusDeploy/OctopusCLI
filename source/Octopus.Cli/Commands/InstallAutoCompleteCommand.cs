@@ -32,16 +32,10 @@ namespace Octopus.Cli.Commands
             this.installers = installers;
 
             var options = Options.For("Install AutoComplete");
-            options.Add("shell=",
+            options.Add<SupportedShell>("shell=",
                 $"The type of shell to install auto-complete scripts for. This will alter your shell configuration files. Supported shells are {supportedShells}.",
-                v =>
-                {
-                    ShellSelection = Enum.TryParse(v, ignoreCase: true, out SupportedShell type)
-                        ? type
-                        : throw new CommandException(
-                            $"Unable to install autocomplete scripts into the {v} shell. Supported shells are {supportedShells}.");
-                });
-            options.Add("dryRun",
+                v => { ShellSelection = v; });
+            options.Add<bool>("dryRun",
                 "[Optional] Dry run will output the proposed changes to console, instead of writing to disk.",
                 v => DryRun = true);
         }

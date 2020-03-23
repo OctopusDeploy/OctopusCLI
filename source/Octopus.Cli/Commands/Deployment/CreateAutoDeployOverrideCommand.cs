@@ -26,16 +26,16 @@ namespace Octopus.Cli.Commands.Deployment
             base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Auto deploy release override");
-            options.Add("project=", "Name of the project", v => ProjectName = v);
-            options.Add("environment=",
+            options.Add<string>("project=", "Name of the project", v => ProjectName = v);
+            options.Add<string>("environment=",
                 "Name of an environment the override will apply to. Specify this argument multiple times to add multiple environments.",
                 v => EnvironmentNames.Add(v));
-            options.Add("version=|releaseNumber=", "Release number to use for auto deployments.",
+            options.Add<string>("version=|releaseNumber=", "Release number to use for auto deployments.",
                 v => ReleaseVersionNumber = v);
-            options.Add("tenant=",
+            options.Add<string>("tenant=",
                 "[Optional] Name of a tenant the override will apply to. Specify this argument multiple times to add multiple tenants or use `*` wildcard for all tenants.",
                 t => TenantNames.Add(t));
-            options.Add("tenanttag=",
+            options.Add<string>("tenanttag=",
                 "[Optional] A tenant tag used to match tenants that the override will apply to. Specify this argument multiple times to add multiple tenant tags",
                 tt => TenantTags.Add(tt));
 
