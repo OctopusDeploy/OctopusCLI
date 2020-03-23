@@ -269,32 +269,6 @@ namespace Octopus.Cli.Commands
             }
         }
 
-        static NetworkCredential ParseCredentials(string username, string password)
-        {
-            if (string.IsNullOrWhiteSpace(username))
-                return CredentialCache.DefaultNetworkCredentials;
-
-            var split = username.Split('\\');
-            if (split.Length == 2)
-            {
-                var domain = split.First();
-                username = split.Last();
-
-                return new NetworkCredential(username, password, domain);
-            }
-
-            return new NetworkCredential(username, password);
-        }
-
-        protected void SetFlagState(string input, ref bool? setter)
-        {
-            bool tempBool;
-            if (bool.TryParse(input, out tempBool))
-            {
-                setter = tempBool;
-            }
-        }
-
         protected List<string> ReadAdditionalInputsFromConfigurationFile(string configFile)
         {
             configFile = FileSystem.GetFullPath(configFile);
