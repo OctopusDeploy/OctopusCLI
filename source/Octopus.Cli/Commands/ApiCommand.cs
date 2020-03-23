@@ -250,7 +250,7 @@ namespace Octopus.Cli.Commands
             }
             else
             {
-                throw new Exception("Need to override the Execute method or implement the ISuportFormattedOutput interface");
+                throw new Exception($"Need to override the Execute method or implement the {nameof(ISupportFormattedOutput)} interface");
             }
         }
 

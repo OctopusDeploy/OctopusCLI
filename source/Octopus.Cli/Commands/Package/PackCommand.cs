@@ -42,7 +42,7 @@ namespace Octopus.Cli.Commands.Package
             common.Add<bool>("overwrite", "[Optional] Allow an existing package file of the same ID/version to be overwritten", v => overwrite = true);
 
             var zip = Options.For("Zip packages");
-            zip.Add<PackageCompressionLevel>("compressionlevel=", "[Optional] Set compression level of package: none, fast, optimal (default).", c => packageCompressionLevel = c);
+            zip.Add<PackageCompressionLevel>("compressionLevel=", "[Optional] Set compression level of package: none, fast, optimal (default).", c => packageCompressionLevel = c);
 
             var nuget = Options.For("NuGet packages");
             nuget.Add<string>("author=", "[Optional, Multiple] Add an author to the package metadata; defaults to the current user", v => authors.Add(v));
@@ -55,7 +55,7 @@ namespace Octopus.Cli.Commands.Package
             basic.Add<string>("id=", "The ID of the package; e.g. MyCompany.MyApp", v => id = v);
             basic.Add<PackageFormat>("format=", "Package format. Options are: NuPkg, Zip. Defaults to NuPkg, though we recommend Zip going forward", fmt => packageBuilder = SelectFormat(fmt));
             basic.Add<string>("version=", "[Optional] The version of the package; must be a valid SemVer; defaults to a timestamp-based version", v => version = string.IsNullOrWhiteSpace(v) ? null : new SemanticVersion(v));
-            basic.Add<string>("outFolder=", "[Optional] The folder into which the generated NUPKG file will be written; defaults to '.'", v => { v.CheckForIllegalPathCharacters(nameof(outFolder)); outFolder = v;});
+            basic.Add<string>("outFolder=", "[Optional] The folder into which the generated NuPkg file will be written; defaults to '.'", v => { v.CheckForIllegalPathCharacters(nameof(outFolder)); outFolder = v;});
             basic.Add<string>("basePath=", "[Optional] The root folder containing files and folders to pack; defaults to '.'", v => { v.CheckForIllegalPathCharacters(nameof(basePath)); basePath = v;});
             basic.Add<bool>("verbose", "[Optional] verbose output", v => verbose = true);
             basic.AddLogLevelOptions();

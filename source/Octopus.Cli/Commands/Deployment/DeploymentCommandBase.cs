@@ -35,23 +35,24 @@ namespace Octopus.Cli.Commands.Deployment
 
             var options = Options.For("Deployment");
             options.Add<bool>("progress", "[Optional] Show progress of the deployment", v => { showProgress = true; WaitForDeployment = true; noRawLog = true; });
-            options.Add<bool>("forcepackagedownload", "[Optional] Whether to force downloading of already installed packages (flag, default false).", v => ForcePackageDownload = true);
-            options.Add<bool>("waitfordeployment", "[Optional] Whether to wait synchronously for deployment to finish.", v => WaitForDeployment = true);
-            options.Add<TimeSpan>("deploymenttimeout=", "[Optional] Specifies maximum time (timespan format) that the console session will wait for the deployment to finish(default 00:10:00). This will not stop the deployment. Requires --waitfordeployment parameter set.", v => DeploymentTimeout = v);
-            options.Add<bool>("cancelontimeout", "[Optional] Whether to cancel the deployment if the deployment timeout is reached (flag, default false).", v => CancelOnTimeout = true);
-            options.Add<TimeSpan>("deploymentchecksleepcycle=", "[Optional] Specifies how much time (timespan format) should elapse between deployment status checks (default 00:00:10)", v => DeploymentStatusCheckSleepCycle = v);
-            options.Add<bool>("guidedfailure=", "[Optional] Whether to use guided failure mode. (True or False. If not specified, will use default setting from environment)", v => UseGuidedFailure = v);
-            options.Add<string>("specificmachines=", "[Optional] A comma-separated list of machine names to target in the deployed environment. If not specified all machines in the environment will be considered.", v => SpecificMachineNames.AddRange(v.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(m => m.Trim())));
-            options.Add<string>("excludemachines=", "[Optional] A comma-separated list of machine names to exclude in the deployed environment. If not specified all machines in the environment will be considered.", v => ExcludedMachineNames.AddRange(v.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(m => m.Trim())));
+            options.Add<bool>("forcePackageDownload", "[Optional] Whether to force downloading of already installed packages (flag, default false).", v => ForcePackageDownload = true);
+            options.Add<bool>("waitForDeployment", "[Optional] Whether to wait synchronously for deployment to finish.", v => WaitForDeployment = true);
+            options.Add<TimeSpan>("deploymentTimeout=", "[Optional] Specifies maximum time (timespan format) that the console session will wait for the deployment to finish(default 00:10:00). This will not stop the deployment. Requires --waitForDeployment parameter set.", v => DeploymentTimeout = v);
+            options.Add<bool>("cancelOnTimeout", "[Optional] Whether to cancel the deployment if the deployment timeout is reached (flag, default false).", v => CancelOnTimeout = true);
+            options.Add<TimeSpan>("deploymentCheckSleepCycle=", "[Optional] Specifies how much time (timespan format) should elapse between deployment status checks (default 00:00:10)", v => DeploymentStatusCheckSleepCycle = v);
+            options.Add<bool>("guidedFailure=", "[Optional] Whether to use guided failure mode. (True or False. If not specified, will use default setting from environment)", v => UseGuidedFailure = v);
+            options.Add<string>("specificMachines=", "[Optional] A comma-separated list of machine names to target in the deployed environment. If not specified all machines in the environment will be considered.", v => SpecificMachineNames.AddRange(v.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(m => m.Trim())));
+            options.Add<string>("excludeMachines=", "[Optional] A comma-separated list of machine names to exclude in the deployed environment. If not specified all machines in the environment will be considered.", v => ExcludedMachineNames.AddRange(v.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(m => m.Trim())));
             options.Add<bool>("force", "[Optional] If a project is configured to skip packages with already-installed versions, override this setting to force re-deployment (flag, default false).", v => ForcePackageRedeployment = true);
             options.Add<string>("skip=", "[Optional] Skip a step by name", v => SkipStepNames.Add(v));
-            options.Add<bool>("norawlog", "[Optional] Don't print the raw log of failed tasks", v => noRawLog = true);
-            options.Add<string>("rawlogfile=", "[Optional] Redirect the raw log of failed tasks to a file", v => rawLogFile = v);
+            options.Add<bool>("noRawLog", "[Optional] Don't print the raw log of failed tasks", v => noRawLog = true);
+            options.Add<string>("rawLogFile=", "[Optional] Redirect the raw log of failed tasks to a file", v => rawLogFile = v);
             options.Add<string>("v|variable=", "[Optional] Values for any prompted variables in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.", ParseVariable);
-            options.Add<DateTimeOffset>("deployat=", "[Optional] Time at which deployment should start (scheduled deployment), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => DeployAt = v);
-            options.Add<DateTimeOffset>("nodeployafter=", "[Optional] Time at which scheduled deployment should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => NoDeployAfter = v);
+            options.Add<DateTimeOffset>("deployAt=", "[Optional] Time at which deployment should start (scheduled deployment), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => DeployAt = v);
+            options.Add<DateTimeOffset>("noDeployAfter=", "[Optional] Time at which scheduled deployment should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => NoDeployAfter = v);
             options.Add<string>("tenant=", "Create a deployment for the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).", t => Tenants.Add(t));
-            options.Add<string>("tenanttag=", "Create a deployment for tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.", tt => TenantTags.Add(tt));
+            options.Add<string>("tenantTag=", "Create a deployment for tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.", tt => TenantTags.Add(tt));
+
         }
 
         protected bool ForcePackageRedeployment { get; set; }
@@ -84,7 +85,7 @@ namespace Octopus.Cli.Commands.Deployment
             if (IsTenantedDeployment && DeployToEnvironmentNamesOrIds.Count > 1) throw new CommandException("Please specify only one environment at a time when deploying to tenants.");
             if (Tenants.Contains("*") && (Tenants.Count > 1 || TenantTags.Count > 0)) throw new CommandException("When deploying to all tenants using --tenant=* wildcard no other tenant filters can be provided");
             if (IsTenantedDeployment && !await Repository.SupportsTenants().ConfigureAwait(false))
-                throw new CommandException("Your Octopus Server does not support tenants, which was introduced in Octopus 3.4. Please upgrade your Octopus Server, enable the multi-tenancy feature or remove the --tenant and --tenanttag arguments.");
+                throw new CommandException("Your Octopus Server does not support tenants, which was introduced in Octopus 3.4. Please upgrade your Octopus Server, enable the multi-tenancy feature or remove the --tenant and --tenantTag arguments.");
             if ((DeployAt ?? DateTimeOffset.Now) > NoDeployAfter)
                 throw new CommandException("The deployment will expire before it has a chance to execute.  Please select an expiry time that occurs after the deployment is scheduled to begin");
 

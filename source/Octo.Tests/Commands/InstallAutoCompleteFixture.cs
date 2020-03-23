@@ -28,7 +28,6 @@ namespace Octo.Tests.Commands
 
         private static IEnumerable<ShellCompletionInstaller> GetShellCompletionInstallers()
         {
-            
             var zshCompletionInstaller = new ZshCompletionInstaller(commandOutputProvider, fileSystem);
             var pwshCompletionInstaller = new PwshCompletionInstaller(commandOutputProvider, fileSystem);
             var bashCompletionInstaller = new BashCompletionInstaller(commandOutputProvider, fileSystem);
