@@ -128,7 +128,7 @@ namespace Octopus.Cli.Diagnostics
                 }
                 catch (UnauthorizedAccessException uae)
                 {
-                    throw new UnauthorizedAccessException($"Could not write the TFS service message file '{markdownFile}'. Please make sure the SYSTEM_DEFAULTWORKINGDIRECTORY environment variable is set to a writeable directory. If this command is not being run on a build agent, ommit the --enableservicemessages parameter.", uae);
+                    throw new UnauthorizedAccessException($"Could not write the TFS service message file '{markdownFile}'. Please make sure the SYSTEM_DEFAULTWORKINGDIRECTORY environment variable is set to a writeable directory. If this command is not being run on a build agent, omit the --enableServiceMessages parameter.", uae);
                 }
 
                 log.Information("##vso[task.addattachment type=Distributedtask.Core.Summary;name=Octopus Deploy;]{MarkdownFile:l}", markdownFile);

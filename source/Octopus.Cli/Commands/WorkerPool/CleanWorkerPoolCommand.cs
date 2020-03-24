@@ -28,7 +28,7 @@ namespace Octopus.Cli.Commands.WorkerPool
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("WorkerPool Cleanup");
-            options.Add("workerpool=", "Name of a worker pool to clean up.", v => poolName = v);
+            options.Add("workerPool=", "Name of a worker pool to clean up.", v => poolName = v);
             options.Add("health-status=", $"Health status of Workers to clean up ({string.Join(", ", HealthStatusProvider.HealthStatusNames)}). Can be specified many times.", v => healthStatuses.Add(v));
             options.Add("disabled=", "[Optional] Disabled status filter of Worker to clean up.", v => SetFlagState(v, ref isDisabled));
             options.Add("calamari-outdated=", "[Optional] State of Calamari to clean up. By default ignores Calamari state.", v => SetFlagState(v, ref isCalamariOutdated));

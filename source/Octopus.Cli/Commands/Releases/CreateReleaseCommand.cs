@@ -32,20 +32,20 @@ namespace Octopus.Cli.Commands.Releases
 
             var options = Options.For("Release creation");
             options.Add("project=", "Name or ID of the project", v => ProjectNameOrId = v);
-            options.Add("defaultpackageversion=|packageversion=", "Default version number of all packages to use for this release. Override per-package using --package.", versionResolver.Default);
+            options.Add("defaultPackageVersion=|packageVersion=", "Default version number of all packages to use for this release. Override per-package using --package.", versionResolver.Default);
             options.Add("version=|releaseNumber=", "[Optional] Release number to use for the new release.", v => VersionNumber = v);
             options.Add("channel=", "[Optional] Name or ID of the channel to use for the new release. Omit this argument to automatically select the best channel.", v => ChannelNameOrId = v);
             options.Add("package=", "[Optional] Version number to use for a package in the release. Format: StepName:Version or PackageID:Version or StepName:PackageName:Version. StepName, PackageID, and PackageName can be replaced with an asterisk. An asterisk will be assumed for StepName, PackageID, or PackageName if they are omitted.", v => versionResolver.Add(v));
             options.Add("packagesFolder=", "[Optional] A folder containing NuGet packages from which we should get versions.", v => {v.CheckForIllegalPathCharacters("packagesFolder"); versionResolver.AddFolder(v);});
-            options.Add("releasenotes=", "[Optional] Release Notes for the new release. Styling with Markdown is supported.", v => ReleaseNotes = v);
-            options.Add("releasenotesfile=", "[Optional] Path to a file that contains Release Notes for the new release. Supports Markdown files.", ReadReleaseNotesFromFile);
-            options.Add("ignoreexisting", "[Optional, Flag] Don't create this release if there is already one with the same version number.", v => IgnoreIfAlreadyExists = true);
-            options.Add("ignorechannelrules", "[Optional, Flag] Create the release ignoring any version rules specified by the channel.", v => IgnoreChannelRules = true);
-            options.Add("packageprerelease=", "[Optional] Pre-release for latest version of all packages to use for this release.", v => VersionPreReleaseTag = v);
-            options.Add("whatif", "[Optional, Flag] Perform a dry run but don't actually create/deploy release.", v => WhatIf = true);
+            options.Add("releaseNotes=", "[Optional] Release Notes for the new release. Styling with Markdown is supported.", v => ReleaseNotes = v);
+            options.Add("releaseNotesFile=", "[Optional] Path to a file that contains Release Notes for the new release. Supports Markdown files.", ReadReleaseNotesFromFile);
+            options.Add("ignoreExisting", "[Optional, Flag] Don't create this release if there is already one with the same version number.", v => IgnoreIfAlreadyExists = true);
+            options.Add("ignoreChannelRules", "[Optional, Flag] Create the release ignoring any version rules specified by the channel.", v => IgnoreChannelRules = true);
+            options.Add("packagePrerelease=", "[Optional] Pre-release for latest version of all packages to use for this release.", v => VersionPreReleaseTag = v);
+            options.Add("whatIf", "[Optional, Flag] Perform a dry run but don't actually create/deploy release.", v => WhatIf = true);
 
             options = Options.For("Deployment");
-            options.Add("deployto=", "[Optional] Name or ID of the environment to automatically deploy to, e.g., 'Production' or 'Environments-1'; specify this argument multiple times to deploy to multiple environments.", v => DeployToEnvironmentNamesOrIds.Add(v));
+            options.Add("deployTo=", "[Optional] Name or ID of the environment to automatically deploy to, e.g., 'Production' or 'Environments-1'; specify this argument multiple times to deploy to multiple environments.", v => DeployToEnvironmentNamesOrIds.Add(v));
         }
 
         public string ChannelNameOrId { get; set; }
@@ -132,14 +132,14 @@ namespace Octopus.Cli.Commands.Releases
 
             if (IgnoreIfAlreadyExists)
             {
-                commandOutputProvider.Debug("Checking for existing release for {Project:l} {Version:l} because you specified --ignoreexisting...", project.Name, versionNumber);
+                commandOutputProvider.Debug("Checking for existing release for {Project:l} {Version:l} because you specified --ignoreExisting...", project.Name, versionNumber);
                 try
                 {
                     var found = await Repository.Projects.GetReleaseByVersion(project, versionNumber)
                         .ConfigureAwait(false);
                     if (found != null)
                     {
-                        commandOutputProvider.Information("A release of {Project:l} with the number {Version:l} already exists, and you specified --ignoreexisting, so we won't even attempt to create the release.", project.Name, versionNumber);
+                        commandOutputProvider.Information("A release of {Project:l} with the number {Version:l} already exists, and you specified --ignoreExisting, so we won't even attempt to create the release.", project.Name, versionNumber);
                         return;
                     }
                 }

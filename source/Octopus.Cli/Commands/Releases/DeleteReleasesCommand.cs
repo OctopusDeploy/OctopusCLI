@@ -25,10 +25,10 @@ namespace Octopus.Cli.Commands.Releases
         {
             var options = Options.For("Deletion");
             options.Add("project=", "Name of the project", v => ProjectName = v);
-            options.Add("minversion=", "Minimum (inclusive) version number for the range of versions to delete", v => MinVersion = v);
-            options.Add("maxversion=", "Maximum (inclusive) version number for the range of versions to delete", v => MaxVersion = v);
+            options.Add("minVersion=", "Minimum (inclusive) version number for the range of versions to delete", v => MinVersion = v);
+            options.Add("maxVersion=", "Maximum (inclusive) version number for the range of versions to delete", v => MaxVersion = v);
             options.Add("channel=", "[Optional] if specified, only releases associated with the channel will be deleted; specify this argument multiple times to target multiple channels.", v => ChannelNames.Add(v));
-            options.Add("whatif", "[Optional, Flag] if specified, releases won't actually be deleted, but will be listed as if simulating the command", v => WhatIf = true);
+            options.Add("whatIf", "[Optional, Flag] if specified, releases won't actually be deleted, but will be listed as if simulating the command", v => WhatIf = true);
         }
 
         public string ProjectName { get; set; }
@@ -41,8 +41,8 @@ namespace Octopus.Cli.Commands.Releases
         {
             if (ChannelNames.Any() && !await Repository.SupportsChannels().ConfigureAwait(false)) throw new CommandException("Your Octopus Server does not support channels, which was introduced in Octopus 3.2. Please upgrade your Octopus Server, or remove the --channel arguments.");
             if (string.IsNullOrWhiteSpace(ProjectName)) throw new CommandException("Please specify a project name using the parameter: --project=XYZ");
-            if (string.IsNullOrWhiteSpace(MinVersion)) throw new CommandException("Please specify a minimum version number using the parameter: --minversion=X.Y.Z");
-            if (string.IsNullOrWhiteSpace(MaxVersion)) throw new CommandException("Please specify a maximum version number using the parameter: --maxversion=X.Y.Z");
+            if (string.IsNullOrWhiteSpace(MinVersion)) throw new CommandException("Please specify a minimum version number using the parameter: --minVersion=X.Y.Z");
+            if (string.IsNullOrWhiteSpace(MaxVersion)) throw new CommandException("Please specify a maximum version number using the parameter: --maxVersion=X.Y.Z");
 
             var min = SemanticVersion.Parse(MinVersion);
             var max = SemanticVersion.Parse(MaxVersion);
@@ -71,7 +71,7 @@ namespace Octopus.Cli.Commands.Releases
 
                     if (WhatIf)
                     {
-                        commandOutputProvider.Information("[Whatif] Version {Version:l} would have been deleted", version);
+                        commandOutputProvider.Information("[WhatIf] Version {Version:l} would have been deleted", version);
                         wouldDelete.Add(release);
                     }
                     else

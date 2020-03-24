@@ -109,7 +109,7 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("-project=OctoFx");
             CommandLineArgs.Add("-environment=Production");
             CommandLineArgs.Add("-version=1.2.0");
-            CommandLineArgs.Add("-tenanttag=VIP");
+            CommandLineArgs.Add("-tenantTag=VIP");
 
             await createAutoDeployOverrideCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
@@ -128,8 +128,8 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("-project=OctoFx");
             CommandLineArgs.Add("-environment=Production");
             CommandLineArgs.Add("-version=1.2.0");
-            CommandLineArgs.Add("-tenanttag=VIP");
-            CommandLineArgs.Add("-outputformat=json");
+            CommandLineArgs.Add("-tenantTag=VIP");
+            CommandLineArgs.Add("-outputFormat=json");
 
             await createAutoDeployOverrideCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
