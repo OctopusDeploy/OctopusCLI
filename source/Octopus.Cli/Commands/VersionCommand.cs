@@ -6,13 +6,13 @@ using Octopus.Cli.Util;
 namespace Octopus.Cli.Commands
 {
     [Command("version", "v", "ver", Description = "Outputs Octopus CLI version.")]
-    public class VersionCommand : CommandBase, ICommand
+    public class VersionCommand : CommandBase
     {
         public VersionCommand(ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
         }
 
-        public Task Execute(string[] commandLineArgs)
+        public override Task Execute(string[] commandLineArgs)
         {
             return Task.Run(() =>
             {
