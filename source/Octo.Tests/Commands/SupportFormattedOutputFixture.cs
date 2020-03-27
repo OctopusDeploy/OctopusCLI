@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using Octopus.Cli.Infrastructure;
 
 namespace Octo.Tests.Commands
 {
@@ -35,15 +36,16 @@ namespace Octo.Tests.Commands
         }
         
         [Test]
-        public async Task FormattedOutput_FormatInvalid()
+        public void FormattedOutput_FormatInvalid()
         {
             var command = new DummyApiCommandWithFormattedOutputSupport(ClientFactory, RepositoryFactory, FileSystem, CommandOutputProvider);
             CommandLineArgs.Add("--helpOutputFormat=blah");
 
-            await command.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
+            var exception = Assert.ThrowsAsync<CommandException>(async () => await command.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false));
 
-            command.PrintJsonOutputCalled.ShouldBeEquivalentTo(false);
-            command.PrintDefaultOutputCalled.ShouldBeEquivalentTo(true);
+            command.PrintJsonOutputCalled.Should().BeFalse();
+            command.PrintDefaultOutputCalled.Should().BeFalse();
+            exception.Message.Should().Be("Could not convert string `blah' to type OutputFormat for option `--helpOutputFormat'. Valid values are Default and Json.");
         }
 
         [Test]
