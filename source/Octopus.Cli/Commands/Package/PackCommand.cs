@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Packaging;
@@ -17,6 +18,11 @@ namespace Octopus.Cli.Commands.Package
     [Command("pack", Description = "Creates a package (.nupkg or .zip) from files on disk, without needing a .nuspec or .csproj.")]
     public class PackCommand : CommandBase, ICommand, ISupportFormattedOutput
     {
+        const PackageCompressionLevel DefaultPackageCompressionLevel = PackageCompressionLevel.Optimal;
+        const PackageFormat DefaultPackageFormat = PackageFormat.Nupkg;
+        const PackageFormat RecommendedPackageFormat = PackageFormat.Zip;
+        private readonly string supportedPackageFormats= Enum.GetNames(typeof(PackageFormat)).Except(new [] {PackageFormat.Nuget.ToString()}).ReadableJoin();
+
         readonly IList<string> authors = new List<string>();
         readonly IOctopusFileSystem fileSystem;
         readonly IList<string> includes = new List<string>();
@@ -31,7 +37,7 @@ namespace Octopus.Cli.Commands.Package
         SemanticVersion version;
         IPackageBuilder packageBuilder;
         string allReleaseNotes;
-        PackageCompressionLevel packageCompressionLevel;
+        private PackageCompressionLevel packageCompressionLevel = DefaultPackageCompressionLevel;
 
         public PackCommand(IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
@@ -42,7 +48,7 @@ namespace Octopus.Cli.Commands.Package
             common.Add<bool>("overwrite", "[Optional] Allow an existing package file of the same ID/version to be overwritten", v => overwrite = true);
 
             var zip = Options.For("Zip packages");
-            zip.Add<PackageCompressionLevel>("compressionLevel=", "[Optional] Set compression level of package: none, fast, optimal (default).", c => packageCompressionLevel = c);
+            zip.Add<PackageCompressionLevel>("compressionLevel=", $"[Optional] Sets the compression level of the package. Valid values are {Enum.GetNames(typeof(PackageCompressionLevel)).ReadableJoin()}. Default is {DefaultPackageCompressionLevel}.", c => packageCompressionLevel = c);
 
             var nuget = Options.For("NuGet packages");
             nuget.Add<string>("author=", "[Optional, Multiple] Add an author to the package metadata; defaults to the current user", v => authors.Add(v));
@@ -53,14 +59,14 @@ namespace Octopus.Cli.Commands.Package
             
             var basic = Options.For("Basic options");
             basic.Add<string>("id=", "The ID of the package; e.g. MyCompany.MyApp", v => id = v);
-            basic.Add<PackageFormat>("format=", "Package format. Options are: NuPkg, Zip. Defaults to NuPkg, though we recommend Zip going forward", fmt => packageBuilder = SelectFormat(fmt));
+            basic.Add<PackageFormat>("format=", $"Package format. Valid values are {supportedPackageFormats}. Default is {DefaultPackageFormat}, though we recommend {RecommendedPackageFormat} going forward", fmt => packageBuilder = SelectFormat(fmt));
             basic.Add<string>("version=", "[Optional] The version of the package; must be a valid SemVer; defaults to a timestamp-based version", v => version = string.IsNullOrWhiteSpace(v) ? null : new SemanticVersion(v));
             basic.Add<string>("outFolder=", "[Optional] The folder into which the generated NuPkg file will be written; defaults to '.'", v => { v.CheckForIllegalPathCharacters(nameof(outFolder)); outFolder = v;});
             basic.Add<string>("basePath=", "[Optional] The root folder containing files and folders to pack; defaults to '.'", v => { v.CheckForIllegalPathCharacters(nameof(basePath)); basePath = v;});
             basic.Add<bool>("verbose", "[Optional] verbose output", v => verbose = true);
             basic.AddLogLevelOptions();
 
-            packageBuilder = SelectFormat(PackageFormat.Nupkg);
+            packageBuilder = SelectFormat(DefaultPackageFormat);
         }
 
        public Task Execute(string[] commandLineArguments)
