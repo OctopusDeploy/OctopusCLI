@@ -79,8 +79,8 @@ namespace Octopus.Cli.Commands
             });
             options.Add<string>("proxy=", $"[Optional] The URL of the proxy to use, e.g., 'https://proxy.example.com'.", v => clientOptions.Proxy = v);
             options.Add<string>("proxyUser=", $"[Optional] The username for the proxy.", v => clientOptions.ProxyUsername = v);
-            options.Add<string>("proxyPass=", $"[Optional] The password for the proxy. If both the username and password are omitted and proxyAddress is specified, the default credentials are used. ", v => clientOptions.ProxyPassword = v, sensitive: true);
-            options.Add<string>("space=", $"[Optional] The name or ID of a space within which this command will be executed. The default space will be used if it is omitted. ", v => spaceNameOrId = v);
+            options.Add<string>("proxyPass=", $"[Optional] The password for the proxy. If both the username and password are omitted and proxyAddress is specified, the default credentials are used.", v => clientOptions.ProxyPassword = v, sensitive: true);
+            options.Add<string>("space=", $"[Optional] The name or ID of a space within which this command will be executed. The default space will be used if it is omitted.", v => spaceNameOrId = v);
 #if NETFRAMEWORK
             options.Add<int>("keepalive=", "[Optional] How frequently (in seconds) to send a TCP keepalive packet.", input => keepAlive = input * 1000);
 #endif
