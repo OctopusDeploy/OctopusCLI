@@ -6,9 +6,9 @@ using Octopus.Cli.Util;
 
 namespace Octo.Tests.Commands
 {
-    public class SpeakCommand : CommandBase, ICommand
+    public class SpeakCommand : CommandBase
     {
-        public Task Execute(string[] commandLineArguments)
+        public override Task Execute(string[] commandLineArguments)
         {
             return Task.Run(() => Assert.Fail("This should not be called"));
         }

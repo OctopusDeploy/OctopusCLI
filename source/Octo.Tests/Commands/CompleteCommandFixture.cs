@@ -100,6 +100,17 @@ namespace Octo.Tests.Commands
                 .Contain("--url");
         }
 
+        [Test]
+        [TestCase("--help")]
+        [TestCase("foo --help")]
+        public async Task SupportsHelpOption(string commandLine)
+        {
+            await completeCommand.Execute(commandLine.Split(' '));
+            output.ToString()
+                .Should()
+                .Contain("Where <command> is the current command line to filter auto-completions");
+        }
+
         [TearDown]
         public void TearDown()
         {
@@ -108,7 +119,7 @@ namespace Octo.Tests.Commands
     }
 
     [Command("test", Description = "test command")]
-    public class TestCommand : CommandBase, ICommand
+    public class TestCommand : CommandBase
     {
         public TestCommand(ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
@@ -120,7 +131,7 @@ namespace Octo.Tests.Commands
         public string Url { get; set; }
 
         public string ApiKey { get; set; }
-        public Task Execute(string[] commandLineArguments)
+        public override Task Execute(string[] commandLineArguments)
         {
             return Task.Run(() => 0);
         }

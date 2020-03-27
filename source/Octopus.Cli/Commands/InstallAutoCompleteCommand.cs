@@ -18,7 +18,7 @@ namespace Octopus.Cli.Commands
     }
     
     [Command(name: "install-autocomplete", Description = "Install a shell auto-complete script into your shell profile, if they aren't already there. Supports pwsh, zsh, bash & powershell.")]
-    public class InstallAutoCompleteCommand : CommandBase, ICommand
+    public class InstallAutoCompleteCommand : CommandBase
     {
         private readonly IEnumerable<ShellCompletionInstaller> installers;
 
@@ -44,10 +44,16 @@ namespace Octopus.Cli.Commands
 
         public SupportedShell ShellSelection { get; set; }
 
-        public Task Execute(string[] commandLineArguments)
+        public override Task Execute(string[] commandLineArguments)
         {
-            var invalidShellSelectionMessage = $"Please specify the type of shell to install auto-completion for: --shell=XYZ. Valid values are {supportedShells}.";
             Options.Parse(commandLineArguments);
+            if (printHelp)
+            {
+                GetHelp(Console.Out, commandLineArguments);
+                return Task.FromResult(0);
+            }
+            
+            var invalidShellSelectionMessage = $"Please specify the type of shell to install auto-completion for: --shell=XYZ. Valid values are {supportedShells}.";
             if (ShellSelection == SupportedShell.Unspecified) throw new CommandException(invalidShellSelectionMessage);
 
             commandOutputProvider.PrintHeader();

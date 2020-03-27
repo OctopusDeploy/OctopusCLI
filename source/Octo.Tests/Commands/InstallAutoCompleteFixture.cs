@@ -71,6 +71,13 @@ namespace Octo.Tests.Commands
         }
         
         [Test]
+        public async Task SupportsHelpOption()
+        {
+            await installAutoCompleteCommand.Execute(new[] {"--help"});
+            commandOutputProvider.Received().PrintCommandHelpHeader(Arg.Any<string>(), "install-autocomplete", Arg.Any<string>(), Arg.Any<TextWriter>());
+        }
+        
+        [Test]
         public async Task ShouldPreventInstallationOfPowershellOnLinux()
         {
             if (ExecutionEnvironment.IsRunningOnNix || ExecutionEnvironment.IsRunningOnMac)

@@ -2,13 +2,14 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Model;
 using Octopus.Cli.Util;
 
 namespace Octopus.Cli.Commands
 {
-    public abstract class CommandBase
+    public abstract class CommandBase : ICommand
     {
         protected readonly ICommandOutputProvider commandOutputProvider;
         protected bool printHelp;
@@ -37,6 +38,8 @@ namespace Octopus.Cli.Commands
         public OutputFormat OutputFormat { get; set; }
 
         public OutputFormat HelpOutputFormat { get; set; }
+
+        public abstract Task Execute(string[] commandLineArguments);
 
         public virtual void GetHelp(TextWriter writer, string[] args)
         {
@@ -67,7 +70,7 @@ namespace Octopus.Cli.Commands
             }
         }
 
-        private void PrintDefaultHelpOutput(TextWriter writer, string executable, string commandName, string description)
+        protected virtual void PrintDefaultHelpOutput(TextWriter writer, string executable, string commandName, string description)
         {
             commandOutputProvider.PrintCommandHelpHeader(executable, commandName, description, writer);
             commandOutputProvider.PrintCommandOptions(Options, writer);
