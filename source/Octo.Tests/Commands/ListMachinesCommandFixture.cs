@@ -315,7 +315,7 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldThrowIfUsingHealthStatusPre34()
         {
-            CommandLineArgs.Add("--health-status=Online");
+            CommandLineArgs.Add("--health-status=Healthy");
             (await Repository.LoadRootDocument()).Version = "3.1.0";
 
             Func<Task> exec = () => listMachinesCommand.Execute(CommandLineArgs.ToArray());

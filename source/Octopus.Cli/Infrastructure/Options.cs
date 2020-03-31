@@ -132,6 +132,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Octopus.Cli.Util;
 
 namespace Octopus.Cli.Infrastructure
 {
@@ -337,12 +338,12 @@ namespace Octopus.Cli.Infrastructure
     {
         static readonly char[] NameTerminator = {'=', ':'};
 
-        protected Option(string prototype, string description)
-            : this(prototype, description, 1)
+        protected Option(string prototype, string description, bool sensitive = false)
+            : this(prototype, description, 1, sensitive)
         {
         }
 
-        protected Option(string prototype, string description, int maxValueCount)
+        protected Option(string prototype, string description, int maxValueCount, bool sensitive = false)
         {
             if (prototype == null)
                 throw new ArgumentNullException(nameof(prototype));
@@ -355,6 +356,7 @@ namespace Octopus.Cli.Infrastructure
             Names = prototype.Split('|');
             this.Description = description;
             MaxValueCount = maxValueCount;
+            Sensitive = sensitive;
             OptionValueType = ParsePrototype();
 
             if (MaxValueCount == 0 && OptionValueType != OptionValueType.None)
@@ -381,10 +383,12 @@ namespace Octopus.Cli.Infrastructure
         public OptionValueType OptionValueType { get; }
 
         public int MaxValueCount { get; }
+        public bool Sensitive { get; }
 
         internal string[] Names { get; }
 
         internal string[] ValueSeparators { get; private set; }
+        public abstract Type Type { get; }
 
         public string[] GetNames()
         {
@@ -407,9 +411,13 @@ namespace Octopus.Cli.Infrastructure
                 if (value != null)
                     t = (T) conv.ConvertFromString(value);
             }
-            catch (Exception e)
+            catch(FormatException) when(typeof(T).IsEnum)
             {
-                throw new OptionException($"Could not convert string `{value}' to type {typeof(T).Name} for option `{c.OptionName}'.", c.OptionName, e);
+                throw new CommandException($"Could not convert string `{value}' to type {typeof(T).Name} for option `{c.OptionName}'. Valid values are {Enum.GetNames(typeof(T)).ReadableJoin()}.");
+            }
+            catch(Exception ex) when(!(ex is CommandException))
+            {
+                throw new CommandException($"Could not convert string `{value}' to type {typeof(T).Name} for option `{c.OptionName}'.");
             }
             return t;
         }
@@ -624,77 +632,34 @@ namespace Octopus.Cli.Infrastructure
                 this.action = action;
             }
 
+            public override Type Type => typeof(string);
+
             protected override void OnParseComplete(OptionContext c)
             {
                 action(c.OptionValues);
             }
         }
 
-        public OptionSet Add(string prototype, Action<string> action)
-        {
-            return Add(prototype, null, action);
-        }
-
-        public OptionSet Add(string prototype, string description, Action<string> action)
-        {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
-            Option p = new ActionOption(prototype, description, 1,
-                delegate(OptionValueCollection v) { action(v[0]); });
-            base.Add(p);
-            return this;
-        }
-
-        public OptionSet Add(string prototype, OptionAction<string, string> action)
-        {
-            return Add(prototype, null, action);
-        }
-
-        public OptionSet Add(string prototype, string description, OptionAction<string, string> action)
-        {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
-            Option p = new ActionOption(prototype, description, 2,
-                delegate(OptionValueCollection v) { action(v[0], v[1]); });
-            base.Add(p);
-            return this;
-        }
-
         sealed class ActionOption<T> : Option
         {
             readonly Action<T> action;
 
-            public ActionOption(string prototype, string description, Action<T> action)
-                : base(prototype, description, 1)
+            public ActionOption(string prototype, string description, Action<T> action, bool sensitive)
+                : base(prototype, description, 1, sensitive)
             {
                 if (action == null)
                     throw new ArgumentNullException(nameof(action));
                 this.action = action;
             }
 
-            protected override void OnParseComplete(OptionContext c)
-            {
-                action(Parse<T>(c.OptionValues[0], c));
-            }
-        }
-
-        sealed class ActionOption<TKey, TValue> : Option
-        {
-            readonly OptionAction<TKey, TValue> action;
-
-            public ActionOption(string prototype, string description, OptionAction<TKey, TValue> action)
-                : base(prototype, description, 2)
-            {
-                if (action == null)
-                    throw new ArgumentNullException(nameof(action));
-                this.action = action;
-            }
+            public override Type Type => typeof(T);
 
             protected override void OnParseComplete(OptionContext c)
             {
-                action(
-                    Parse<TKey>(c.OptionValues[0], c),
-                    Parse<TValue>(c.OptionValues[1], c));
+                if (this.OptionValueType == OptionValueType.None)
+                    action(default(T));
+                else
+                    action(Parse<T>(c.OptionValues[0], c));
             }
         }
 
@@ -703,19 +668,9 @@ namespace Octopus.Cli.Infrastructure
             return Add(prototype, null, action);
         }
 
-        public OptionSet Add<T>(string prototype, string description, Action<T> action)
+        public OptionSet Add<T>(string prototype, string description, Action<T> action, bool sensitive = false)
         {
-            return Add(new ActionOption<T>(prototype, description, action));
-        }
-
-        public OptionSet Add<TKey, TValue>(string prototype, OptionAction<TKey, TValue> action)
-        {
-            return Add(prototype, null, action);
-        }
-
-        public OptionSet Add<TKey, TValue>(string prototype, string description, OptionAction<TKey, TValue> action)
-        {
-            return Add(new ActionOption<TKey, TValue>(prototype, description, action));
+            return Add(new ActionOption<T>(prototype, description, action, sensitive));
         }
 
         protected virtual OptionContext CreateOptionContext()
@@ -732,30 +687,14 @@ namespace Octopus.Cli.Infrastructure
         public List<string> Parse(IEnumerable<string> arguments)
         {
             var process = true;
-            var c = CreateOptionContext();
-            c.OptionIndex = -1;
+            var optionContext = CreateOptionContext();
+            optionContext.OptionIndex = -1;
 #pragma warning disable 618
-            var def = GetOptionForName("<>");
+            var currentOption = GetOptionForName("<>");
 #pragma warning restore 618
-            var unprocessed =
-                from argument in arguments
-                where ++c.OptionIndex >= 0 && (process || def != null)
-                    ? process
-                        ? argument == "--"
-                            ? (process = false)
-                            : !Parse(argument, c)
-                                ? def != null
-                                    ? Unprocessed(null, def, c, argument)
-                                    : true
-                                : false
-                        : def != null
-                            ? Unprocessed(null, def, c, argument)
-                            : true
-                    : true
-                select argument;
+            var unprocessed = arguments.Where(argument => ParseOption(argument, optionContext, currentOption, ref process));
             var r = unprocessed.ToList();
-            if (c.Option != null)
-                c.Option.Invoke(c);
+            optionContext.Option?.Invoke(optionContext);
 
             if (leftovers != null && r.Count > 0)
             {
@@ -763,6 +702,31 @@ namespace Octopus.Cli.Infrastructure
             }
 
             return r;
+        }
+
+        private bool ParseOption(string argument, OptionContext optionContext, Option currentOption, ref bool continueProcessing)
+        {
+            if (++optionContext.OptionIndex >= 0 && (continueProcessing || currentOption != null))
+            {
+                if (continueProcessing)
+                {
+                    if (argument == "--")
+                        return continueProcessing = false;
+                    if (!Parse(argument, optionContext))
+                    {
+                        if (currentOption != null)
+                            return Unprocessed(null, currentOption, optionContext, argument);
+                        return true;
+                    }
+                    return false;
+                }
+
+                if (currentOption != null)
+                    return Unprocessed(null, currentOption, optionContext, argument);
+                return true;
+            }
+
+            return true;
         }
 
         static bool Unprocessed(ICollection<string> extra, Option def, OptionContext c, string argument)

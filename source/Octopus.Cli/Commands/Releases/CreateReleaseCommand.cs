@@ -31,21 +31,21 @@ namespace Octopus.Cli.Commands.Releases
             this.releasePlanBuilder = releasePlanBuilder;
 
             var options = Options.For("Release creation");
-            options.Add("project=", "Name or ID of the project", v => ProjectNameOrId = v);
-            options.Add("defaultPackageVersion=|packageVersion=", "Default version number of all packages to use for this release. Override per-package using --package.", versionResolver.Default);
-            options.Add("version=|releaseNumber=", "[Optional] Release number to use for the new release.", v => VersionNumber = v);
-            options.Add("channel=", "[Optional] Name or ID of the channel to use for the new release. Omit this argument to automatically select the best channel.", v => ChannelNameOrId = v);
-            options.Add("package=", "[Optional] Version number to use for a package in the release. Format: StepName:Version or PackageID:Version or StepName:PackageName:Version. StepName, PackageID, and PackageName can be replaced with an asterisk. An asterisk will be assumed for StepName, PackageID, or PackageName if they are omitted.", v => versionResolver.Add(v));
-            options.Add("packagesFolder=", "[Optional] A folder containing NuGet packages from which we should get versions.", v => {v.CheckForIllegalPathCharacters("packagesFolder"); versionResolver.AddFolder(v);});
-            options.Add("releaseNotes=", "[Optional] Release Notes for the new release. Styling with Markdown is supported.", v => ReleaseNotes = v);
-            options.Add("releaseNotesFile=", "[Optional] Path to a file that contains Release Notes for the new release. Supports Markdown files.", ReadReleaseNotesFromFile);
-            options.Add("ignoreExisting", "[Optional, Flag] Don't create this release if there is already one with the same version number.", v => IgnoreIfAlreadyExists = true);
-            options.Add("ignoreChannelRules", "[Optional, Flag] Create the release ignoring any version rules specified by the channel.", v => IgnoreChannelRules = true);
-            options.Add("packagePrerelease=", "[Optional] Pre-release for latest version of all packages to use for this release.", v => VersionPreReleaseTag = v);
-            options.Add("whatIf", "[Optional, Flag] Perform a dry run but don't actually create/deploy release.", v => WhatIf = true);
+            options.Add<string>("project=", "Name or ID of the project", v => ProjectNameOrId = v);
+            options.Add<string>("defaultPackageVersion=|packageVersion=", "Default version number of all packages to use for this release. Override per-package using --package.", versionResolver.Default);
+            options.Add<string>("version=|releaseNumber=", "[Optional] Release number to use for the new release.", v => VersionNumber = v);
+            options.Add<string>("channel=", "[Optional] Name or ID of the channel to use for the new release. Omit this argument to automatically select the best channel.", v => ChannelNameOrId = v);
+            options.Add<string>("package=", "[Optional] Version number to use for a package in the release. Format: StepName:Version or PackageID:Version or StepName:PackageName:Version. StepName, PackageID, and PackageName can be replaced with an asterisk. An asterisk will be assumed for StepName, PackageID, or PackageName if they are omitted.", v => versionResolver.Add(v));
+            options.Add<string>("packagesFolder=", "[Optional] A folder containing NuGet packages from which we should get versions.", v => {v.CheckForIllegalPathCharacters("packagesFolder"); versionResolver.AddFolder(v);});
+            options.Add<string>("releaseNotes=", "[Optional] Release Notes for the new release. Styling with Markdown is supported.", v => ReleaseNotes = v);
+            options.Add<string>("releaseNoteFile=", "[Optional] Path to a file that contains Release Notes for the new release. Supports Markdown files.", ReadReleaseNotesFromFile);
+            options.Add<bool>("ignoreExisting", "[Optional, Flag] Don't create this release if there is already one with the same version number.", v => IgnoreIfAlreadyExists = true);
+            options.Add<bool>("ignoreChannelRules", "[Optional, Flag] Create the release ignoring any version rules specified by the channel.", v => IgnoreChannelRules = true);
+            options.Add<string>("packagePrerelease=", "[Optional] Pre-release for latest version of all packages to use for this release.", v => VersionPreReleaseTag = v);
+            options.Add<bool>("whatIf", "[Optional, Flag] Perform a dry run but don't actually create/deploy release.", v => WhatIf = true);
 
             options = Options.For("Deployment");
-            options.Add("deployTo=", "[Optional] Name or ID of the environment to automatically deploy to, e.g., 'Production' or 'Environments-1'; specify this argument multiple times to deploy to multiple environments.", v => DeployToEnvironmentNamesOrIds.Add(v));
+            options.Add<string>("deployTo=", "[Optional] Name or ID of the environment to automatically deploy to, e.g., 'Production' or 'Environments-1'; specify this argument multiple times to deploy to multiple environments.", v => DeployToEnvironmentNamesOrIds.Add(v));
         }
 
         public string ChannelNameOrId { get; set; }

@@ -75,23 +75,21 @@ namespace Octopus.Cli.Commands.Package
             }
         }
 
-        public void SetCompression(string level)
+        public void SetCompression(PackageCompressionLevel level)
         {
-            if (string.IsNullOrWhiteSpace(level))
+            switch(level)
             {
-                compressionLevel = CompressionLevel.Optimal;
-            }
-            else if (level.Equals("none", StringComparison.CurrentCultureIgnoreCase))
-            {
-                compressionLevel = CompressionLevel.NoCompression;
-            }
-            else if (level.Equals("fast", StringComparison.CurrentCultureIgnoreCase))
-            {
-                compressionLevel = CompressionLevel.Fastest;
-            }
-            else
-            {
-                compressionLevel = CompressionLevel.Optimal;
+                case PackageCompressionLevel.None:
+                    compressionLevel = CompressionLevel.NoCompression;
+                    break;
+                case PackageCompressionLevel.Fast:
+                    compressionLevel = CompressionLevel.Fastest;
+                    break;
+                case PackageCompressionLevel.Optimal:
+                    compressionLevel = CompressionLevel.Optimal;
+                    break;
+                default:
+                    throw new CommandException($"Unexpected compression value `{level}'. Valid values are {Enum.GetNames(typeof(PackageCompressionLevel)).ReadableJoin()}.");
             }
 
             commandOutputProvider.Information($"Setting Zip compression level to {compressionLevel.ToString()}");

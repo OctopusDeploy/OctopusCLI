@@ -15,8 +15,8 @@ namespace Octopus.Cli.Commands.Machine
     public class ListWorkersCommand : ApiCommand, ISupportFormattedOutput
     {
         readonly HashSet<string> pools = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        readonly HashSet<string> statuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        readonly HashSet<string> healthStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        readonly HashSet<MachineModelStatus> statuses = new HashSet<MachineModelStatus>();
+        readonly HashSet<MachineModelHealthStatus> healthStatuses = new HashSet<MachineModelHealthStatus>();
         private HealthStatusProvider provider;
         List<WorkerPoolResource> workerpoolResources;
         IEnumerable<WorkerResource> workerpoolWorkers;
@@ -28,12 +28,12 @@ namespace Octopus.Cli.Commands.Machine
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Listing Workers");
-            options.Add("workerPool=", "Name of a worker pool to filter by. Can be specified many times.", v => pools.Add(v));
-            options.Add("status=", $"[Optional] Status of Machines filter by ({string.Join(", ", HealthStatusProvider.StatusNames)}). Can be specified many times.", v => statuses.Add(v));
-            options.Add("health-status=|healthStatus=", $"[Optional] Health status of Machines filter by ({string.Join(", ", HealthStatusProvider.HealthStatusNames)}). Can be specified many times.", v => healthStatuses.Add(v));
-            options.Add("disabled=", "[Optional] Disabled status filter of Machine.", v => SetFlagState(v, ref isDisabled));
-            options.Add("calamari-outdated=", "[Optional] State of Calamari to filter. By default ignores Calamari state.", v => SetFlagState(v, ref isCalamariOutdated));
-            options.Add("tentacle-outdated=", "[Optional] State of Tentacle version to filter. By default ignores Tentacle state", v => SetFlagState(v, ref isTentacleOutdated));
+            options.Add<string>("workerPool=", "Name of a worker pool to filter by. Can be specified many times.", v => pools.Add(v));
+            options.Add<MachineModelStatus>("status=", $"[Optional] Status of Machines filter by ({string.Join(", ", HealthStatusProvider.StatusNames)}). Can be specified many times.", v => statuses.Add(v));
+            options.Add<MachineModelHealthStatus>("health-status=|healthStatus=", $"[Optional] Health status of Machines filter by ({string.Join(", ", HealthStatusProvider.HealthStatusNames)}). Can be specified many times.", v => healthStatuses.Add(v));
+            options.Add<bool>("disabled=", "[Optional] Disabled status filter of Machine.", v => isDisabled = v);
+            options.Add<bool>("calamari-outdated=", "[Optional] State of Calamari to filter. By default ignores Calamari state.", v => isCalamariOutdated = v);
+            options.Add<bool>("tentacle-outdated=", "[Optional] State of Tentacle version to filter. By default ignores Tentacle state", v => isTentacleOutdated = v);
         }
 
         public async Task Request()

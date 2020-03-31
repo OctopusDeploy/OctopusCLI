@@ -3,6 +3,20 @@ using ManifestMetadata = NuGet.Packaging.ManifestMetadata;
 
 namespace Octopus.Cli.Commands.Package
 {
+    public enum PackageCompressionLevel
+    {
+        None,
+        Fast,
+        Optimal,
+    }
+    
+    public enum PackageFormat
+    {
+        Zip,
+        Nupkg,
+        Nuget,
+    }
+    
     public interface IPackageBuilder
     {
         string[] Files { get; }
@@ -11,6 +25,6 @@ namespace Octopus.Cli.Commands.Package
 
         void BuildPackage(string basePath, IList<string> includes, ManifestMetadata metadata, string outFolder, bool overwrite, bool verboseInfo);
 
-        void SetCompression(string level);
+        void SetCompression(PackageCompressionLevel level);
     }
 }

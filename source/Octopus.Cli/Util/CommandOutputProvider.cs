@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Octopus.Cli.Diagnostics;
 using Octopus.Cli.Infrastructure;
 using Octopus.Client.Model;
@@ -102,7 +103,13 @@ namespace Octopus.Cli.Util
         
         public void Json(object o, TextWriter writer)
         {
-            writer.WriteLine(Octopus.Client.Serialization.JsonSerialization.SerializeObject(o));
+            var settings = new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore,
+                Formatting = Formatting.Indented,
+                Converters = new JsonConverterCollection { new StringEnumConverter() },
+            };
+            writer.WriteLine(JsonConvert.SerializeObject(o, settings));
         }
 
         public void Warning(string s)

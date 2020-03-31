@@ -15,6 +15,7 @@ namespace Octopus.Cli.Commands.Package
     [Command("push", Description = "Pushes a package (.nupkg, .zip, .tar.gz, etc.) package to the built-in NuGet repository in an Octopus Server.")]
     public class PushCommand : ApiCommand, ISupportFormattedOutput
     {
+        private static OverwriteMode DefaultOverwriteMode = OverwriteMode.FailIfExists;
         private List<string> pushedPackages;
         private List<Tuple<string, Exception>> failedPackages;
 
@@ -22,24 +23,19 @@ namespace Octopus.Cli.Commands.Package
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Package pushing");
-            options.Add("package=", "Package file to push. Specify multiple packages by specifying this argument multiple times: \n--package package1 --package package2", 
+            options.Add<string>("package=", "Package file to push. Specify multiple packages by specifying this argument multiple times: \n--package package1 --package package2", 
                 package => Packages.Add(EnsurePackageExists(fileSystem, package)));
-            options.Add("overwrite-mode=", "If the package already exists in the repository, the default behavior is to reject the new package being pushed (FailIfExists). You can use the overwrite mode to OverwriteExisting or IgnoreIfExists.", mode => OverwriteMode = (OverwriteMode)Enum.Parse(typeof(OverwriteMode), mode, true));
-            options.Add("replace-existing", "If the package already exists in the repository, the default behavior is to reject the new package being pushed. You can pass this flag to overwrite the existing package. This flag may be deprecated in a future version; passing it is the same as using the OverwriteExisting overwrite-mode.", 
+            options.Add<OverwriteMode>("overwrite-mode=", $"Determines behavior if the package already exists in the repository. Valid values are {Enum.GetNames(typeof(OverwriteMode)).ReadableJoin()}. Default is {DefaultOverwriteMode}.", mode => OverwriteMode = mode);
+            options.Add<bool>("replace-existing", "If the package already exists in the repository, the default behavior is to reject the new package being pushed. You can pass this flag to overwrite the existing package. This flag may be deprecated in a future version; passing it is the same as using the OverwriteExisting overwrite-mode.", 
                 replace => OverwriteMode = OverwriteMode.OverwriteExisting);
-            options.Add("use-delta-compression=", "Allows disabling of delta compression when uploading packages to the Octopus Server. (True or False. Defaults to true.)",
-                v =>
-                {
-                    if (!bool.TryParse(v, out var desiredValue))
-                        throw new CommandException($"The value '{v}' is not valid. Valid values are true or false.");
-                    UseDeltaCompression = desiredValue;
-                });
+            options.Add<bool>("use-delta-compression=", "Allows disabling of delta compression when uploading packages to the Octopus Server. (True or False. Defaults to true.)",
+                v => UseDeltaCompression = v);
             pushedPackages = new List<string>();
             failedPackages = new List<Tuple<string, Exception>>();
         }
 
         public HashSet<string> Packages { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase); 
-        public OverwriteMode OverwriteMode { get; set; }
+        public OverwriteMode OverwriteMode { get; set; } = DefaultOverwriteMode;
         public bool UseDeltaCompression { get; set; } = true;
 
         public int KeepAlive { get; set; } = 0;

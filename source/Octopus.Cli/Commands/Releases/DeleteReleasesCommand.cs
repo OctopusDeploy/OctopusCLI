@@ -24,11 +24,11 @@ namespace Octopus.Cli.Commands.Releases
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Deletion");
-            options.Add("project=", "Name of the project", v => ProjectName = v);
-            options.Add("minVersion=", "Minimum (inclusive) version number for the range of versions to delete", v => MinVersion = v);
-            options.Add("maxVersion=", "Maximum (inclusive) version number for the range of versions to delete", v => MaxVersion = v);
-            options.Add("channel=", "[Optional] if specified, only releases associated with the channel will be deleted; specify this argument multiple times to target multiple channels.", v => ChannelNames.Add(v));
-            options.Add("whatIf", "[Optional, Flag] if specified, releases won't actually be deleted, but will be listed as if simulating the command", v => WhatIf = true);
+            options.Add<string>("project=", "Name of the project", v => ProjectName = v);
+            options.Add<string>("minVersion=", "Minimum (inclusive) version number for the range of versions to delete", v => MinVersion = v);
+            options.Add<string>("maxVersion=", "Maximum (inclusive) version number for the range of versions to delete", v => MaxVersion = v);
+            options.Add<string>("channel=", "[Optional] if specified, only releases associated with the channel will be deleted; specify this argument multiple times to target multiple channels.", v => ChannelNames.Add(v));
+            options.Add<bool>("whatIf", "[Optional, Flag] if specified, releases won't actually be deleted, but will be listed as if simulating the command", v => WhatIf = true);
         }
 
         public string ProjectName { get; set; }

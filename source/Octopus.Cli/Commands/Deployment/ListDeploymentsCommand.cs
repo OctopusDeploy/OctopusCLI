@@ -32,10 +32,10 @@ namespace Octopus.Cli.Commands.Deployment
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Listing");
-            options.Add("project=", "[Optional] Name of a project to filter by. Can be specified many times.", v => projects.Add(v));
-            options.Add("environment=", "[Optional] Name of an environment to filter by. Can be specified many times.", v => environments.Add(v));
-            options.Add("tenant=", "[Optional] Name of a tenant to filter by. Can be specified many times.", v => tenants.Add(v));
-            options.Add("number=", $"[Optional] number of results to return, default is {DefaultReturnAmount}", v => numberOfResults = int.Parse(v));
+            options.Add<string>("project=", "[Optional] Name of a project to filter by. Can be specified many times.", v => projects.Add(v));
+            options.Add<string>("environment=", "[Optional] Name of an environment to filter by. Can be specified many times.", v => environments.Add(v));
+            options.Add<string>("tenant=", "[Optional] Name of a tenant to filter by. Can be specified many times.", v => tenants.Add(v));
+            options.Add<int>("number=", $"[Optional] number of results to return, default is {DefaultReturnAmount}", v => numberOfResults = v);
         }
 
         public async Task Request()

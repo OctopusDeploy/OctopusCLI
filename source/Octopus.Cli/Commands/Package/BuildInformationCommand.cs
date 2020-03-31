@@ -16,6 +16,7 @@ namespace Octopus.Cli.Commands.Package
     [Command("build-information", Description = "Pushes build information to Octopus Server.")]
     public class BuildInformationCommand : ApiCommand, ISupportFormattedOutput
     {
+        private static OverwriteMode DefaultOverwriteMode = OverwriteMode.FailIfExists;
         private OctopusPackageVersionBuildInformationMappedResource resultResource;
         private readonly List<OctopusPackageVersionBuildInformationMappedResource> pushedBuildInformation;
 
@@ -23,10 +24,10 @@ namespace Octopus.Cli.Commands.Package
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Build information pushing");
-            options.Add("package-id=", "The ID of the package. Specify multiple packages by specifying this argument multiple times: \n--package-id 'MyCompany.MyApp' --package-id 'MyCompany.MyApp2'.", packageId => PackageIds.Add(packageId));
-            options.Add("version=", "The version of the package; defaults to a timestamp-based version", v => Version = v);
-            options.Add("file=", "Octopus Build Information Json file.", file => File = file);
-            options.Add("overwrite-mode=", "If the build information already exists in the repository, the default behavior is to reject the new build information being pushed (FailIfExists). You can use the overwrite mode to OverwriteExisting or IgnoreIfExists.", mode => OverwriteMode = (OverwriteMode)Enum.Parse(typeof(OverwriteMode), mode, true));
+            options.Add<string>("package-id=", "The ID of the package. Specify multiple packages by specifying this argument multiple times: \n--package-id 'MyCompany.MyApp' --package-id 'MyCompany.MyApp2'.", packageId => PackageIds.Add(packageId));
+            options.Add<string>("version=", "The version of the package; defaults to a timestamp-based version", v => Version = v);
+            options.Add<string>("file=", "Octopus Build Information Json file.", file => File = file);
+            options.Add<OverwriteMode>("overwrite-mode=", $"Determines behavior if the package already exists in the repository. Valid values are {Enum.GetNames(typeof(OverwriteMode)).ReadableJoin()}. Default is {DefaultOverwriteMode}.", mode => OverwriteMode = mode);
 
             pushedBuildInformation = new List<OctopusPackageVersionBuildInformationMappedResource>();
         }
@@ -34,7 +35,8 @@ namespace Octopus.Cli.Commands.Package
         public HashSet<string> PackageIds { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         public string Version { get; set; }
         public string File { get; set; }
-        public OverwriteMode OverwriteMode { get; set; }
+
+        public OverwriteMode OverwriteMode { get; set; } = DefaultOverwriteMode;
 
         public async Task Request()
         {

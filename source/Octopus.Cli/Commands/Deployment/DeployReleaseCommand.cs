@@ -21,11 +21,11 @@ namespace Octopus.Cli.Commands.Deployment
             : base(repositoryFactory, fileSystem, clientFactory, commandOutputProvider)
         {
             var options = Options.For("Deployment");
-            options.Add("project=", "Name or ID of the project", v => ProjectNameOrId = v);
-            options.Add("deployTo=", "Name or ID of the environment to deploy to, e.g., 'Production' or 'Environments-1'; specify this argument multiple times to deploy to multiple environments.", v => DeployToEnvironmentNamesOrIds.Add(v));
-            options.Add("releaseNumber=|version=", "Version number of the release to deploy. Or specify --version=latest for the latest release.", v => VersionNumber = v);
-            options.Add("channel=", "[Optional] Name or ID of the channel to use when getting the release to deploy", v => ChannelNameOrId = v);
-            options.Add("updateVariables", "Overwrite the variable snapshot for the release by re-importing the variables from the project", v => UpdateVariableSnapshot = true);
+            options.Add<string>("project=", "Name or ID of the project", v => ProjectNameOrId = v);
+            options.Add<string>("deployTo=", "Name or ID of the environment to deploy to, e.g., 'Production' or 'Environments-1'; specify this argument multiple times to deploy to multiple environments.", v => DeployToEnvironmentNamesOrIds.Add(v));
+            options.Add<string>("releaseNumber=|version=", "Version number of the release to deploy. Or specify --version=latest for the latest release.", v => VersionNumber = v);
+            options.Add<string>("channel=", "[Optional] Name or ID of the channel to use when getting the release to deploy", v => ChannelNameOrId = v);
+            options.Add<bool>("updateVariables", "Overwrite the variable snapshot for the release by re-importing the variables from the project", v => UpdateVariableSnapshot = true);
         }
 
         public string VersionNumber { get; set; }
