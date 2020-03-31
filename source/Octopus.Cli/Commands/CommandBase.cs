@@ -88,11 +88,11 @@ namespace Octopus.Cli.Commands
                     Parameters = g.Value.Select(p => new
                     {
                         Name = p.Names.First(),
-                        Usage = string.Format("{0}{1}{2}", p.Prototype.Length == 1 ? "-" : "--", p.Prototype,
-                            p.Prototype.EndsWith("=") ? "VALUE" : string.Empty),
+                        Usage = $"{(p.Prototype.Length == 1 ? "-" : "--")}{p.Prototype}{(p.Prototype.EndsWith("=") ? "VALUE" : string.Empty)}",
                         p.Description,
                         Type = p.Type.Name,
                         Sensitive = p.Sensitive ? (bool?)true : null,
+                        AllowsMultiple = p.AllowsMultiple ? (bool?)true : null, //allows tools (such as nuke.build) to auto-generate better code
                         Values = (p.Type.IsEnum) ? Enum.GetNames(p.Type) : null 
                     })
                 })

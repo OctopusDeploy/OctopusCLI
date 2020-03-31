@@ -338,12 +338,12 @@ namespace Octopus.Cli.Infrastructure
     {
         static readonly char[] NameTerminator = {'=', ':'};
 
-        protected Option(string prototype, string description, bool sensitive = false)
-            : this(prototype, description, 1, sensitive)
+        protected Option(string prototype, string description, bool sensitive = false, bool allowsMultiple = false)
+            : this(prototype, description, 1, sensitive, allowsMultiple)
         {
         }
 
-        protected Option(string prototype, string description, int maxValueCount, bool sensitive = false)
+        protected Option(string prototype, string description, int maxValueCount, bool sensitive = false, bool allowsMultiple = false)
         {
             if (prototype == null)
                 throw new ArgumentNullException(nameof(prototype));
@@ -357,6 +357,7 @@ namespace Octopus.Cli.Infrastructure
             this.Description = description;
             MaxValueCount = maxValueCount;
             Sensitive = sensitive;
+            AllowsMultiple = allowsMultiple;
             OptionValueType = ParsePrototype();
 
             if (MaxValueCount == 0 && OptionValueType != OptionValueType.None)
@@ -384,6 +385,7 @@ namespace Octopus.Cli.Infrastructure
 
         public int MaxValueCount { get; }
         public bool Sensitive { get; }
+        public bool AllowsMultiple { get; }
 
         internal string[] Names { get; }
 
@@ -614,7 +616,7 @@ namespace Octopus.Cli.Infrastructure
             }
         }
 
-        public new OptionSet Add(Option option)
+        private new OptionSet Add(Option option)
         {
             base.Add(option);
             return this;
@@ -644,8 +646,8 @@ namespace Octopus.Cli.Infrastructure
         {
             readonly Action<T> action;
 
-            public ActionOption(string prototype, string description, Action<T> action, bool sensitive)
-                : base(prototype, description, 1, sensitive)
+            public ActionOption(string prototype, string description, Action<T> action, bool sensitive, bool allowsMultiple)
+                : base(prototype, description, 1, sensitive, allowsMultiple)
             {
                 if (action == null)
                     throw new ArgumentNullException(nameof(action));
@@ -663,14 +665,24 @@ namespace Octopus.Cli.Infrastructure
             }
         }
 
-        public OptionSet Add<T>(string prototype, Action<T> action)
+        /// <summary>
+        /// </summary>
+        /// <param name="prototype">The option name.
+        /// Can be used to specify aliases by separating with a | character.
+        /// If the name (or alias) ends with an = character, that means it receives a value.
+        /// If the name (or alias) does not end with an = character, that means its a flag.
+        /// </param>
+        /// <param name="description">The description to use in the help</param>
+        /// <param name="action">An action to call when the value is parsed from the command line</param>
+        /// <param name="sensitive">Whether the value provided should be considered secret - ie, never log it to a log file</param>
+        /// <param name="allowsMultiple">Whether the option can be supplied by the user multiple times</param>
+        /// <typeparam name="T">The type of the option.
+        /// String provided will automatically be converted to the desired data type.
+        /// Conversion errors will throw a <see cref="CommandException"/>.
+        /// </typeparam>
+        public void Add<T>(string prototype, string description, Action<T> action, bool sensitive = false, bool allowsMultiple = false) 
         {
-            return Add(prototype, null, action);
-        }
-
-        public OptionSet Add<T>(string prototype, string description, Action<T> action, bool sensitive = false)
-        {
-            return Add(new ActionOption<T>(prototype, description, action, sensitive));
+            Add(new ActionOption<T>(prototype, description, action, sensitive, allowsMultiple));
         }
 
         protected virtual OptionContext CreateOptionContext()

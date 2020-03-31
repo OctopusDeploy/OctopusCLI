@@ -44,14 +44,14 @@ namespace Octopus.Cli.Commands.Package
             this.fileSystem = fileSystem;
 
             var common = Options.For("Advanced options");
-            common.Add<string>("include=", "[Optional, Multiple] Add a file pattern to include, relative to the base path e.g. /bin/*.dll - if none are specified, defaults to **", v => includes.Add(v));
+            common.Add<string>("include=", "[Optional, Multiple] Add a file pattern to include, relative to the base path e.g. /bin/*.dll - if none are specified, defaults to **", v => includes.Add(v), allowsMultiple: true);
             common.Add<bool>("overwrite", "[Optional] Allow an existing package file of the same ID/version to be overwritten", v => overwrite = true);
 
             var zip = Options.For("Zip packages");
             zip.Add<PackageCompressionLevel>("compressionLevel=", $"[Optional] Sets the compression level of the package. Valid values are {Enum.GetNames(typeof(PackageCompressionLevel)).ReadableJoin()}. Default is {DefaultPackageCompressionLevel}.", c => packageCompressionLevel = c);
 
             var nuget = Options.For("NuGet packages");
-            nuget.Add<string>("author=", "[Optional, Multiple] Add an author to the package metadata; defaults to the current user", v => authors.Add(v));
+            nuget.Add<string>("author=", "[Optional, Multiple] Add an author to the package metadata; defaults to the current user", v => authors.Add(v), allowsMultiple: true);
             nuget.Add<string>("title=", "[Optional] The title of the package", v => title = v);
             nuget.Add<string>("description=", "[Optional] A description of the package; defaults to a generic description", v => description = v);
             nuget.Add<string>("releaseNotes=", "[Optional] Release notes for this version of the package", v => releaseNotes = v);

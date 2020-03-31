@@ -16,7 +16,7 @@ namespace Octo.Tests.Commands
         public SpeakCommand(ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
             var options = Options.For("default");
-            options.Add<string>("message=", m => { });
+            options.Add<string>("message=", "The message to speak", m => { });
         }
     }
 }

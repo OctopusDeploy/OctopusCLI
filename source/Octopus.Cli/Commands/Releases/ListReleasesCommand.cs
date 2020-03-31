@@ -23,7 +23,7 @@ namespace Octopus.Cli.Commands.Releases
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Listing");
-            options.Add<string>("project=", "Name of a project to filter by. Can be specified many times.", v => projects.Add(v));
+            options.Add<string>("project=", "Name of a project to filter by. Can be specified many times.", v => projects.Add(v), allowsMultiple: true);
         }
 
 

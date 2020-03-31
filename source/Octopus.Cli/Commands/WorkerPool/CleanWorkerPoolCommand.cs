@@ -29,7 +29,7 @@ namespace Octopus.Cli.Commands.WorkerPool
         {
             var options = Options.For("WorkerPool Cleanup");
             options.Add<string>("workerPool=", "Name of a worker pool to clean up.", v => poolName = v);
-            options.Add<MachineModelHealthStatus>("health-status=", $"Health status of Workers to clean up. Valid values are {HealthStatusProvider.HealthStatusNames.ReadableJoin()}. Can be specified many times.", v => healthStatuses.Add(v));
+            options.Add<MachineModelHealthStatus>("health-status=", $"Health status of Workers to clean up. Valid values are {HealthStatusProvider.HealthStatusNames.ReadableJoin()}. Can be specified many times.", v => healthStatuses.Add(v), allowsMultiple: true);
             options.Add<bool>("disabled=", "[Optional] Disabled status filter of Worker to clean up.", v => isDisabled = v);
             options.Add<bool>("calamari-outdated=", "[Optional] State of Calamari to clean up. By default ignores Calamari state.", v => isCalamariOutdated = v);
             options.Add<bool>("tentacle-outdated=", "[Optional] State of Tentacle version to clean up. By default ignores Tentacle state", v => isTentacleOutdated = v);

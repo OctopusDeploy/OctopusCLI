@@ -29,8 +29,8 @@ namespace Octopus.Cli.Commands.Deployment
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Listing");
-            options.Add<string>("project=", "Name of a project to filter by. Can be specified many times.", v => projects.Add(v));
-            options.Add<string>("environment=", "Name of an environment to filter by. Can be specified many times.", v => environments.Add(v));
+            options.Add<string>("project=", "Name of a project to filter by. Can be specified many times.", v => projects.Add(v), allowsMultiple: true);
+            options.Add<string>("environment=", "Name of an environment to filter by. Can be specified many times.", v => environments.Add(v), allowsMultiple: true);
         }
 
         private async Task<IDictionary<string, string>> LoadProjects()

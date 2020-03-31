@@ -28,9 +28,9 @@ namespace Octopus.Cli.Commands.Machine
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Listing Workers");
-            options.Add<string>("workerPool=", "Name of a worker pool to filter by. Can be specified many times.", v => pools.Add(v));
-            options.Add<MachineModelStatus>("status=", $"[Optional] Status of Machines filter by ({string.Join(", ", HealthStatusProvider.StatusNames)}). Can be specified many times.", v => statuses.Add(v));
-            options.Add<MachineModelHealthStatus>("health-status=|healthStatus=", $"[Optional] Health status of Machines filter by ({string.Join(", ", HealthStatusProvider.HealthStatusNames)}). Can be specified many times.", v => healthStatuses.Add(v));
+            options.Add<string>("workerPool=", "Name of a worker pool to filter by. Can be specified many times.", v => pools.Add(v), allowsMultiple: true);
+            options.Add<MachineModelStatus>("status=", $"[Optional] Status of Machines filter by ({string.Join(", ", HealthStatusProvider.StatusNames)}). Can be specified many times.", v => statuses.Add(v), allowsMultiple: true);
+            options.Add<MachineModelHealthStatus>("health-status=|healthStatus=", $"[Optional] Health status of Machines filter by ({string.Join(", ", HealthStatusProvider.HealthStatusNames)}). Can be specified many times.", v => healthStatuses.Add(v), allowsMultiple: true);
             options.Add<bool>("disabled=", "[Optional] Disabled status filter of Machine.", v => isDisabled = v);
             options.Add<bool>("calamari-outdated=", "[Optional] State of Calamari to filter. By default ignores Calamari state.", v => isCalamariOutdated = v);
             options.Add<bool>("tentacle-outdated=", "[Optional] State of Tentacle version to filter. By default ignores Tentacle state", v => isTentacleOutdated = v);
