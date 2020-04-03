@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ManifestMetadata = NuGet.Packaging.ManifestMetadata;
 
@@ -13,7 +14,8 @@ namespace Octopus.Cli.Commands.Package
     public enum PackageFormat
     {
         Zip,
-        Nupkg,
+        NuPkg,
+        [Obsolete("This is just here for backwards compat")]
         Nuget,
     }
     

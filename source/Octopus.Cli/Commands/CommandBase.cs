@@ -93,7 +93,7 @@ namespace Octopus.Cli.Commands
                         Type = p.Type.Name,
                         Sensitive = p.Sensitive ? (bool?)true : null,
                         AllowsMultiple = p.AllowsMultiple ? (bool?)true : null, //allows tools (such as nuke.build) to auto-generate better code
-                        Values = (p.Type.IsEnum) ? Enum.GetNames(p.Type) : null 
+                        Values = p.Type.IsEnum ? Enum.GetNames(p.Type).Where(x => p.Type.GetField(x).GetCustomAttribute<ObsoleteAttribute>() == null) : null 
                     })
                 })
             }, writer);
