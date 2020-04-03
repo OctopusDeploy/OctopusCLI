@@ -22,7 +22,7 @@ namespace Octopus.Cli.Commands.Deployment
             base(octopusClientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Delete auto deploy release override");
-            options.Add<string>("project=", "Name of the project", v => ProjectName = v);
+            options.Add<string>("project=", "Name of the project.", v => ProjectName = v);
             options.Add<string>("environment=",
                 "Name of an environment the override will apply to. Specify this argument multiple times to add multiple environments.",
                 v => EnvironmentNames.Add(v), allowsMultiple: true);

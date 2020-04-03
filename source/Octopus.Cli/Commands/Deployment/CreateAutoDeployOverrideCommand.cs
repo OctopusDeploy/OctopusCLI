@@ -26,7 +26,7 @@ namespace Octopus.Cli.Commands.Deployment
             base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Auto deploy release override");
-            options.Add<string>("project=", "Name of the project", v => ProjectName = v);
+            options.Add<string>("project=", "Name of the project.", v => ProjectName = v);
             options.Add<string>("environment=",
                 "Name of an environment the override will apply to. Specify this argument multiple times to add multiple environments.",
                 v => EnvironmentNames.Add(v), allowsMultiple: true);

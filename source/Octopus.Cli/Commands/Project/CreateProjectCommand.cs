@@ -20,7 +20,7 @@ namespace Octopus.Cli.Commands.Project
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Project creation");
-            options.Add<string>("name=", "The name of the project", v => ProjectName = v);
+            options.Add<string>("name=", "The name of the project.", v => ProjectName = v);
             options.Add<string>("projectGroup=", "The name of the project group to add this project to. If the group doesn't exist, it will be created.", v => ProjectGroupName = v);
             options.Add<string>("lifecycle=", "The name of the lifecycle that the project will use.", v=> LifecycleName = v);
             options.Add<bool>("ignoreIfExists", "If the project already exists, an error will be returned. Set this flag to ignore the error.", v => IgnoreIfExists = true);

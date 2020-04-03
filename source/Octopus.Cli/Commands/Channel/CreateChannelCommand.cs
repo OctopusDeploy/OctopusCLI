@@ -17,12 +17,12 @@ namespace Octopus.Cli.Commands.Channel
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Create");
-            options.Add<string>("project=", "The name of the project in which to create the channel", p => projectName = p);
-            options.Add<string>("channel=", "The name of the channel to create", s => channelName = s);
-            options.Add<string>("description=", "[Optional] A description of the channel", d => channelDescription = d);
-            options.Add<string>("lifecycle=", "[Optional] if specified, the name of the lifecycle to use for promoting releases through this channel, otherwise this channel will inherit the project lifecycle", l => lifecycleName = l);
-            options.Add<bool>("make-default-channel", "[Optional, Flag] if specified, set the new channel to be the default channel replacing any existing default channel", _ => makeDefaultChannel = true);
-            options.Add<bool>("update-existing", "[Optional, Flag] if specified, updates the matching channel if it already exists, otherwise this command will fail if a matching channel already exists", _ => updateExisting = true);
+            options.Add<string>("project=", "The name of the project in which to create the channel.", p => projectName = p);
+            options.Add<string>("channel=", "The name of the channel to create.", s => channelName = s);
+            options.Add<string>("description=", "[Optional] A description of the channel.", d => channelDescription = d);
+            options.Add<string>("lifecycle=", "[Optional] if specified, the name of the lifecycle to use for promoting releases through this channel, otherwise this channel will inherit the project lifecycle.", l => lifecycleName = l);
+            options.Add<bool>("make-default-channel", "[Optional, Flag] if specified, set the new channel to be the default channel replacing any existing default channel.", _ => makeDefaultChannel = true);
+            options.Add<bool>("update-existing", "[Optional, Flag] if specified, updates the matching channel if it already exists, otherwise this command will fail if a matching channel already exists.", _ => updateExisting = true);
         }
 
         string channelName;

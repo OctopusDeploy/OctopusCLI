@@ -20,7 +20,7 @@ namespace Octopus.Cli.Commands
             this.commandOutputProvider = commandOutputProvider;
             
             var options = Options.For("Common options");
-            options.Add<bool>("help", "[Optional] Print help for a command", x => printHelp = true);
+            options.Add<bool>("help", "[Optional] Print help for a command.", x => printHelp = true);
             options.Add<OutputFormat>("helpOutputFormat=", $"[Optional] Output format for help, valid options are {Enum.GetNames(typeof(OutputFormat)).ReadableJoin("or")}", s => HelpOutputFormat = s);
             formattedOutputInstance = this as ISupportFormattedOutput;
             if (formattedOutputInstance != null)

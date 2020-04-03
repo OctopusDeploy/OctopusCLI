@@ -19,8 +19,8 @@ namespace Octopus.Cli.Commands.Releases
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Allowing release progression.");
-            options.Add<string>("project=", "Name or ID of the project", v => ProjectNameOrId = v);
-            options.Add<string>("version=|releaseNumber=", "Release version/number", v => ReleaseVersionNumber = v);
+            options.Add<string>("project=", "Name or ID of the project.", v => ProjectNameOrId = v);
+            options.Add<string>("version=|releaseNumber=", "Release version/number.", v => ReleaseVersionNumber = v);
         }
 
         public string ProjectNameOrId { get; set; }

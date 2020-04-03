@@ -23,7 +23,7 @@ namespace Octopus.Cli.Commands.Package
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Package pushing");
-            options.Add<string>("package=", "Package file to push. Specify multiple packages by specifying this argument multiple times: \n--package package1 --package package2", 
+            options.Add<string>("package=", "Package file to push. Specify multiple packages by specifying this argument multiple times: \n--package package1 --package package2.", 
                 package => Packages.Add(EnsurePackageExists(fileSystem, package)), allowsMultiple: true);
             options.Add<OverwriteMode>("overwrite-mode=", $"Determines behavior if the package already exists in the repository. Valid values are {Enum.GetNames(typeof(OverwriteMode)).ReadableJoin()}. Default is {DefaultOverwriteMode}.", mode => OverwriteMode = mode);
             options.Add<bool>("replace-existing", "If the package already exists in the repository, the default behavior is to reject the new package being pushed. You can pass this flag to overwrite the existing package. This flag may be deprecated in a future version; passing it is the same as using the OverwriteExisting overwrite-mode.", 

@@ -65,7 +65,7 @@ namespace Octopus.Cli.Commands
             options.Add<string>("pass=", $"[Optional] Password to use when authenticating with the server. This Password can also be set in the {PasswordEnvVar} environment variable.", v => password = v, sensitive: true);
 
             options.Add<string>("configFile=", "[Optional] Text file of default values, with one 'key = value' per line.", v => ReadAdditionalInputsFromConfigurationFile(v));
-            options.Add<bool>("debug", "[Optional] Enable debug logging", v => enableDebugging = true);
+            options.Add<bool>("debug", "[Optional] Enable debug logging.", v => enableDebugging = true);
             options.Add<bool>("ignoreSslErrors", "[Optional] Set this flag if your Octopus Server uses HTTPS but the certificate is not trusted on this machine. Any certificate errors will be ignored. WARNING: this option may create a security vulnerability.", v => ignoreSslErrors = true);
             options.Add<bool>("enableServiceMessages", "[Optional] Enable TeamCity or Team Foundation Build service messages when logging.", v => commandOutputProvider.EnableServiceMessages());
             options.Add<string>("timeout=", $"[Optional] Timeout in seconds for network operations. Default is {ApiConstants.DefaultClientRequestTimeout/1000}.", v =>
