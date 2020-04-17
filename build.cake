@@ -132,7 +132,7 @@ Task("DotnetPublish")
 {
     DotNetCorePublish(projectToPublish, new DotNetCorePublishSettings
     {
-        Framework = "net451",
+        Framework = "net452",
         Configuration = configuration,
         OutputDirectory = $"{octoPublishFolder}/netfx",
         ArgumentCustomization = args => args.Append($"/p:Version={nugetVersion}")
@@ -232,6 +232,7 @@ Task("PackOctopusToolsNuget")
         var nuspecFile = "OctopusTools.nuspec";
 
         CopyDirectory($"{octoPublishFolder}/win-x64", nugetPackDir);
+        CopyFileToDirectory($"{assetDir}/icon.png", nugetPackDir);
         CopyFileToDirectory($"{assetDir}/LICENSE.txt", nugetPackDir);
         CopyFileToDirectory($"{assetDir}/VERIFICATION.txt", nugetPackDir);
         CopyFileToDirectory($"{assetDir}/init.ps1", nugetPackDir);
