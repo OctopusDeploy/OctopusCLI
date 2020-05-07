@@ -51,7 +51,7 @@ fpm --version "$VERSION" \
   --depends 'libssl1.0.0 | libssl1.0.2 | libssl1.1' \
   --depends 'libkrb5-3' \
   --depends 'zlib1g' \
-  --depends 'libicu52 | libicu55 | libicu57 | libicu60 | libicu63' \
+  --depends 'libicu52 | libicu55 | libicu57 | libicu60 | libicu63 | libicu66' \
   "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli" \
   tmp_usr_bin/=/usr/bin/ \
   || exit
