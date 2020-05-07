@@ -2,7 +2,7 @@
 # Package files from OCTOPUSCLI_BINARIES, with executable permission and a /usr/bin symlink, into .deb and .rpm packages in OUT_PATH.
 
 which fpm >/dev/null || {
-  echo 'This script requires fpm and related tools, found in the container "octopusdeploy/bionic-fpm".' >&2
+  echo 'This script requires fpm and related tools, found in the container "octopusdeploy/package-linux-docker".' >&2
   exit 1
 }
 if [[ -z "$VERSION" ]]; then
