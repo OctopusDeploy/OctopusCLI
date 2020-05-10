@@ -33,9 +33,6 @@ mkdir tmp_usr_bin && ln -s /opt/octopus/octopuscli/octo tmp_usr_bin/octo || exit
 # Set permissions
 chmod 755 "$OCTOPUSCLI_BINARIES/octo" || exit
 
-# Exclude Octo legacy wrapper from distribution
-rm -f "$OCTOPUSCLI_BINARIES/Octo" || exit
-
 # Create packages
 fpm --version "$VERSION" \
   --name octopuscli \
@@ -52,6 +49,7 @@ fpm --version "$VERSION" \
   --depends 'libkrb5-3' \
   --depends 'zlib1g' \
   --depends 'libicu52 | libicu55 | libicu57 | libicu60 | libicu63 | libicu66' \
+  --exclude 'opt/octopus/octopuscli/Octo' \
   "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli" \
   tmp_usr_bin/=/usr/bin/ \
   || exit
@@ -69,6 +67,7 @@ fpm --version "$VERSION" \
   --depends 'krb5-libs' \
   --depends 'zlib' \
   --depends 'libicu' \
+  --exclude 'opt/octopus/octopuscli/Octo' \
   "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli" \
   tmp_usr_bin/=/usr/bin/ \
   || exit
