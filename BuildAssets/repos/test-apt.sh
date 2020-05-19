@@ -37,13 +37,14 @@ set +o pipefail
 echo "deb $ORIGIN/ $DIST main" > /etc/apt/sources.list.d/octopus.com.list || exit
 apt-get update --quiet 2 || exit
 
-echo "## Installing tentacle, octopuscli"
-apt-get install --no-install-recommends --yes tentacle octopuscli >/dev/null || exit
-
-echo "## Testing Tentacle"
-/opt/octopus/tentacle/Tentacle version || exit
-echo
+echo "## Installing octopuscli"
+apt-get install --no-install-recommends --yes octopuscli >/dev/null || exit
 echo "## Testing Octopus CLI"
 octo version || exit
 OCTO_RESULT="$(octo list-environments --space="$OCTOPUS_SPACE")" || { echo "$OCTO_RESULT"; exit 1; }
 echo "$OCTO_RESULT" | grep "$OCTOPUS_EXPECT_ENV" || { echo "Expected environment not found: $OCTOPUS_EXPECT_ENV." >&2; exit 1; }
+
+echo "## Installing and testing tentacle (for diagnostic purposes, failing softly for now)"
+apt-get install --no-install-recommends --yes tentacle >/dev/null
+/opt/octopus/tentacle/Tentacle version
+echo
