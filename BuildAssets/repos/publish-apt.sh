@@ -34,7 +34,7 @@ CURL_UPL_OPTS=(--silent --show-error --fail --user "$PUBLISH_ARTIFACTORY_USERNAM
 echo "Uploading package to Artifactory"
 PKG=$(set -o pipefail; ls -1 *.deb | head -n1) || exit
 PKGBN=$(basename "$PKG")
-DISTS=(oldoldstable oldstable stable jessie stretch buster trusty xenial bionic cosmic disco eoan)
+DISTS=(oldoldstable oldstable stable jessie stretch buster trusty xenial bionic cosmic disco eoan focal)
 DISTS=$(printf ";deb.distribution=%s" "${DISTS[@]}")
 curl "${CURL_UPL_OPTS[@]}" --request PUT --upload-file "$PKG" \
   "https://octopusdeploy.jfrog.io/octopusdeploy/$REPO_KEY/pool/main/${PKGBN:0:1}/${PKGBN/%_*/}/$PKGBN$DISTS;deb.component=main;deb.architecture=amd64" \
