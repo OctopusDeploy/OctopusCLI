@@ -12,7 +12,7 @@ using Octopus.Client.Model;
 
 namespace Octopus.Cli.Commands.Package
 {
-    [Command("push", Description = "Pushes a package (.nupkg, .zip, .tar.gz, .jar, .war etc.) package to the built-in NuGet repository in an Octopus Server.")]
+    [Command("push", Description = "Pushes a package (.nupkg, .zip, .tar.gz, .jar, .war, etc.) package to the built-in NuGet repository in an Octopus Server.")]
     public class PushCommand : ApiCommand, ISupportFormattedOutput
     {
         private static OverwriteMode DefaultOverwriteMode = OverwriteMode.FailIfExists;
