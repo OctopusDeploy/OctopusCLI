@@ -63,12 +63,12 @@ namespace Octopus.Cli.Commands.Runbooks
             Console.WriteLine("THIS IS THE NEW COMMAND> TRY IT OUT!");
 
             var options = Options.For("Run Runbook");
-            // required
-            options.Add<string>("runbook=",
-                "Name or ID of the project. This is optional if the runbook argument is an ID",
+            // required 
+            options.Add<string>("runbook=", // TODO can't we use the 
+                "Name or ID of the runbook. If the name is supplied, the project parameter must also be specified.",
                 v => RunbookNameOrId = v);
             options.Add<string>("project=",
-                "Name of ID of the runbook. If the name is supplied, the project parameter must also be specified.",
+                "Name or ID of the project. This is optional if the runbook argument is an ID",
                 v => ProjectNameOrId = v);
             options.Add<string>("environment=",
                 "Name or ID of the environment to deploy to, e.g ., 'Production' or 'Environments-1'; specify this argument multiple times to deploy to multiple environments.",
@@ -132,7 +132,7 @@ namespace Octopus.Cli.Commands.Runbooks
             // check by name
             var runbookResource = await repository.Runbooks.FindByName(RunbookNameOrId).ConfigureAwait(false);
             if (runbookResource != null) return runbookResource;
-            
+
             // check by Id
             var runbookResourceList = await repository.Runbooks.FindAll();
             var filteredResourceArray =
@@ -144,15 +144,14 @@ namespace Octopus.Cli.Commands.Runbooks
             }
 
             return filteredResourceArray[0];
-
         }
 
         public async Task Request()
         {
             // TODO: The main function for running the run book task.
-            await ValidateParameters();
-            // REQUIRED PARAMS //
+            await ValidateParameters(); // TODO This is causing too many 'Found project' or 'Found Environment' messages to display in console
 
+            // REQUIRED PARAMS //
             //checks if project is valid
             var project = await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
             var runbookResource = await FindRunbookByIdOrFail(Repository);
@@ -168,30 +167,35 @@ namespace Octopus.Cli.Commands.Runbooks
             // OPTIONAL PARAMS //
             var includedMachines = await GetIncludedMachines();
             var excludedMachines = await GetExcludedMachines();
-            var forcePackageDownload = ForcePackageDownload ? true : false;
+            var forcePackageDownload = ForcePackageDownload ? true : false; // TODO does this override snapshot props?
             var guidedFailure = GuidedFailure.GetValueOrDefault(envResource.UseGuidedFailure);
 
-            var snapshotId =
+            var snapshotId = // TODO the default snapshot id works, but others doesn't seem to be working with this getTask call.
                 await RetrieveSnapshotOrFail(runbookResource
                     .PublishedRunbookSnapshotId); // TODO - we can potentially just return the resource and rerun this snapshot -- check on this (do we need to be abl to modify machines, etc?)
 
-            // Assemble the run TODO: Does this need to be a call to create a run? 
+
+            var deployableTenants = GetTenants(project, )
+            
+            
+                
+            // Assemble the run TODO: This will be handled in a function (this is just a reference atm)
             var runbookRunResource = new RunbookRunResource
             {
                 ProjectId = project.Id,
                 RunbookId = RunbookNameOrId, //"TestRunbook", 
                 RunbookSnapshotId = snapshotId,
-                EnvironmentId = EnvironmentNameOrId, //"Environments-1"     
+                EnvironmentId = envResource.Id, //"Environments-1"     
                 ExcludedMachineIds = excludedMachines,
                 SpecificMachineIds = includedMachines,
                 ForcePackageDownload = forcePackageDownload,
                 UseGuidedFailure = guidedFailure,
             };
-            // TODO Make compatible with multitenancy
+            // TODO Make compatible with multitenancy 
             // // make the actual call to run the runbook
             book = await Repository.Runbooks.Run(runbookResource, runbookRunResource);
         }
-        
+
         private async Task<string> RetrieveSnapshotOrFail(string defaultId)
         {
             // snapshots -- if not supplied, use the published snapshot -- if no published snapshot -- fail
@@ -284,6 +288,7 @@ namespace Octopus.Cli.Commands.Runbooks
         {
             commandOutputProvider.Json(new
             {
+                // TODO Implement this
                 book.Name,
             });
         }
@@ -369,6 +374,45 @@ namespace Octopus.Cli.Commands.Runbooks
             }
 
             return true;
+        }
+
+        private async Task<List<TenantResource>> RetrieveTenants(ProjectResource project, string envName, string runbookNameOrId)
+        {
+            var availableTenants = new List<TenantResource>();
+            if (!Tenants.Any() && !TenantTags.Any()) return deployableTenants; // early return if no tenants or tags
+                
+            if (Tenants.Contains("*")) // get all available tenants
+            {
+                var tenants = await Repository.Tenants.FindAll();
+                availableTenants.AddRange(tenants); // TODO Filter tenants by project and environment
+            }
+            else
+            {
+                //handle if tenants are provided
+                if (Tenants.Any())
+                {
+                    var tenantsByNameOrId = await Repository.Tenants.FindByNamesOrIdsOrFail(Tenants);
+                    availableTenants.AddRange(tenantsByNameOrId);
+                    
+                    // ensure all tenants are associated with this project - 
+                    var unDeployableTenants =
+                        availableTenants.Where(dt => !dt.ProjectEnvironments.ContainsKey(project.Id))
+                            .Select(dt => $"'{dt.Name}'")
+                            .ToList();
+                    
+                    if (unDeployableTenants.Any())
+                        throw new CommandException(
+                            $"Runbook '{runbookNameOrId}' in project '{project.Name}' cannot be run on'{(unDeployableTenants.Count == 1 ? "" : " the following")} tenant{(unDeployableTenants.Count == 1 ? "" : "s")} {string.Join(" or ", unDeployableTenants)}. This may be because either a) {(unDeployableTenants.Count == 1 ? "it is" : "they are")} not connected to this project, or b) you do not have permission to deploy {(unDeployableTenants.Count == 1 ? "it" : "them")} to this project."
+                        );
+                    
+                }
+                
+                // handle if tenant tags are provided
+                if (TenantTags.Any())
+                {
+                    //TODO get all the tenants based on the tags -- be sure to check if both tenants and tenant tags are supplied
+                }
+            }
         }
     }
 }
