@@ -130,6 +130,7 @@ namespace Octopus.Cli.Commands.Runbooks
             // Optional Params
             var snapshotId = await RetrieveSnapshotOrFail(runbookResource.PublishedRunbookSnapshotId).ConfigureAwait(false);
 
+            //  This works for some reason, but doesn't when its done in the method...
             var test = await Repository.Machines.FindByNames(new List<string>() {"CoolTentacle"}).ConfigureAwait(false);
             
             if (IsTenantedRunbookRun)
@@ -151,10 +152,9 @@ namespace Octopus.Cli.Commands.Runbooks
         )
         {
             var guidedFailure = GuidedFailure.GetValueOrDefault(environmentResource.UseGuidedFailure);
-            var includedMachineIds = await GetIncludedMachineIds().ConfigureAwait(false);
+            var includedMachineIds = GetIncludedMachineIds().ConfigureAwait(false);
 
             // var skipActions = GetSkipActions(Repository, preview, StepsToSkip);
-
             var runbookRunResource = new RunbookRunResource
             {
                 ProjectId = project.Id,
@@ -163,7 +163,7 @@ namespace Octopus.Cli.Commands.Runbooks
                 RunbookSnapshotId = snapshotId, // Name: "Snapshot SJPVXN3" ---  Id: RunbookSnapshots-7 (published)
                 ForcePackageDownload = ForcePackageDownload,
                 UseGuidedFailure = guidedFailure,
-                SpecificMachineIds = includedMachineIds,
+                SpecificMachineIds = await includedMachineIds,
             };
 
             // var printableIncluded = includedMachineIds.Any() ? includedMachineIds.ToList().ReadableJoin(", ") : "None";
