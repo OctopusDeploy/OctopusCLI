@@ -16,7 +16,7 @@ namespace Octopus.Cli.Commands.Runbooks
     [Command("run-runbook", Description = "Runs a Runbook.")]
     public class RunRunbookCommand : ApiCommand, ISupportFormattedOutput
     {
-        private RunbookRunResource book = null;
+        private RunbookRunResource book;
         readonly VariableDictionary variables = new VariableDictionary();
 
         // Required arguments
@@ -26,43 +26,35 @@ namespace Octopus.Cli.Commands.Runbooks
 
         //Optional arguments
         private string Snapshot { get; set; }
-        private bool Progress { get; set; }
         private bool ForcePackageDownload { get; set; } = false;
+        private bool? GuidedFailure { get; set; }
+        private List<string> IncludedMachineIds { get; } = new List<string>();
+        // private List<string> ExcludeMachineIds { get; } = new List<string>();
+
+        
+        private bool Progress { get; set; }
         private bool WaitForRun { get; set; }
         private TimeSpan RunTimeout { get; set; } = TimeSpan.FromMinutes(10);
         private bool CancelOnTimeout { get; set; }
         private TimeSpan RunCheckSleepCycle { get; set; } = TimeSpan.FromSeconds(10);
-        private bool? GuidedFailure { get; set; }
-
-        private List<string> SpecificMachines { get; set; }
-
-        private List<string> ExcludeMachines { get; set; }
-        private List<string> Skip { get; set; }
+        private List<string> StepsToSkip { get; } = new List<string>();
         private bool NoRawLog { get; set; }
         private string RawLogFile { get; set; }
         private string Variable { get; set; }
         private DateTimeOffset? RunAt { get; set; }
         private DateTimeOffset? NoRunAfter { get; set; }
-        private List<string> Tenants { get; set; }
-        private List<string> TenantTags { get; set; }
+        private List<string> Tenants { get; } = new List<string>();
+        private List<string> TenantTags { get; } = new List<string>();
 
-        public bool IsTenantedRunbookRun { get; set; }
+        private bool IsTenantedRunbookRun => Tenants.Any() || TenantTags.Any();
         private const char Separator = '/';
 
         public RunRunbookCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem,
             IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider) : base(clientFactory,
             repositoryFactory, fileSystem, commandOutputProvider)
         {
-            ExcludeMachines = new List<string>();
-            SpecificMachines = new List<string>();
-            TenantTags = new List<string>();
-            Tenants = new List<string>();
-            // Skip = new List<string>();
-
-
-            Console.WriteLine("THIS IS THE NEW COMMAND> TRY IT OUT!");
-
             var options = Options.For("Run Runbook");
+            
             // required 
             options.Add<string>("runbook=", // TODO can't we use the 
                 "Name or ID of the runbook. If the name is supplied, the project parameter must also be specified.",
@@ -73,14 +65,26 @@ namespace Octopus.Cli.Commands.Runbooks
             options.Add<string>("environment=",
                 "Name or ID of the environment to deploy to, e.g ., 'Production' or 'Environments-1'; specify this argument multiple times to deploy to multiple environments.",
                 v => EnvironmentNameOrId = v);
+            
             // optional
-            options.Add<string>("snapshot=", // TODO need to get this working correctly
+            options.Add<string>("snapshot=",
                 "[Optional] Name or ID of the snapshot to run. If not supplied, the published snapshot should be used.",
                 v => Snapshot = v);
             // options.Add<bool>("progress", "[Optional] Show progress of the deployment", v => Progress = true);
             options.Add<bool>("forcePackageDownload",
                 "[Optional] Whether to force downloading of already installed packages (flag, default false).",
                 v => ForcePackageDownload = true);
+            options.Add<bool>("guidedFailure=",
+                "[Optional] Whether to use Guided Failure mode. (True or False. If not specified, will use default setting from environment)",
+                v => GuidedFailure = v);
+            options.Add<string>("includedMachineIds=",
+                "[Optional] A comma-separated list of machine names to target in the deployed environment. If not specified all machines in the environment will be considered.",
+                v => IncludedMachineIds.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(m => m.Trim())));
+            // options.Add<string>("excludedMachineIds=",
+            //     "[Optional] A comma-separated list of machine names to exclude in the deployed environment. If not specified all machines in the environment will be considered.",
+            //     v => ExcludeMachineIds.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+            //         .Select(m => m.Trim())));
             // options.Add<bool>("waitForRun", "[Optional] Whether to wait synchronously for deployment to finish.",
             //     v => WaitForRun = v);
             // options.Add<TimeSpan>("runTimeout=",
@@ -92,156 +96,103 @@ namespace Octopus.Cli.Commands.Runbooks
             // options.Add<TimeSpan>("runCheckSleepCycle=",
             //     "[Optional] Specifies how much time (timespan format) should elapse between deployment status checks (default 00:00:10)",
             //     v => RunCheckSleepCycle = v);
-            options.Add<bool>("guidedFailure=",
-                "[Optional] Whether to use Guided Failure mode. (True or False. If not specified, will use default setting from environment)",
-                v => GuidedFailure = v);
-            options.Add<string>("specificMachines=",
-                "[Optional] A comma-separated list of machine names to target in the deployed environment. If not specified all machines in the environment will be considered.",
-                v => SpecificMachines.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(m => m.Trim())));
-            options.Add<string>("excludeMachines",
-                "[Optional] A comma-separated list of machine names to exclude in the deployed environment. If not specified all machines in the environment will be considered.",
-                v => ExcludeMachines.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(m => m.Trim())));
-            // options.Add<string>("skip=", "[Optional] Skip a step by name", v => Skip.Add(v));
-            options.Add<bool>("noRawLog", "[Optional] Don't print the raw log of failed tasks", v => NoRawLog = true);
+            // options.Add<string>("skip=", "[Optional] Skip a step by name", v => StepsToSkip.Add(v));
+            // options.Add<bool>("noRawLog", "[Optional] Don't print the raw log of failed tasks", v => NoRawLog = true);
             // options.Add<string>("rawLogFile=", "[Optional] Redirect the raw log of failed tasks to a file",
             //     v => RawLogFile = v);
             // options.Add<string>("v|variable=",
             //     "[Optional] Values for any prompted variables in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.",
             //     v => ParseVariable);
-            options.Add<DateTimeOffset>("runAt",
-                "[Optional] Time at which deployment should start (scheduled deployment), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.",
-                v => RunAt = v);
-            options.Add<DateTimeOffset>("noRunAfter=",
-                "[Optional] Time at which scheduled deployment should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.",
-                v => NoRunAfter = v);
-            options.Add<string>("tentant=",
-                "[Optional] Create a deployment for the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).",
-                v => Tenants.Add(v));
-            options.Add<string>("tenantTag=",
-                "[Optional] Create a deployment for tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.",
-                v => TenantTags.Add(v));
-
-            // set useful object properties based on args
-            this.IsTenantedRunbookRun = (Tenants.Any() || TenantTags.Any());
-        }
-
-        private async Task<RunbookResource> FindRunbookByIdOrFail(IOctopusAsyncRepository repository)
-        {
-            // check by name
-            var runbookResource = await repository.Runbooks.FindByName(RunbookNameOrId).ConfigureAwait(false);
-            if (runbookResource != null) return runbookResource;
-
-            // check by Id
-            var runbookResourceList = await repository.Runbooks.FindAll();
-            var filteredResourceArray =
-                runbookResourceList.Where(resource => resource.Id == RunbookNameOrId).ToArray();
-            if (filteredResourceArray.Count() != 1)
-            {
-                throw new CommandException(
-                    "Runbook name/Id was invalid. Please provide a valid runbook Name or Id");
-            }
-
-            return filteredResourceArray[0];
+            // options.Add<DateTimeOffset>("runAt",
+            //     "[Optional] Time at which deployment should start (scheduled deployment), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.",
+            //     v => RunAt = v);
+            // options.Add<DateTimeOffset>("noRunAfter=",
+            //     "[Optional] Time at which scheduled deployment should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.",
+            //     v => NoRunAfter = v);
+            // options.Add<string>("tentant=",
+            //     "[Optional] Create a deployment for the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).",
+            //     v => Tenants.Add(v));
+            // options.Add<string>("tenantTag=",
+            //     "[Optional] Create a deployment for tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.",
+            //     v => TenantTags.Add(v));
         }
 
         public async Task Request()
         {
-            // TODO: The main function for running the run book task.
-            await ValidateParameters(); // TODO This is causing too many 'Found project' or 'Found Environment' messages to display in console
-
+            await ValidateParameters();
+            
             // REQUIRED PARAMS //
-            //checks if project is valid
-            var project = await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
-            var runbookResource = await FindRunbookByIdOrFail(Repository);
-
-            var envResource = await Repository.Environments.FindByNameOrIdOrFail(EnvironmentNameOrId)
+            var projectResource = await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
+            var runbookResource = await Repository.Runbooks.FindByNameOrIdOrFail(RunbookNameOrId).ConfigureAwait(false);
+            var environmentResource = await Repository.Environments.FindByNameOrIdOrFail(EnvironmentNameOrId)
                 .ConfigureAwait(false);
-            if (envResource == null)
+            
+            // Optional Params
+            var snapshotId = await RetrieveSnapshotOrFail(runbookResource.PublishedRunbookSnapshotId).ConfigureAwait(false);
+
+            var test = await Repository.Machines.FindByNames(new List<string>() {"CoolTentacle"}).ConfigureAwait(false);
+            
+            if (IsTenantedRunbookRun)
             {
-                throw new CommandException(
-                    "Environment name/Id was invalid. Please provide a valid environment name or Id.");
+                Console.WriteLine("Command issued for Tenanted Runbook :thumbs:");
             }
+            else // run on single environment / 
+            {
+                //TODO check RunAt time is after current time.
+                IssueRunbookRun(runbookResource, environmentResource, projectResource, snapshotId);
+            }
+        }
 
-            // OPTIONAL PARAMS //
-            var includedMachines = await GetIncludedMachines();
-            var excludedMachines = await GetExcludedMachines();
-            var forcePackageDownload = ForcePackageDownload ? true : false; // TODO does this override snapshot props?
-            var guidedFailure = GuidedFailure.GetValueOrDefault(envResource.UseGuidedFailure);
+        private async void IssueRunbookRun(
+            RunbookResource runbookResource,
+            EnvironmentResource environmentResource,
+            ProjectResource project, 
+            string snapshotId 
+        )
+        {
+            var guidedFailure = GuidedFailure.GetValueOrDefault(environmentResource.UseGuidedFailure);
+            var includedMachineIds = await GetIncludedMachineIds().ConfigureAwait(false);
 
-            var snapshotId = // TODO the default snapshot id works, but others doesn't seem to be working with this getTask call.
-                await RetrieveSnapshotOrFail(runbookResource
-                    .PublishedRunbookSnapshotId); // TODO - we can potentially just return the resource and rerun this snapshot -- check on this (do we need to be abl to modify machines, etc?)
+            // var skipActions = GetSkipActions(Repository, preview, StepsToSkip);
 
-
-            var deployableTenants = GetTenants(project, )
-            
-            
-                
-            // Assemble the run TODO: This will be handled in a function (this is just a reference atm)
             var runbookRunResource = new RunbookRunResource
             {
                 ProjectId = project.Id,
-                RunbookId = RunbookNameOrId, //"TestRunbook", 
-                RunbookSnapshotId = snapshotId,
-                EnvironmentId = envResource.Id, //"Environments-1"     
-                ExcludedMachineIds = excludedMachines,
-                SpecificMachineIds = includedMachines,
-                ForcePackageDownload = forcePackageDownload,
+                RunbookId = runbookResource.Id, //Name: Runbook2 -- ID: Runbooks-2, 
+                EnvironmentId = environmentResource.Id, // Environments-1 
+                RunbookSnapshotId = snapshotId, // Name: "Snapshot SJPVXN3" ---  Id: RunbookSnapshots-7 (published)
+                ForcePackageDownload = ForcePackageDownload,
                 UseGuidedFailure = guidedFailure,
+                SpecificMachineIds = includedMachineIds,
             };
-            // TODO Make compatible with multitenancy 
-            // // make the actual call to run the runbook
-            book = await Repository.Runbooks.Run(runbookResource, runbookRunResource);
+
+            // var printableIncluded = includedMachineIds.Any() ? includedMachineIds.ToList().ReadableJoin(", ") : "None";
+
+            // Print useful tings -- TODO: Send to the log.
+            commandOutputProvider.Information($"Force Package Download: {ForcePackageDownload}");
+            commandOutputProvider.Information($"Use Guided Failure: {guidedFailure}");
+            // commandOutputProvider.Information($"Included machines: {printableIncluded}");
+            
+            // make the actual call to run the runbook
+            book = await Repository.Runbooks.Run(runbookResource, runbookRunResource).ConfigureAwait(false);
+
+            // -----NOTHING SEEMS TO BE EXECUTED AFTER THE RUN COMMAND IS ISSUED----
+            Console.WriteLine($"Running {book.Name} at {book.Created}");
+            var test = "Wow";
+            Console.WriteLine(test);
         }
 
-        private async Task<string> RetrieveSnapshotOrFail(string defaultId)
-        {
-            // snapshots -- if not supplied, use the published snapshot -- if no published snapshot -- fail
-            var snapshotId =
-                (Snapshot != null && await ValidateSpecifiedSnapshot()) ? Snapshot : defaultId; // default could be null
-            if (string.IsNullOrWhiteSpace(snapshotId))
-            {
-                throw new CommandException("No valid runbook snapshot or published snapshot could be found.");
-            }
-
-            return snapshotId;
-        }
-
-        private async Task<bool> ValidateSpecifiedSnapshot()
-        {
-            var runbookRunTaskResource =
-                await Repository.RunbookRuns.GetTask(new RunbookRunResource() {RunbookSnapshotId = Snapshot});
-
-            try
-            {
-                //TODO Check that this actually will throw -- I think it actually just returns a 500
-                // var runbookRunTaskResource = await Repository.RunbookRuns.GetTask(runbookRunResource);
-                if (!runbookRunTaskResource.CanRerun)
-                {
-                    throw new CommandException("Could not rerun the provided snapshot " + Snapshot);
-                }
-
-                return true;
-            }
-            catch
-            {
-                throw new CommandException("Could not find the provided snapshot " + Snapshot);
-            }
-        }
-
-        private async Task<ReferenceCollection> GetIncludedMachines()
+        private async Task<ReferenceCollection> GetIncludedMachineIds()
         {
             var includedMachineIds = new ReferenceCollection();
-            if (!SpecificMachines.Any()) return includedMachineIds;
-            var machines = await Repository.Machines.FindByNames(SpecificMachines).ConfigureAwait(false);
-            var missing = SpecificMachines.Except(machines.Select(m => m.Name), StringComparer.OrdinalIgnoreCase)
-                .ToList();
+            if (!IncludedMachineIds.Any()) return includedMachineIds;
+            var machines = await Repository.Machines.FindByNames(IncludedMachineIds).ConfigureAwait(false);
+            var missing = IncludedMachineIds.Except(machines.Select(m => m.Name), StringComparer.OrdinalIgnoreCase)
+                .ToList(); 
             if (missing.Any())
             {
                 commandOutputProvider.Debug(
-                    $"The following specified machines could not be found: {missing.ReadableJoin(junction: ", ")}");
+                    $"The following machines to be included could not be found: {missing.ReadableJoin(junction: ", ")}");
             }
 
             includedMachineIds.AddRange(machines.Select(m => m.Id));
@@ -249,48 +200,39 @@ namespace Octopus.Cli.Commands.Runbooks
             return includedMachineIds;
         }
 
-        private async Task<ReferenceCollection> GetExcludedMachines()
+        // private async Task<ReferenceCollection> GetExcludeMachineIds()
+        // {
+        //     var excludedMachineIds = new ReferenceCollection();
+        //     if (!ExcludeMachineIds.Any()) return excludedMachineIds;
+        //     var machines = await Repository.Machines.FindByNames(ExcludeMachineIds).ConfigureAwait(false);
+        //     var missing = ExcludeMachineIds.Except(machines.Select(m => m.Name), StringComparer.OrdinalIgnoreCase)
+        //         .ToList();
+        //     if (missing.Any())
+        //     {
+        //         commandOutputProvider.Debug(
+        //             $"The following machines to excluded could not be found: {missing.ReadableJoin(junction: ", ")}");
+        //     }
+        //
+        //     excludedMachineIds.AddRange(machines.Select(m => m.Id));
+        //     return excludedMachineIds;
+        // }
+
+        private async Task<string> RetrieveSnapshotOrFail(string defaultId)
         {
-            var excludedMachineIds = new ReferenceCollection();
-            if (!ExcludeMachines.Any()) return excludedMachineIds;
-            var machines = await Repository.Machines.FindByNames(ExcludeMachines).ConfigureAwait(false);
-            var missing = ExcludeMachines.Except(machines.Select(m => m.Name), StringComparer.OrdinalIgnoreCase)
-                .ToList();
-            if (missing.Any())
+            if (Snapshot != null)
             {
-                commandOutputProvider.Debug(
-                    $"The following excluded machines could not be found: {missing.ReadableJoin(junction: ", ")}");
+                var snapshot = await Repository.RunbookSnapshots.FindByNameOrIdOrFail(Snapshot);
+                return snapshot.Id;
+            }
+            
+            if ( defaultId == null)
+            {
+                throw new CommandException("Could not find a published runbook snapshot to use.");
             }
 
-            excludedMachineIds.AddRange(machines.Select(m => m.Id));
-            return excludedMachineIds;
-        }
+            commandOutputProvider.Information($"Using Default Snapshot Id: {defaultId}");
+            return defaultId;
 
-        void ParseVariable(string variable)
-        {
-            var index = new[] {':', '='}.Select(s => variable.IndexOf(s)).Where(i => i > 0).OrderBy(i => i)
-                .FirstOrDefault();
-            if (index <= 0)
-                return;
-
-            var key = variable.Substring(0, index);
-            var value = (index >= variable.Length - 1) ? string.Empty : variable.Substring(index + 1);
-
-            variables.Set(key, value);
-        }
-
-        public void PrintDefaultOutput()
-        {
-            commandOutputProvider.Information("Runbook was run: {Id:l}", book.Name);
-        }
-
-        public void PrintJsonOutput()
-        {
-            commandOutputProvider.Json(new
-            {
-                // TODO Implement this
-                book.Name,
-            });
         }
 
         protected override async Task ValidateParameters()
@@ -307,14 +249,7 @@ namespace Octopus.Cli.Commands.Runbooks
                     "Please specify an environment name or ID using the parameter: --environment=XYZ");
             if (string.IsNullOrWhiteSpace(ProjectNameOrId))
                 throw new CommandException("Please specify a project name or ID using the parameter: --project=XYZ");
-
-            await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
-            await Repository.Environments.FindByNameOrIdOrFail(EnvironmentNameOrId).ConfigureAwait(false);
-            if (await Repository.Runbooks.FindByName(RunbookNameOrId).ConfigureAwait(false) == null)
-            {
-                throw new CommandException("Runbook name/Id was invalid. Please provide a valid runbook Name or Id");
-            }
-
+            
             // Optional params
             if (Tenants.Contains("*") && (Tenants.Count > 1 || TenantTags.Count > 0))
                 throw new CommandException(
@@ -341,9 +276,44 @@ namespace Octopus.Cli.Commands.Runbooks
             }
 
             // confirm included machines are valid - ignore the excluded machines property
-            await GetIncludedMachines();
+            // await GetIncludedMachines();
 
             await base.ValidateParameters();
+        }
+
+        private void LogScheduledDeployment()
+        {
+            if (RunAt == null) return;
+            var now = DateTimeOffset.UtcNow;
+            commandOutputProvider.Information("Deployment will be scheduled to start in: {Duration:l}", (RunAt.Value - now).FriendlyDuration());
+        }
+
+        void ParseVariable(string variable)
+        {
+            var index = new[] {':', '='}.Select(s => variable.IndexOf(s)).Where(i => i > 0).OrderBy(i => i)
+                .FirstOrDefault();
+            if (index <= 0)
+                return;
+
+            var key = variable.Substring(0, index);
+            var value = (index >= variable.Length - 1) ? string.Empty : variable.Substring(index + 1);
+
+            variables.Set(key, value);
+        }
+
+        public void PrintDefaultOutput()
+        {
+            //TODO Implement
+            // commandOutputProvider.Information("Runbook was run: {Id:l}", book.Name);
+        }
+
+        public void PrintJsonOutput()
+        {
+            commandOutputProvider.Json(new
+            {
+                // TODO Implement this
+                // book.Name,
+            });
         }
 
         private static async void CollectTagSetResources(IReadOnlyList<string> tenantTagParts,
@@ -379,12 +349,14 @@ namespace Octopus.Cli.Commands.Runbooks
         private async Task<List<TenantResource>> RetrieveTenants(ProjectResource project, string envName, string runbookNameOrId)
         {
             var availableTenants = new List<TenantResource>();
-            if (!Tenants.Any() && !TenantTags.Any()) return deployableTenants; // early return if no tenants or tags
+            // if (!Tenants.Any() && !TenantTags.Any()) return availableTenants; // this should never  happen...
                 
-            if (Tenants.Contains("*")) // get all available tenants
+            if (Tenants.Contains("*")) // get all available tenants for runbook run
             {
                 var tenants = await Repository.Tenants.FindAll();
-                availableTenants.AddRange(tenants); // TODO Filter tenants by project and environment
+                availableTenants.AddRange(tenants); 
+                // TODO Filter tenants by project and environment
+                return availableTenants;
             }
             else
             {
@@ -402,17 +374,45 @@ namespace Octopus.Cli.Commands.Runbooks
                     
                     if (unDeployableTenants.Any())
                         throw new CommandException(
-                            $"Runbook '{runbookNameOrId}' in project '{project.Name}' cannot be run on'{(unDeployableTenants.Count == 1 ? "" : " the following")} tenant{(unDeployableTenants.Count == 1 ? "" : "s")} {string.Join(" or ", unDeployableTenants)}. This may be because either a) {(unDeployableTenants.Count == 1 ? "it is" : "they are")} not connected to this project, or b) you do not have permission to deploy {(unDeployableTenants.Count == 1 ? "it" : "them")} to this project."
+                            $"Runbook '{runbookNameOrId}' in project '{project.Name}' cannot be run on '{(unDeployableTenants.Count == 1 ? "tenant" : "the following tenants")}: {string.Join(" or ", unDeployableTenants)}. This may be because either a) {(unDeployableTenants.Count == 1 ? "it is" : "they are")} not connected to this project, or b) you do not have permission to use {(unDeployableTenants.Count == 1 ? "it" : "them")} for this project."
                         );
                     
+                    // TODO correct this block of code to return actual available tenants
+                    return availableTenants;
+
                 }
                 
                 // handle if tenant tags are provided
                 if (TenantTags.Any())
                 {
                     //TODO get all the tenants based on the tags -- be sure to check if both tenants and tenant tags are supplied
+                    return availableTenants;
                 }
             }
+            return availableTenants;
+        }
+
+        private static ReferenceCollection GetSkipActions(IOctopusAsyncRepository repository, DeploymentPreviewBaseResource preview, IEnumerable<string> stepsToSkip)
+        {
+            // Skip actions - this returns only valid skip actions
+            var skippedSteps = new ReferenceCollection();
+            foreach (var step in stepsToSkip)
+            {
+                var stepToExecute = preview.StepsToExecute.SingleOrDefault(s =>
+                    string.Equals(s.ActionName, step, StringComparison.CurrentCultureIgnoreCase));
+                if (stepToExecute == null)
+                {
+                    throw new CommandException( // This seems like it needs to be an exception
+                        $"The following step: {step} could not be found in the list of runbook steps for this runbook.");
+                }
+                else
+                {
+                    skippedSteps.Add(stepToExecute.ActionId);
+                }
+            }
+
+            return skippedSteps;
+
         }
     }
 }
