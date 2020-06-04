@@ -133,6 +133,13 @@ namespace Octopus.Cli.Util
             IEnumerable<string> namesOrIds)
             => repo.FindByNamesOrIdsOrFail(n => repo.FindByName(n), "Projects", "project", namesOrIds);
 
+        public static Task<RunbookSnapshotResource> FindByNameOrIdOrFail(this IRunbookSnapshotRepository repo, string nameOrId)
+            => repo.FindByNameOrIdOrFail(n => repo.FindByName(n), "RunbookSnapshots", "runbookSnapshots", nameOrId);
+
+        public static Task<RunbookResource> FindByNameOrIdOrFail(this IRunbookRepository repo, string nameOrId)
+            => repo.FindByNameOrIdOrFail(n => repo.FindByName(n), "Runbooks", "runbook", nameOrId);
+
+        
         public static Task<ChannelResource> FindByNameOrIdOrFail(this IChannelRepository repo, ProjectResource project,
             string nameOrId)
             => repo.FindByNameOrIdOrFail(n => repo.FindByName(project, n), "Channels", "channel",
