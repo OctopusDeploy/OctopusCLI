@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CSharp.RuntimeBinder;
-using Octopus.Cli.Commands.Deployment;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
@@ -29,15 +27,14 @@ namespace Octopus.Cli.Commands.Runbooks
         private bool ForcePackageDownload { get; set; } = false;
         private bool? GuidedFailure { get; set; }
         private List<string> IncludedMachineIds { get; } = new List<string>();
-        // private List<string> ExcludeMachineIds { get; } = new List<string>();
-
+        private List<string> ExcludeMachineIds { get; } = new List<string>();
+        private List<string> StepsToSkip { get; } = new List<string>();
         
         private bool Progress { get; set; }
         private bool WaitForRun { get; set; }
         private TimeSpan RunTimeout { get; set; } = TimeSpan.FromMinutes(10);
         private bool CancelOnTimeout { get; set; }
         private TimeSpan RunCheckSleepCycle { get; set; } = TimeSpan.FromSeconds(10);
-        private List<string> StepsToSkip { get; } = new List<string>();
         private bool NoRawLog { get; set; }
         private string RawLogFile { get; set; }
         private string Variable { get; set; }
@@ -55,7 +52,7 @@ namespace Octopus.Cli.Commands.Runbooks
         {
             var options = Options.For("Run Runbook");
             
-            // required 
+            // required //    
             options.Add<string>("runbook=", // TODO can't we use the 
                 "Name or ID of the runbook. If the name is supplied, the project parameter must also be specified.",
                 v => RunbookNameOrId = v);
@@ -66,7 +63,7 @@ namespace Octopus.Cli.Commands.Runbooks
                 "Name or ID of the environment to deploy to, e.g ., 'Production' or 'Environments-1'; specify this argument multiple times to deploy to multiple environments.",
                 v => EnvironmentNameOrId = v);
             
-            // optional
+            // optional //
             options.Add<string>("snapshot=",
                 "[Optional] Name or ID of the snapshot to run. If not supplied, the published snapshot should be used.",
                 v => Snapshot = v);
@@ -81,10 +78,12 @@ namespace Octopus.Cli.Commands.Runbooks
                 "[Optional] A comma-separated list of machine names to target in the deployed environment. If not specified all machines in the environment will be considered.",
                 v => IncludedMachineIds.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                     .Select(m => m.Trim())));
-            // options.Add<string>("excludedMachineIds=",
-            //     "[Optional] A comma-separated list of machine names to exclude in the deployed environment. If not specified all machines in the environment will be considered.",
-            //     v => ExcludeMachineIds.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
-            //         .Select(m => m.Trim())));
+            options.Add<string>("excludedMachineIds=",
+                "[Optional] A comma-separated list of machine names to exclude in the deployed environment. If not specified all machines in the environment will be considered.",
+                v => ExcludeMachineIds.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(m => m.Trim())));
+            options.Add<string>("skip=", "[Optional] Skip a step by name", v => StepsToSkip.Add(v));
+
             // options.Add<bool>("waitForRun", "[Optional] Whether to wait synchronously for deployment to finish.",
             //     v => WaitForRun = v);
             // options.Add<TimeSpan>("runTimeout=",
@@ -96,7 +95,6 @@ namespace Octopus.Cli.Commands.Runbooks
             // options.Add<TimeSpan>("runCheckSleepCycle=",
             //     "[Optional] Specifies how much time (timespan format) should elapse between deployment status checks (default 00:00:10)",
             //     v => RunCheckSleepCycle = v);
-            // options.Add<string>("skip=", "[Optional] Skip a step by name", v => StepsToSkip.Add(v));
             // options.Add<bool>("noRawLog", "[Optional] Don't print the raw log of failed tasks", v => NoRawLog = true);
             // options.Add<string>("rawLogFile=", "[Optional] Redirect the raw log of failed tasks to a file",
             //     v => RawLogFile = v);
@@ -119,19 +117,20 @@ namespace Octopus.Cli.Commands.Runbooks
 
         public async Task Request()
         {
-            await ValidateParameters();
-            
-            // REQUIRED PARAMS //
-            var projectResource = await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
+        
+            // await ValidateParameters();
             var runbookResource = await Repository.Runbooks.FindByNameOrIdOrFail(RunbookNameOrId).ConfigureAwait(false);
+            
+            //
+            var projectResource = await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
+            
+            
             var environmentResource = await Repository.Environments.FindByNameOrIdOrFail(EnvironmentNameOrId)
                 .ConfigureAwait(false);
-            
+             
             // Optional Params
             var snapshotId = await RetrieveSnapshotOrFail(runbookResource.PublishedRunbookSnapshotId).ConfigureAwait(false);
-
-            //  This works for some reason, but doesn't when its done in the method...
-            var test = await Repository.Machines.FindByNames(new List<string>() {"CoolTentacle"}).ConfigureAwait(false);
+            
             
             if (IsTenantedRunbookRun)
             {
@@ -140,11 +139,11 @@ namespace Octopus.Cli.Commands.Runbooks
             else // run on single environment / 
             {
                 //TODO check RunAt time is after current time.
-                IssueRunbookRun(runbookResource, environmentResource, projectResource, snapshotId);
+                await IssueRunbookRun(runbookResource, environmentResource, projectResource, snapshotId);
             }
         }
 
-        private async void IssueRunbookRun(
+        private async Task IssueRunbookRun(
             RunbookResource runbookResource,
             EnvironmentResource environmentResource,
             ProjectResource project, 
@@ -152,9 +151,14 @@ namespace Octopus.Cli.Commands.Runbooks
         )
         {
             var guidedFailure = GuidedFailure.GetValueOrDefault(environmentResource.UseGuidedFailure);
-            var includedMachineIds = GetIncludedMachineIds().ConfigureAwait(false);
-
+            var includedMachineIds = await GetIncludedMachineIds().ConfigureAwait(false);
+            var excludedMachineIds = await GetExcludeMachineIds().ConfigureAwait(false);
+            CheckForIntersection(includedMachineIds.ToList(), excludedMachineIds.ToList());
+            
+            //TODO get skipActions
+            // var runbookPreview = Repository.Runbooks.GetPreview(promotionTarget)
             // var skipActions = GetSkipActions(Repository, preview, StepsToSkip);
+            
             var runbookRunResource = new RunbookRunResource
             {
                 ProjectId = project.Id,
@@ -163,62 +167,71 @@ namespace Octopus.Cli.Commands.Runbooks
                 RunbookSnapshotId = snapshotId, // Name: "Snapshot SJPVXN3" ---  Id: RunbookSnapshots-7 (published)
                 ForcePackageDownload = ForcePackageDownload,
                 UseGuidedFailure = guidedFailure,
-                SpecificMachineIds = await includedMachineIds,
+                SpecificMachineIds = includedMachineIds,
+                ExcludedMachineIds = excludedMachineIds
             };
 
-            // var printableIncluded = includedMachineIds.Any() ? includedMachineIds.ToList().ReadableJoin(", ") : "None";
-
+            var printableIncluded = includedMachineIds.Any() ? includedMachineIds.ToList().ReadableJoin(", ") : "None";
+            var printableExcluded = excludedMachineIds.Any() ? excludedMachineIds.ToList().ReadableJoin(", ") : "None";
+            
             // Print useful tings -- TODO: Send to the log.
             commandOutputProvider.Information($"Force Package Download: {ForcePackageDownload}");
             commandOutputProvider.Information($"Use Guided Failure: {guidedFailure}");
-            // commandOutputProvider.Information($"Included machines: {printableIncluded}");
-            
+            commandOutputProvider.Information($"Included machines: {printableIncluded}");
+            commandOutputProvider.Information($"Excluded machines: {printableExcluded}");
+
             // make the actual call to run the runbook
             book = await Repository.Runbooks.Run(runbookResource, runbookRunResource).ConfigureAwait(false);
-
-            // -----NOTHING SEEMS TO BE EXECUTED AFTER THE RUN COMMAND IS ISSUED----
             Console.WriteLine($"Running {book.Name} at {book.Created}");
-            var test = "Wow";
-            Console.WriteLine(test);
+        }
+
+        private static void CheckForIntersection(IEnumerable<string> included, IEnumerable<string> excluded)
+        {
+            var intersection = included.Intersect(excluded);
+            if (intersection.Any())
+            {
+                throw new CommandException($"Cannot specify the same machine as both included and excluded: {intersection.ReadableJoin(", ")}");
+            }
         }
 
         private async Task<ReferenceCollection> GetIncludedMachineIds()
         {
-            var includedMachineIds = new ReferenceCollection();
-            if (!IncludedMachineIds.Any()) return includedMachineIds;
+            var specificMachineIds = new ReferenceCollection();
+            
+            if (!IncludedMachineIds.Any()) return specificMachineIds;
+            
             var machines = await Repository.Machines.FindByNames(IncludedMachineIds).ConfigureAwait(false);
-            var missing = IncludedMachineIds.Except(machines.Select(m => m.Name), StringComparer.OrdinalIgnoreCase)
-                .ToList(); 
+            var missing =
+                IncludedMachineIds.Except(machines.Select(m => m.Name), StringComparer.OrdinalIgnoreCase).ToList();
+            if (missing.Any())
+            {
+                throw new CouldNotFindException("machine", missing);
+            }
+
+            specificMachineIds.AddRange(machines.Select(m => m.Id));
+            return specificMachineIds;
+        }
+
+        private async Task<ReferenceCollection> GetExcludeMachineIds()
+        {
+            var excludedMachineIds = new ReferenceCollection();
+            if (!ExcludeMachineIds.Any()) return excludedMachineIds;
+            var machines = await Repository.Machines.FindByNames(ExcludeMachineIds).ConfigureAwait(false);
+            var missing = ExcludeMachineIds.Except(machines.Select(m => m.Name), StringComparer.OrdinalIgnoreCase)
+                .ToList();
             if (missing.Any())
             {
                 commandOutputProvider.Debug(
-                    $"The following machines to be included could not be found: {missing.ReadableJoin(junction: ", ")}");
+                    $"The following machines to excluded could not be found: {missing.ReadableJoin(junction: ", ")}");
             }
-
-            includedMachineIds.AddRange(machines.Select(m => m.Id));
-
-            return includedMachineIds;
+        
+            excludedMachineIds.AddRange(machines.Select(m => m.Id));
+            return excludedMachineIds;
         }
-
-        // private async Task<ReferenceCollection> GetExcludeMachineIds()
-        // {
-        //     var excludedMachineIds = new ReferenceCollection();
-        //     if (!ExcludeMachineIds.Any()) return excludedMachineIds;
-        //     var machines = await Repository.Machines.FindByNames(ExcludeMachineIds).ConfigureAwait(false);
-        //     var missing = ExcludeMachineIds.Except(machines.Select(m => m.Name), StringComparer.OrdinalIgnoreCase)
-        //         .ToList();
-        //     if (missing.Any())
-        //     {
-        //         commandOutputProvider.Debug(
-        //             $"The following machines to excluded could not be found: {missing.ReadableJoin(junction: ", ")}");
-        //     }
-        //
-        //     excludedMachineIds.AddRange(machines.Select(m => m.Id));
-        //     return excludedMachineIds;
-        // }
 
         private async Task<string> RetrieveSnapshotOrFail(string defaultId)
         {
+  
             if (Snapshot != null)
             {
                 var snapshot = await Repository.RunbookSnapshots.FindByNameOrIdOrFail(Snapshot);
@@ -232,6 +245,29 @@ namespace Octopus.Cli.Commands.Runbooks
 
             commandOutputProvider.Information($"Using Default Snapshot Id: {defaultId}");
             return defaultId;
+
+        }
+
+        private static ReferenceCollection GetSkipActions(IOctopusAsyncRepository repository, DeploymentPreviewBaseResource preview, IEnumerable<string> stepsToSkip)
+        {
+            // Skip actions - this returns only valid skip actions
+            var skippedSteps = new ReferenceCollection();
+            foreach (var step in stepsToSkip)
+            {
+                var stepToExecute = preview.StepsToExecute.SingleOrDefault(s =>
+                    string.Equals(s.ActionName, step, StringComparison.CurrentCultureIgnoreCase));
+                if (stepToExecute == null)
+                {
+                    throw new CommandException( // This seems like it needs to be an exception
+                        $"The following step: {step} could not be found in the list of runbook steps for this runbook.");
+                }
+                else
+                {
+                    skippedSteps.Add(stepToExecute.ActionId);
+                }
+            }
+
+            return skippedSteps;
 
         }
 
@@ -276,8 +312,9 @@ namespace Octopus.Cli.Commands.Runbooks
             }
 
             // confirm included machines are valid - ignore the excluded machines property
-            // await GetIncludedMachines();
-
+            await GetIncludedMachineIds().ConfigureAwait(false);
+            await GetExcludeMachineIds().ConfigureAwait(false);
+            
             await base.ValidateParameters();
         }
 
@@ -390,29 +427,6 @@ namespace Octopus.Cli.Commands.Runbooks
                 }
             }
             return availableTenants;
-        }
-
-        private static ReferenceCollection GetSkipActions(IOctopusAsyncRepository repository, DeploymentPreviewBaseResource preview, IEnumerable<string> stepsToSkip)
-        {
-            // Skip actions - this returns only valid skip actions
-            var skippedSteps = new ReferenceCollection();
-            foreach (var step in stepsToSkip)
-            {
-                var stepToExecute = preview.StepsToExecute.SingleOrDefault(s =>
-                    string.Equals(s.ActionName, step, StringComparison.CurrentCultureIgnoreCase));
-                if (stepToExecute == null)
-                {
-                    throw new CommandException( // This seems like it needs to be an exception
-                        $"The following step: {step} could not be found in the list of runbook steps for this runbook.");
-                }
-                else
-                {
-                    skippedSteps.Add(stepToExecute.ActionId);
-                }
-            }
-
-            return skippedSteps;
-
         }
     }
 }
