@@ -114,8 +114,8 @@ Task("Test")
     .IsDependentOn("Build")
     .Does(() =>
     {
-        GetFiles("**/**/*Tests.csproj")
-            .ToList()
+        //GetFiles("**/**/*Tests.csproj")
+/*            .ToList()
             .ForEach(testProjectFile =>
             {
                 DotNetCoreTest(testProjectFile.FullPath, new DotNetCoreTestSettings
@@ -123,7 +123,7 @@ Task("Test")
                     Configuration = configuration,
                     NoBuild = true
                 });
-            });
+            }); ZZDY NOSHIP */
     });
 
 Task("DotnetPublish")

@@ -31,10 +31,10 @@ test_in_docker () {
 }
 
 test_in_docker centos:latest
-if [ -n "$TEST_QUICK" ]; then
+# ZZDY NOSHIP if [ -n "$TEST_QUICK" ]; then
   echo "TEST_QUICK is enabled. Skipping the remaining distros."
   exit 0
-fi
+# ZZDY NOSHIP fi
 test_in_docker fedora:latest
 test_in_docker centos:7
 test_in_docker roboxes/rhel8
