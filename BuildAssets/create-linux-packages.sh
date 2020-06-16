@@ -42,8 +42,8 @@ fi
 # Create executable symlink to include in package
 mkdir tmp_usr_bin && ln -s "$INSTALL_PATH/$COMMAND_FILE" tmp_usr_bin/ || exit
 
-# Set permissions
-chmod 755 "$BINARIES_PATH/$COMMAND_FILE" || exit
+# Make sure the command has execute permissions
+chmod a+x "$BINARIES_PATH/$COMMAND_FILE" || exit
 
 # Create packages
 fpm --version "$VERSION" \
