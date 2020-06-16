@@ -1,5 +1,5 @@
 #!/bin/bash
-# Package files from OCTOPUSCLI_BINARIES, with executable permission and a /usr/bin symlink, into .deb and .rpm packages in OUT_PATH.
+# Package files from BINARIES_PATH, with executable permission and a /usr/bin symlink, into .deb and .rpm packages in PACKAGES_PATH.
 
 which fpm >/dev/null || {
   echo 'This script requires fpm and related tools, found in the container "octopusdeploy/package-linux-docker".' >&2
@@ -9,76 +9,77 @@ if [[ -z "$VERSION" ]]; then
   echo 'This script requires the environment variable VERSION - the version being packaged.' >&2
   exit 1
 fi
-if [[ -z "$OCTOPUSCLI_BINARIES" ]]; then
-  echo 'This script requires the environment variable OCTOPUSCLI_BINARIES - the path containing octo and related files.' >&2
+if [[ -z "$BINARIES_PATH" ]]; then
+  echo 'This script requires the environment variable BINARIES_PATH - the path containing binaries and related files to package.' >&2
   exit 1
 fi
-if [[ -z "$OUT_PATH" ]]; then
-  echo 'This script requires the environment variable OUT_PATH - the path where packages should be written.' >&2
+if [[ -z "$COMMAND_FILE" ]]; then
+  echo 'This script requires the environment variable COMMAND_FILE - the path of a command (relative to BINARIES_PATH) to symlink in /usr/bin/.' >&2
   exit 1
 fi
+if [[ -z "$INSTALL_PATH" ]]; then
+  echo 'This script requires the environment variable INSTALL_PATH - the path the packages will install to.' >&2
+  exit 1
+fi
+if [[ -z "$PACKAGES_PATH" ]]; then
+  echo 'This script requires the environment variable PACKAGES_PATH - the path where packages should be written.' >&2
+  exit 1
+fi
+# Specify the environment variable FPM_OPTS to supply additional options to fpm.
+# Specify the environment variable FPM_DEB_OPTS to supply additional options to fpm when building the .deb package.
+# Specify the environment variable FPM_RPM_OPTS to supply additional options to fpm when building the .rpm package.
+
 
 # Remove existing packages, fpm doesnt like to overwrite
 rm -f *.{deb,rpm} || exit
 
 # Remove build files
-rm -f tmp_usr_bin/octo || exit
 if [[ -d tmp_usr_bin ]]; then
+  rm -f "tmp_usr_bin/$COMMAND_FILE" || exit
   rmdir tmp_usr_bin || exit
 fi
 
 # Create executable symlink to include in package
-mkdir tmp_usr_bin && ln -s /opt/octopus/octopuscli/octo tmp_usr_bin/octo || exit
+mkdir tmp_usr_bin && ln -s "$INSTALL_PATH/$COMMAND_FILE" tmp_usr_bin/ || exit
 
 # Set permissions
-chmod 755 "$OCTOPUSCLI_BINARIES/octo" || exit
+chmod 755 "$BINARIES_PATH/$COMMAND_FILE" || exit
 
 # Create packages
 fpm --version "$VERSION" \
-  --name octopuscli \
+  --name "$PACKAGE_NAME" \
   --input-type dir \
   --output-type deb \
   --maintainer '<support@octopus.com>' \
   --vendor 'Octopus Deploy' \
   --url 'https://octopus.com/' \
-  --description 'Command line tool for Octopus Deploy' \
+  --description "$PACKAGE_DESC" \
   --deb-no-default-config-files \
-  --depends 'liblttng-ust0' \
-  --depends 'libcurl3 | libcurl4' \
-  --depends 'libssl1.0.0 | libssl1.0.2 | libssl1.1' \
-  --depends 'libkrb5-3' \
-  --depends 'zlib1g' \
-  --depends 'libicu52 | libicu55 | libicu57 | libicu60 | libicu63 | libicu66' \
-  --exclude 'opt/octopus/octopuscli/Octo' \
-  "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli" \
+  $FPM_DEB_OPTS \
+  $FPM_OPTS \
+  "$BINARIES_PATH=$INSTALL_PATH" \
   tmp_usr_bin/=/usr/bin/ \
   || exit
 
 fpm --version "$VERSION" \
-  --name octopuscli \
+  --name "$PACKAGE_NAME" \
   --input-type dir \
   --output-type rpm \
   --maintainer '<support@octopus.com>' \
   --vendor 'Octopus Deploy' \
   --url 'https://octopus.com/' \
-  --description 'Command line tool for Octopus Deploy' \
-  --depends 'libcurl' \
-  --depends 'openssl-libs' \
-  --depends 'krb5-libs' \
-  --depends 'zlib' \
-  --depends 'libicu' \
-  --exclude 'opt/octopus/octopuscli/Octo' \
-  "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli" \
+  --description "$PACKAGE_DESC" \
+  $FPM_RPM_OPTS \
+  $FPM_OPTS \
+  "$BINARIES_PATH=$INSTALL_PATH" \
   tmp_usr_bin/=/usr/bin/ \
   || exit
-# Note: Microsoft recommends dep 'lttng-ust' but it seems to be unavailable in CentOS 7, so we're omitting it for now.
-# As it's related to tracing, hopefully it will not be required for normal usage.
 
 # Remove build files
-rm -f tmp_usr_bin/octo || exit
 if [[ -d tmp_usr_bin ]]; then
+  rm -f "tmp_usr_bin/$COMMAND_FILE" || exit
   rmdir tmp_usr_bin || exit
 fi
 
 # Move to output path
-mv -f *.{deb,rpm} "$OUT_PATH" || exit
+mv -f *.{deb,rpm} "$PACKAGES_PATH" || exit

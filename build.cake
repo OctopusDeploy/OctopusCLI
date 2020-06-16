@@ -351,8 +351,17 @@ Task("CreateLinuxPackages")
         Tty = true,
         Env = new string[] { 
             $"VERSION={nugetVersion}",
-            "OCTOPUSCLI_BINARIES=/app/",
-            "OUT_PATH=/out"
+            "BINARIES_PATH=/app/",
+            "COMMAND_FILE=octo",
+            "INSTALL_PATH=/opt/octopus/octopuscli",
+            "PACKAGE_NAME=octopuscli",
+            "PACKAGE_DESC=Command line tool for Octopus Deploy",
+            "FPM_OPTS=--exclude 'opt/octopus/octopuscli/Octo'",
+            "FPM_DEB_OPTS=--depends 'liblttng-ust0' --depends 'libcurl3 | libcurl4' --depends 'libssl1.0.0 | libssl1.0.2 | libssl1.1' --depends 'libkrb5-3' --depends 'zlib1g' --depends 'libicu52 | libicu55 | libicu57 | libicu60 | libicu63 | libicu66'",
+            // Note: Microsoft recommends dep 'lttng-ust' but it seems to be unavailable in CentOS 7, so we're omitting it for now.
+            // As it's related to tracing, hopefully it will not be required for normal usage.
+            "FPM_RPM_OPTS=--depends 'libcurl' --depends 'openssl-libs' --depends 'krb5-libs' --depends 'zlib' --depends 'libicu'",
+            "PACKAGES_PATH=/out"
         },
         Volume = new string[] { 
             $"{Environment.CurrentDirectory}/BuildAssets:/build",
