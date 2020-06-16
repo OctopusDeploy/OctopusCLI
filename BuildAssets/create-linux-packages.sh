@@ -30,8 +30,8 @@ fi
 # Create executable symlink to include in package
 mkdir tmp_usr_bin && ln -s /opt/octopus/octopuscli/octo tmp_usr_bin/octo || exit
 
-# Set permissions
-chmod 755 "$OCTOPUSCLI_BINARIES/octo" || exit
+# Make sure the command has execute permissions
+chmod a+x "$OCTOPUSCLI_BINARIES/octo" || exit
 
 # Create packages
 fpm --version "$VERSION" \
