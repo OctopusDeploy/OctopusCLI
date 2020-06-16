@@ -25,9 +25,9 @@ if [[ -z "$PACKAGES_PATH" ]]; then
   echo 'This script requires the environment variable PACKAGES_PATH - the path where packages should be written.' >&2
   exit 1
 fi
-# Specify the environment variable FPM_OPTS to supply additional options to fpm.
-# Specify the environment variable FPM_DEB_OPTS to supply additional options to fpm when building the .deb package.
-# Specify the environment variable FPM_RPM_OPTS to supply additional options to fpm when building the .rpm package.
+# Set the array FPM_OPTS to supply additional options to fpm.
+# Set the array FPM_DEB_OPTS to supply additional options to fpm when building the .deb package.
+# Set the array FPM_RPM_OPTS to supply additional options to fpm when building the .rpm package.
 
 
 # Remove existing packages, fpm doesnt like to overwrite
@@ -55,8 +55,8 @@ fpm --version "$VERSION" \
   --url 'https://octopus.com/' \
   --description "$PACKAGE_DESC" \
   --deb-no-default-config-files \
-  $FPM_DEB_OPTS \
-  $FPM_OPTS \
+  "${FPM_DEB_OPTS[@]}" \
+  "${FPM_OPTS[@]}" \
   "$BINARIES_PATH=$INSTALL_PATH" \
   tmp_usr_bin/=/usr/bin/ \
   || exit
@@ -69,8 +69,8 @@ fpm --version "$VERSION" \
   --vendor 'Octopus Deploy' \
   --url 'https://octopus.com/' \
   --description "$PACKAGE_DESC" \
-  $FPM_RPM_OPTS \
-  $FPM_OPTS \
+  "${FPM_RPM_OPTS[@]}" \
+  "${FPM_OPTS[@]}" \
   "$BINARIES_PATH=$INSTALL_PATH" \
   tmp_usr_bin/=/usr/bin/ \
   || exit
