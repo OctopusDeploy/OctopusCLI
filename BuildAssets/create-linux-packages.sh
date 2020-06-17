@@ -1,4 +1,19 @@
 #!/bin/bash
+# Package octopuscli from BINARIES_PATH, with executable permission and a /usr/bin symlink, into .deb and .rpm packages in PACKAGES_PATH.
+
+if [[ -z "$VERSION" ]]; then
+  echo 'This script requires the environment variable VERSION - the version being packaged.' >&2
+  exit 1
+fi
+if [[ -z "$BINARIES_PATH" ]]; then
+  echo 'This script requires the environment variable BINARIES_PATH - the path containing binaries and related files to package.' >&2
+  exit 1
+fi
+if [[ -z "$PACKAGES_PATH" ]]; then
+  echo 'This script requires the environment variable PACKAGES_PATH - the path where packages should be written.' >&2
+  exit 1
+fi
+
 COMMAND_FILE=octo
 INSTALL_PATH=/opt/octopus/octopuscli
 PACKAGE_NAME=octopuscli

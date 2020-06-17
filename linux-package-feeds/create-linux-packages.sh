@@ -1,10 +1,6 @@
 #!/bin/bash
 # Package files from BINARIES_PATH, with executable permission and a /usr/bin symlink, into .deb and .rpm packages in PACKAGES_PATH.
 
-which fpm >/dev/null || {
-  echo 'This script requires fpm and related tools, found in the container "octopusdeploy/package-linux-docker".' >&2
-  exit 1
-}
 if [[ -z "$VERSION" ]]; then
   echo 'This script requires the environment variable VERSION - the version being packaged.' >&2
   exit 1
@@ -28,6 +24,11 @@ fi
 # Set the array FPM_OPTS to supply additional options to fpm.
 # Set the array FPM_DEB_OPTS to supply additional options to fpm when building the .deb package.
 # Set the array FPM_RPM_OPTS to supply additional options to fpm when building the .rpm package.
+
+which fpm >/dev/null || {
+  echo 'This script requires fpm and related tools, found in the container "octopusdeploy/package-linux-docker".' >&2
+  exit 1
+}
 
 
 # Remove existing packages, fpm doesnt like to overwrite
