@@ -136,9 +136,8 @@ namespace Octopus.Cli.Util
         public static Task<RunbookSnapshotResource> FindByNameOrIdOrFail(this IRunbookSnapshotRepository repo, string nameOrId)
             => repo.FindByNameOrIdOrFail(n => repo.FindByName(n), "RunbookSnapshots", "runbookSnapshots", nameOrId);
 
-        public static Task<RunbookResource> FindByNameOrIdOrFail(this IRunbookRepository repo, string nameOrId)
-            => repo.FindByNameOrIdOrFail(n => repo.FindByName(n), "Runbooks", "runbook", nameOrId);
-
+        public static Task<RunbookResource> FindByNameOrIdOrFail(this IRunbookRepository repo, string nameOrId, ProjectResource project)
+            => repo.FindByNameOrIdOrFail(n => repo.FindByName(project, n), "Runbooks", "runbook", nameOrId,  enclosingContextDescription: $" in {project.Name}");
         
         public static Task<ChannelResource> FindByNameOrIdOrFail(this IChannelRepository repo, ProjectResource project,
             string nameOrId)
