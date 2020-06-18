@@ -19,6 +19,13 @@ which docker >/dev/null || {
 }
 
 SCRIPT_PATH="$(dirname "$(realpath "$0")")"
+echo ZZDEBUG ---
+echo "$SCRIPT_PATH"
+echo find
+find "$SCRIPT_PATH"
+echo findup
+find "$SCRIPT_PATH/.."
+echo ZZDEBUG ---
 
 test_in_docker() {
   echo "== Testing in '$1' =="
