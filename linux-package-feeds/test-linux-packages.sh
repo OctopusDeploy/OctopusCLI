@@ -64,7 +64,7 @@ else
 fi
 '"$TEST_SH"
 
-test_in_docker () {
+test_in_docker() {
   echo "== Testing in '$1' =="
   docker pull "$1" >/dev/null || exit
   docker run --rm --volume "$(pwd):/pkgs" --hostname "testpkgs$RANDOM" --env OCTOPUS_CLI_SERVER --env OCTOPUS_CLI_API_KEY \
