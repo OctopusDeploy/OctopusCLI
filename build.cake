@@ -366,12 +366,12 @@ Task("CreateLinuxPackages")
     CreateDirectory($"{artifactsDir}/linuxpackages");
     MoveFiles(GetFiles($"{artifactsDir}/*.deb"), $"{artifactsDir}/linuxpackages");
     MoveFiles(GetFiles($"{artifactsDir}/*.rpm"), $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/publish-apt.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/publish-rpm.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-apt.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-apt-dists.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-rpm.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-rpm-dists.sh", $"{artifactsDir}/linuxpackages");
+    CopyFileToDirectory($"{assetDir}/repos/publish-apt.sh", $"{artifactsDir}/linuxpackages"); // ZZDY REMOVE ME
+    CopyFileToDirectory($"{assetDir}/repos/publish-rpm.sh", $"{artifactsDir}/linuxpackages"); // ZZDY REMOVE ME
+    CopyFileToDirectory($"{assetDir}/repos/test-apt.sh", $"{artifactsDir}/linuxpackages"); // ZZDY REMOVE ME
+    CopyFileToDirectory($"{assetDir}/repos/test-apt-dists.sh", $"{artifactsDir}/linuxpackages"); // ZZDY REMOVE ME
+    CopyFileToDirectory($"{assetDir}/repos/test-rpm.sh", $"{artifactsDir}/linuxpackages"); // ZZDY REMOVE ME
+    CopyFileToDirectory($"{assetDir}/repos/test-rpm-dists.sh", $"{artifactsDir}/linuxpackages"); // ZZDY REMOVE ME
     TarGzip($"{artifactsDir}/linuxpackages", $"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}");
     var buildSystem = BuildSystemAliases.BuildSystem(Context);
     buildSystem.TeamCity.PublishArtifacts($"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}.tar.gz");
