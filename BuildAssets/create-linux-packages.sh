@@ -39,4 +39,4 @@ FPM_RPM_OPTS=(
   --depends 'libicu'
 )
 
-source "$(dirname "$0")/../linux-package-feeds/create-linux-packages.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../linux-package-feeds/create-linux-packages.sh"
