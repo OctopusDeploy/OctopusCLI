@@ -165,6 +165,7 @@ namespace Octopus.Cli.Commands.Runbooks
             var runbook = await Repository.Runbooks.FindByNameOrIdOrFail(RunbookNameOrId, project).ConfigureAwait(false);
             var environments = await Repository.Environments.FindByNamesOrIdsOrFail(EnvironmentNamesOrIds).ConfigureAwait(false);
             
+            LogScheduledDeployment()
             var payload = new RunbookRunParameters()
             {
                 RunbookId = runbook.Id,
@@ -176,8 +177,7 @@ namespace Octopus.Cli.Commands.Runbooks
                 SpecificMachineIds = IncludedMachineIds.ToArray(),
                 ExcludedMachineIds = ExcludedMachineIds.ToArray(),
                 SkipActions = StepNamesToSkip.ToArray(),
-                UseGuidedFailure =
-                    GuidedFailure, // TODO: Ensure server extracts this from the DeploymentEnvironments table correctly
+                UseGuidedFailure = GuidedFailure,
                 TenantIds = TenantIds.ToArray(),
                 TenantTagNames = TenantTagNames.ToArray(),
                 QueueTime = RunAt,
@@ -220,6 +220,12 @@ namespace Octopus.Cli.Commands.Runbooks
                 throw new CommandException(
                     $"Cannot specify the same machine as both included and excluded: {intersection.ReadableJoin(", ")}");
             }
+        }
+        private void LogScheduledDeployment()
+        {
+            if (RunAt == null) return;
+            var now = DateTimeOffset.UtcNow;
+            commandOutputProvider.Information("Deployment will be scheduled to start in: {Duration:l}", (DeployAt.Value - now).FriendlyDuration());
         }
         
         public void PrintDefaultOutput()
