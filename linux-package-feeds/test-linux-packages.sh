@@ -18,7 +18,7 @@ which docker >/dev/null || {
   exit 1
 }
 
-SCRIPT_PATH="$(dirname "$(realpath "$0")")"
+SCRIPT_PATH="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 test_in_docker() {
   echo "== Testing in '$1' =="
