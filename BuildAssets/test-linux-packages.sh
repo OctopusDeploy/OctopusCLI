@@ -17,6 +17,7 @@ SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 
 TEST_SCRIPT_FILE="$SCRIPT_DIR/test-octo-package.sh"
 DOCKER_OPTS=(
+  --volume "$SCRIPT_DIR/../linux-package-feeds:/linux-package-feeds"
   --env OCTOPUS_CLI_SERVER --env OCTOPUS_CLI_API_KEY --env OCTOPUS_SPACE --env OCTOPUS_EXPECT_ENV \
   --env REDHAT_SUBSCRIPTION_USERNAME --env REDHAT_SUBSCRIPTION_PASSWORD \
 )

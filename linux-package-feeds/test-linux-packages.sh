@@ -17,7 +17,7 @@ test_in_docker() {
   docker pull "$1" >/dev/null || exit
   docker run --rm \
     --hostname "testpkgs$RANDOM" --volume "$(pwd):/working" --volume "$TEST_SCRIPT_FILE:/test.sh" \
-    "${DOCKER_OPTS[@]}"
+    "${DOCKER_OPTS[@]}" \
     "$1" bash -c 'cd /working && bash /test.sh' || exit
 }
 
