@@ -17,8 +17,8 @@ namespace Octopus.Cli.Commands.Releases
         EnvironmentResource environment;
         ReleaseResource release;
 
-        public PromoteReleaseCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
-            : base(repositoryFactory, fileSystem, clientFactory, commandOutputProvider)
+        public PromoteReleaseCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider, ExecutionResourceWaiter.Factory executionResourceWaiterFactory)
+            : base(repositoryFactory, fileSystem, clientFactory, commandOutputProvider, executionResourceWaiterFactory)
         {
             var options = Options.For("Release Promotion");
             options.Add<string>("project=", "Name or ID of the project", v => ProjectNameOrId = v);
@@ -55,7 +55,7 @@ namespace Octopus.Cli.Commands.Releases
             }
 
             commandOutputProvider.Debug("Finding release details for release {Version:l}", dashboardItem.ReleaseVersion);
-            
+
             release = await Repository.Projects.GetReleaseByVersion(project, dashboardItem.ReleaseVersion).ConfigureAwait(false);
 
             if (UpdateVariableSnapshot)
@@ -66,10 +66,10 @@ namespace Octopus.Cli.Commands.Releases
 
             await DeployRelease(project, release).ConfigureAwait(false);
         }
-        
+
         public void PrintDefaultOutput()
         {
-            
+
         }
 
         public void PrintJsonOutput()

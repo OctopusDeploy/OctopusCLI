@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using NSubstitute;
 using NUnit.Framework;
+using Octopus.Cli.Commands.Deployment;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Tests.Helpers;
 using Octopus.Cli.Util;
@@ -14,7 +15,7 @@ using Serilog;
 namespace Octo.Tests.Commands
 {
     public abstract class ApiCommandFixtureBase
-    {       
+    {
         protected const string ValidEnvironment = "Test Environment";
         private static string _previousCurrentDirectory;
 
@@ -24,10 +25,10 @@ namespace Octo.Tests.Commands
             _previousCurrentDirectory = Directory.GetCurrentDirectory();
 #if HAS_APP_CONTEXT
             Directory.SetCurrentDirectory(AppContext.BaseDirectory);
-#else   
+#else
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
 #endif
-            
+
         }
 
         [OneTimeTearDown]
@@ -44,7 +45,7 @@ namespace Octo.Tests.Commands
             Log = new LoggerConfiguration()
                 .WriteTo.TextWriter(new StringWriter(LogOutput), outputTemplate: "{Message}{NewLine}{Exception}", formatProvider: new StringFormatter(null))
                 .CreateLogger();
-            
+
             var consoleWriter = new ConsoleWriter();
             consoleWriter.WriteEvent += (sender, args) => LogOutput.Append(args.Value);
             consoleWriter.WriteLineEvent += (sender, args) => LogOutput.AppendLine(args.Value);
@@ -60,7 +61,7 @@ namespace Octo.Tests.Commands
             Repository.HasLink("Spaces").Returns(true);
             Repository.HasLink(Arg.Is<string>(arg => arg != "Spaces")).Returns(async call => (await Repository.LoadRootDocument()).HasLink(call.Arg<string>()));
             Repository.Link(Arg.Any<string>()).Returns(async call => (await Repository.LoadRootDocument()).Link(call.Arg<string>()));
-            
+
             Repository.Machines.FindByNames(Arg.Any<IEnumerable<string>>(), Arg.Any<string>(), Arg.Any<object>())
                 .Returns(new List<MachineResource>());
 
@@ -99,6 +100,8 @@ namespace Octo.Tests.Commands
         public IOctopusFileSystem FileSystem { get; set; }
 
         public ICommandOutputProvider CommandOutputProvider { get; set; }
+
+        public ExecutionResourceWaiter.Factory ExecutionResourceWaiterFactory => (repository, serverBaseUrl) => Substitute.For<IExecutionResourceWaiter>();
 
         public List<string> CommandLineArgs { get; set; }
 

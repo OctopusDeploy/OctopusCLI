@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using Autofac;
+using Octopus.Cli.Commands.Deployment;
 using Octopus.Cli.Commands.Releases;
 using Octopus.Cli.Commands.ShellCompletion;
 using Octopus.Cli.Diagnostics;
@@ -42,7 +43,7 @@ namespace Octopus.Cli
                 // Try best effort to set the title of the console
                 // This can fail when there is no window because the window handle will be invalid
             }
-            
+
             try
             {
                 var container = BuildContainer();
@@ -67,7 +68,7 @@ namespace Octopus.Cli
                .WriteTo.Trace()
                .WriteTo.ColoredConsole(outputTemplate: "{Message}{NewLine}{Exception}")
                .CreateLogger();
-            
+
             Client.Logging.LogProvider.SetCurrentLogProvider(new CliSerilogLogProvider(Log.Logger));
         }
 
@@ -94,13 +95,14 @@ namespace Octopus.Cli
 
             builder.RegisterType<OctopusClientFactory>().As<IOctopusClientFactory>();
             builder.RegisterType<OctopusRepositoryFactory>().As<IOctopusAsyncRepositoryFactory>();
+            builder.RegisterType<ExecutionResourceWaiter>().As<IExecutionResourceWaiter>();
 
             builder.RegisterType<OctopusPhysicalFileSystem>().As<IOctopusFileSystem>();
             builder.RegisterAssemblyTypes(thisAssembly)
                 .Where(t => t.IsSubclassOf(typeof(ShellCompletionInstaller)))
                 .As<ShellCompletionInstaller>()
                 .AsSelf();
-            
+
             return builder.Build();
         }
 
@@ -142,7 +144,7 @@ namespace Octopus.Cli
             }
 
             var securityException = ex as OctopusSecurityException;
-            if (securityException != null) 
+            if (securityException != null)
             {
                 if (!string.IsNullOrWhiteSpace(securityException.HelpText))
                 {

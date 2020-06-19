@@ -141,7 +141,7 @@ namespace Octopus.Cli.Commands
             var endpoint = string.IsNullOrWhiteSpace(ApiKey)
                 ? new OctopusServerEndpoint(ServerBaseUrl)
                 : new OctopusServerEndpoint(ServerBaseUrl, ApiKey);
-            
+
 #if NETFRAMEWORK
             /*
              * There may be a delay between the completion of a large file upload and when Octopus responds
@@ -299,13 +299,6 @@ namespace Octopus.Cli.Commands
                 throw new CommandException("Unrecognized arguments in configuration file: " + string.Join(", ", remainingArguments));
 
             return results;
-        }
-
-        protected string GetPortalUrl(string path)
-        {
-            if (!path.StartsWith("/")) path = '/' + path;
-            var uri = new Uri(ServerBaseUrl + path);
-            return uri.AbsoluteUri;
         }
 
         protected static IEnumerable<string> FormatReleasePropertiesAsStrings(ReleaseResource release)
