@@ -1,33 +1,24 @@
 #!/bin/bash
-# Test that .deb and .rpm packages in the working directory install an octo command that can list-environments.
+# Tests packages in the working directory by running $TEST_SCRIPT_FILE in a variety of Linux OS docker containers.
 
-if [[ -z "$OCTOPUS_CLI_SERVER" || -z "$OCTOPUS_CLI_API_KEY" || -z "$OCTOPUS_SPACE" || -z "$OCTOPUS_EXPECT_ENV" ]]; then
-  echo -e 'This script requires the environment variables OCTOPUS_CLI_SERVER, OCTOPUS_CLI_API_KEY, OCTOPUS_SPACE, and'\
-    '\nOCTOPUS_EXPECT_ENV - specifying an Octopus server for testing "list-environments", an API key to access it, the'\
-    '\nSpace to search, and an environment name expected to be found there.' >&2
+if [[ -z "$TEST_SCRIPT_FILE" ]]; then
+  echo 'This script requires the environment variable TEST_SCRIPT_FILE - the path of a script file that installs and tests the package in the working directory.' >&2
   exit 1
 fi
-if [[ -z "$TEST_QUICK" && ( -z "$REDHAT_SUBSCRIPTION_USERNAME" || -z "$REDHAT_SUBSCRIPTION_PASSWORD" ) ]]; then
-  echo -e 'This script requires the environment variables REDHAT_SUBSCRIPTION_USERNAME and REDHAT_SUBSCRIPTION_PASSWORD to register'\
-    '\na test system, or TEST_QUICK set to any value to skip Red Hat and some other distributions.' >&2
-  exit 1
-fi
+# Set the array DOCKER_OPTS to supply additional options to docker.
 
 which docker >/dev/null || {
   echo 'This script requires docker.' >&2
   exit 1
 }
 
-SCRIPT_PATH="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-
 test_in_docker() {
   echo "== Testing in '$1' =="
   docker pull "$1" >/dev/null || exit
   docker run --rm \
-    --hostname "testpkgs$RANDOM" --volume "$(pwd):/pkgs" --volume "$SCRIPT_PATH:/script" \
-    --env OCTOPUS_CLI_SERVER --env OCTOPUS_CLI_API_KEY --env OCTOPUS_SPACE --env OCTOPUS_EXPECT_ENV \
-    --env REDHAT_SUBSCRIPTION_USERNAME --env REDHAT_SUBSCRIPTION_PASSWORD \
-    "$1" bash "/script/test-linux-package.sh" || exit
+    --hostname "testpkgs$RANDOM" --volume "$(pwd):/working" --volume "$TEST_SCRIPT_FILE:/test.sh" \
+    "${DOCKER_OPTS[@]}"
+    "$1" bash -c 'cd /working && bash /test.sh' || exit
 }
 
 test_in_docker debian:stable-slim
