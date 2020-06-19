@@ -32,6 +32,7 @@ var signingCertificatePassword = Argument("signing_certificate_password", "");
 var publishDir = "./publish";
 var artifactsDir = "./artifacts";
 var assetDir = "./BuildAssets";
+var linuxPackageFeedsDir = './linux-package-feeds';
 var localPackagesDir = "../LocalPackages";
 var globalAssemblyFile = "./source/Octo/Properties/AssemblyInfo.cs";
 var projectToPublish = "./source/Octo/Octo.csproj";
@@ -366,7 +367,7 @@ Task("CreateLinuxPackages")
     CreateDirectory($"{artifactsDir}/linuxpackages");
     MoveFiles(GetFiles($"{artifactsDir}/*.deb"), $"{artifactsDir}/linuxpackages");
     MoveFiles(GetFiles($"{artifactsDir}/*.rpm"), $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/publish-apt.sh", $"{artifactsDir}/linuxpackages"); // ZZDY REMOVE ME
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-apt.sh", $"{artifactsDir}/linuxpackages");
     CopyFileToDirectory($"{assetDir}/repos/publish-rpm.sh", $"{artifactsDir}/linuxpackages"); // ZZDY REMOVE ME
     CopyFileToDirectory($"{assetDir}/repos/test-apt.sh", $"{artifactsDir}/linuxpackages"); // ZZDY REMOVE ME
     CopyFileToDirectory($"{assetDir}/repos/test-apt-dists.sh", $"{artifactsDir}/linuxpackages"); // ZZDY REMOVE ME
