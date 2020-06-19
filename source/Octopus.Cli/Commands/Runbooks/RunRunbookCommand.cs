@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
@@ -67,9 +65,10 @@ namespace Octopus.Cli.Commands.Runbooks
         private List<string> TenantTagNames { get; } = new List<string>();
         private DateTimeOffset? RunAt { get; set; }
         private DateTimeOffset? NoRunAfter { get; set; }
+        private bool WaitForRun { get; set; }
 
+        // NONE OF THESE MAKE ANY SENSE TO ME.
         // private bool Progress { get; set; }
-        // private bool WaitForRun { get; set; }
         // private TimeSpan RunTimeout { get; set; } = TimeSpan.FromMinutes(10);
         // private bool CancelOnTimeout { get; set; }
         // private TimeSpan RunCheckSleepCycle { get; set; } = TimeSpan.FromSeconds(10);
@@ -136,13 +135,14 @@ namespace Octopus.Cli.Commands.Runbooks
             options.Add<DateTimeOffset>("noRunAfter=",
                 "[Optional] Time at which scheduled deployment should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.",
                 v => NoRunAfter = v);
-
-            // options.Add<bool>("progress", "[Optional] Show progress of the deployment", v => Progress = true);
+            
+            // HOW DO THESE WORK?
             // options.Add<bool>("waitForRun", "[Optional] Whether to wait synchronously for deployment to finish.",
             //     v => WaitForRun = v);
+            // options.Add<bool>("progress", "[Optional] Show progress of the deployment", v => Progress = true);
             // options.Add<TimeSpan>("runTimeout=",
             //     "[Optional] Specifies maximum time (timespan format) that the console session will wait for the deployment to finish(default 00:10:00). This will not stop the deployment. Requires -- waitfordeployment parameter set.",
-            //     v => RunTimeout = v);
+            //     v => RunTimeout = v);  
             // options.Add<bool>("cancelOnTimeout",
             //     "[Optional] Whether to cancel the deployment if the deployment timeout is reached (flag, default false).",
             //     v => CancelOnTimeout = true);
@@ -156,16 +156,15 @@ namespace Octopus.Cli.Commands.Runbooks
             //     "[Optional] Values for any prompted variables in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.",
             //     v => ParseVariable);
         }
-
-
+        
         public async Task Request()
         {
             Validate(); // Is there any other way to use ValidateParameters from ApiCommandBase?
             var project = await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
             var runbook = await Repository.Runbooks.FindByNameOrIdOrFail(RunbookNameOrId, project).ConfigureAwait(false);
             var environments = await Repository.Environments.FindByNamesOrIdsOrFail(EnvironmentNamesOrIds).ConfigureAwait(false);
+            LogScheduledDeployment();
             
-            LogScheduledDeployment()
             var payload = new RunbookRunParameters()
             {
                 RunbookId = runbook.Id,
@@ -183,9 +182,10 @@ namespace Octopus.Cli.Commands.Runbooks
                 QueueTime = RunAt,
                 QueueTimeExpiry = NoRunAfter
             };
-
             var requestUri = runbook.Link("CreateRunbookRun");
             Response = await Repository.Client.Post<RunbookRunParameters, RunbookRunResource[]>(requestUri, payload);
+            // Log results?
+            // Log file?
         }
 
         private void Validate()
@@ -207,6 +207,7 @@ namespace Octopus.Cli.Commands.Runbooks
                 throw new CommandException("The Run will expire before it has a chance to execute.  Please select an expiry time that occurs after the deployment is scheduled to begin");
 
             CheckForIntersection(IncludedMachineIds.ToList(), ExcludedMachineIds.ToList());
+            
             if (TenantIds.Contains("*") && (TenantIds.Count > 1 || TenantTagNames.Count > 0))
                 throw new CommandException(
                     "When running on all tenants using the --tenantIds=* wildcard, no other tenant filters can be provided");
@@ -225,7 +226,7 @@ namespace Octopus.Cli.Commands.Runbooks
         {
             if (RunAt == null) return;
             var now = DateTimeOffset.UtcNow;
-            commandOutputProvider.Information("Deployment will be scheduled to start in: {Duration:l}", (DeployAt.Value - now).FriendlyDuration());
+            commandOutputProvider.Information("Deployment will be scheduled to start in: {Duration:l}", (RunAt.Value - now).FriendlyDuration());
         }
         
         public void PrintDefaultOutput()
