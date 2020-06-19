@@ -15,7 +15,7 @@ if [[ "$OSRELID" == "rhel" && ( -z "$REDHAT_SUBSCRIPTION_USERNAME" || -z "$REDHA
   exit 1
 fi
 
-if which dpkg > /dev/null; then
+if command -v dpkg > /dev/null; then
   echo Detected dpkg.
   echo Configuring apt.
   export DEBIAN_FRONTEND=noninteractive
