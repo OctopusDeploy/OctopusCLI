@@ -22,7 +22,6 @@ if command -v dpkg > /dev/null; then
   echo Installing package.
   dpkg -i "$PKG_PATH_PREFIX"*.deb >/dev/null 2>&1 # Silenced and expected to fail due to missing deps, which apt can fix
   apt-get --no-install-recommends --yes --fix-broken install 2>&1 >/dev/null || exit
-  apt-get --no-install-recommends --yes install ca-certificates >/dev/null || exit
 elif [[ "$OSRELID" == "rhel" ]]; then
   echo Detected RHEL.
   echo Registering with RHEL to enable yum installation of dependencies.

@@ -17,6 +17,9 @@ fi
 
 export PKG_PATH_PREFIX="octopuscli"
 bash ../linux-package-feeds/install-linux-package.sh
+if command -v dpkg > /dev/null; then
+  apt-get --no-install-recommends --yes install ca-certificates >/dev/null || exit
+fi
 
 echo Testing octo.
 octo version || exit
