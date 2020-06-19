@@ -65,16 +65,15 @@ namespace Octopus.Cli.Commands.Runbooks
         private List<string> TenantTagNames { get; } = new List<string>();
         private DateTimeOffset? RunAt { get; set; }
         private DateTimeOffset? NoRunAfter { get; set; }
-        private bool WaitForRun { get; set; }
 
         // NONE OF THESE MAKE ANY SENSE TO ME.
+        // private bool WaitForRun { get; set; }
         // private bool Progress { get; set; }
         // private TimeSpan RunTimeout { get; set; } = TimeSpan.FromMinutes(10);
         // private bool CancelOnTimeout { get; set; }
         // private TimeSpan RunCheckSleepCycle { get; set; } = TimeSpan.FromSeconds(10);
         // private bool NoRawLog { get; set; }
         // private string RawLogFile { get; set; }
-        // private string Variable { get; set; }
         
         public RunRunbookCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem,
             IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider) : base(clientFactory,
@@ -135,6 +134,10 @@ namespace Octopus.Cli.Commands.Runbooks
             options.Add<DateTimeOffset>("noRunAfter=",
                 "[Optional] Time at which scheduled deployment should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.",
                 v => NoRunAfter = v);
+
+            options.Add<string>("v|variable=",
+                "[Optional] Values for any prompted variables in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.",
+                ParseVariable);
             
             // HOW DO THESE WORK?
             // options.Add<bool>("waitForRun", "[Optional] Whether to wait synchronously for deployment to finish.",
@@ -152,9 +155,7 @@ namespace Octopus.Cli.Commands.Runbooks
             // options.Add<bool>("noRawLog", "[Optional] Don't print the raw log of failed tasks", v => NoRawLog = true);
             // options.Add<string>("rawLogFile=", "[Optional] Redirect the raw log of failed tasks to a file",
             //     v => RawLogFile = v);
-            // options.Add<string>("v|variable=",
-            //     "[Optional] Values for any prompted variables in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.",
-            //     v => ParseVariable);
+
         }
         
         public async Task Request()
@@ -227,6 +228,18 @@ namespace Octopus.Cli.Commands.Runbooks
             if (RunAt == null) return;
             var now = DateTimeOffset.UtcNow;
             commandOutputProvider.Information("Deployment will be scheduled to start in: {Duration:l}", (RunAt.Value - now).FriendlyDuration());
+        }
+        
+        void ParseVariable(string variable)
+        {
+            var index = new[] { ':', '=' }.Select(s => variable.IndexOf(s)).Where(i => i > 0).OrderBy(i => i).FirstOrDefault();
+            if (index <= 0)
+                return;
+
+            var key = variable.Substring(0, index);
+            var value = (index >= variable.Length - 1) ? string.Empty : variable.Substring(index + 1);
+
+            variables.Set(key, value);
         }
         
         public void PrintDefaultOutput()
