@@ -101,7 +101,7 @@ namespace Octo.Tests.Commands
 
         public ICommandOutputProvider CommandOutputProvider { get; set; }
 
-        public ExecutionResourceWaiter.Factory ExecutionResourceWaiterFactory => (repository, serverBaseUrl) => Substitute.For<IExecutionResourceWaiter>();
+        public ExecutionResourceWaiter.Factory ExecutionResourceWaiterFactory => (repository, serverBaseUrl) => new ExecutionResourceWaiter(Substitute.For<ICommandOutputProvider>(), repository, serverBaseUrl);
 
         public List<string> CommandLineArgs { get; set; }
 

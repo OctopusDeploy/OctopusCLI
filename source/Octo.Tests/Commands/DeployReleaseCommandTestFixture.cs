@@ -89,7 +89,6 @@ namespace Octo.Tests.Commands
             Repository.Tasks.DidNotReceive().Cancel(Arg.Any<TaskResource>());
         }
 
-
         [Test]
         public void ShouldRejectIfMultipleEnvironmentsAndTenanted()
         {
@@ -101,7 +100,6 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--version=latest");
             CommandLineArgs.Add("--progress");
             CommandLineArgs.Add("--cancelontimeout");
-
 
             Func<Task> exec = () => deployReleaseCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
@@ -134,7 +132,6 @@ namespace Octo.Tests.Commands
 
             await Repository.Deployments.Received(1).Create(Arg.Any<DeploymentResource>());
         }
-
 
         [Test]
         public void ShouldTryLoadTenant()
