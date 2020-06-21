@@ -83,19 +83,19 @@ namespace Octopus.Cli.Commands.Runbooks
             this.executionResourceWaiterFactory = executionResourceWaiterFactory;
             var options = Options.For("Run Runbook");
 
-            options.Add<string>("projectNameOrId=",
+            options.Add<string>("project=",
                 "Name or ID of the project. This is optional if the runbook argument is an ID",
                 v => ProjectNameOrId = v);
 
-            options.Add<string>("runbookNameOrId=",
+            options.Add<string>("runbook=",
                 "Name or ID of the runbook. If the name is supplied, the project parameter must also be specified.",
                 v => RunbookNameOrId = v);
 
-            options.Add<string>("environmentNameOrId=",
+            options.Add<string>("environment=",
                 "Name or ID of the environment to deploy to, e.g ., 'Production' or 'Environments-1'; specify this argument multiple times to run on multiple environments.",
                 v => EnvironmentNamesOrIds.Add(v));
 
-            options.Add<string>("snapshotNameOrId=",
+            options.Add<string>("snapshot=",
                 "[Optional] Name or ID of the snapshot to run. If not supplied, the published snapshot should be used.",
                 v => Snapshot = v);
 
@@ -107,12 +107,12 @@ namespace Octopus.Cli.Commands.Runbooks
                 "[Optional] Whether to use Guided Failure mode. (True or False. If not specified, will use default setting from environment)",
                 v => GuidedFailure = v);
 
-            options.Add<string>("includedMachineIds=",
+            options.Add<string>("specificMachines=",
                 "[Optional] A comma-separated list of machine names to target in the deployed environment. If not specified all machines in the environment will be considered.",
                 v => IncludedMachineIds.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                     .Select(m => m.Trim())));
 
-            options.Add<string>("excludedMachineIds=",
+            options.Add<string>("excludeMachines=",
                 "[Optional] A comma-separated list of machine names to exclude in the deployed environment. If not specified all machines in the environment will be considered.",
                 v => ExcludedMachineIds.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                     .Select(m => m.Trim())));
