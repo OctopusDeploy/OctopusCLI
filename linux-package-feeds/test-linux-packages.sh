@@ -22,7 +22,7 @@ test_in_docker() {
 }
 
 test_in_docker debian:stable-slim
-# ZZDY NOSHIP test_in_docker ubuntu:latest "$TEST_SH"
+# ZZDY NOSHIP test_in_docker ubuntu:latest
 test_in_docker centos:latest
 # ZZDY NOSHIP if [ -n "$TEST_QUICK" ]; then
   echo "TEST_QUICK is enabled. Skipping the remaining distros."
