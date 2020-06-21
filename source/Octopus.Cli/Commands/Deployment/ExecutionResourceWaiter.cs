@@ -80,7 +80,8 @@ namespace Octopus.Cli.Commands.Deployment
                 cancelOnTimeout,
                 deploymentStatusCheckSleepCycle,
                 deploymentTimeout,
-                GuidedFailureWarning);
+                GuidedFailureWarning,
+                "deployment");
 
         }
 
@@ -111,7 +112,9 @@ namespace Octopus.Cli.Commands.Deployment
                 cancelOnTimeout,
                 deploymentStatusCheckSleepCycle,
                 deploymentTimeout,
-                GuidedFailureWarning);
+                GuidedFailureWarning,
+                "runbook run"
+                );
         }
 
         async Task WaitForExecutionToComplete(
@@ -122,7 +125,9 @@ namespace Octopus.Cli.Commands.Deployment
             bool cancelOnTimeout,
             TimeSpan deploymentStatusCheckSleepCycle,
             TimeSpan deploymentTimeout,
-            Func<IExecutionResource, Task> guidedFailureWarningGenerator)
+            Func<IExecutionResource, Task> guidedFailureWarningGenerator,
+            string alias
+            )
         {
             var getTasks = resources.Select(dep => repository.Tasks.Get((string) dep.TaskId));
             var deploymentTasks = await Task.WhenAll(getTasks).ConfigureAwait(false);
@@ -133,7 +138,7 @@ namespace Octopus.Cli.Commands.Deployment
 
             try
             {
-                commandOutputProvider.Information("Waiting for {NumberOfTasks} deployment(s) to complete....", deploymentTasks.Length);
+                commandOutputProvider.Information($"Waiting for {{NumberOfTasks}} {alias}(s) to complete....", deploymentTasks.Length);
                 await repository.Tasks.WaitForCompletion(deploymentTasks.ToArray(), deploymentStatusCheckSleepCycle.Seconds, deploymentTimeout, PrintTaskOutput).ConfigureAwait(false);
                 var failed = false;
                 foreach (var deploymentTask in deploymentTasks)
@@ -173,7 +178,7 @@ namespace Octopus.Cli.Commands.Deployment
                 }
                 if (failed)
                 {
-                    throw new CommandException("One or more deployment tasks failed.");
+                    throw new CommandException($"One or more {alias} tasks failed.");
                 }
 
                 commandOutputProvider.Information("Done!");
@@ -182,7 +187,7 @@ namespace Octopus.Cli.Commands.Deployment
             {
                 commandOutputProvider.Error(e.Message);
 
-                await CancelDeploymentOnTimeoutIfRequested(deploymentTasks, cancelOnTimeout).ConfigureAwait(false);
+                await CancelExecutionOnTimeoutIfRequested(deploymentTasks, cancelOnTimeout, alias).ConfigureAwait(false);
 
                 var guidedFailureDeployments =
                     from d in resources
@@ -190,7 +195,7 @@ namespace Octopus.Cli.Commands.Deployment
                     select d;
                 if (guidedFailureDeployments.Any())
                 {
-                    commandOutputProvider.Warning("One or more deployments are using guided failure. Use the links below to check if intervention is required:");
+                    commandOutputProvider.Warning($"One or more {alias} are using guided failure. Use the links below to check if intervention is required:");
                     foreach (var guidedFailureDeployment in guidedFailureDeployments)
                     {
                         await guidedFailureWarningGenerator(guidedFailureDeployment);
@@ -200,20 +205,20 @@ namespace Octopus.Cli.Commands.Deployment
             }
         }
 
-        Task CancelDeploymentOnTimeoutIfRequested(IReadOnlyList<TaskResource> deploymentTasks, bool cancelOnTimeout)
+        Task CancelExecutionOnTimeoutIfRequested(IReadOnlyList<TaskResource> deploymentTasks, bool cancelOnTimeout, string alias)
         {
             if (!cancelOnTimeout)
                 return Task.WhenAll();
 
             var tasks = deploymentTasks.Select(async task => {
-                commandOutputProvider.Warning("Cancelling deployment task '{Task:l}'", task.Description);
+                commandOutputProvider.Warning($"Cancelling {alias} task '{{Task:l}}'", task.Description);
                 try
                 {
                     await repository.Tasks.Cancel(task).ConfigureAwait(false);
                 }
                 catch(Exception ex)
                 {
-                    commandOutputProvider.Error("Failed to cancel deployment task '{Task:l}': {ExceptionMessage:l}", task.Description, ex.Message);
+                    commandOutputProvider.Error($"Failed to cancel {alias} task '{{Task:l}}': {{ExceptionMessage:l}}", task.Description, ex.Message);
                 }
             });
             return Task.WhenAll(tasks);

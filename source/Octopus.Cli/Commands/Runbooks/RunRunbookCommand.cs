@@ -45,7 +45,7 @@ namespace Octopus.Cli.Commands.Runbooks
     public class RunRunbookCommand : ApiCommand, ISupportFormattedOutput
     {
         private readonly ExecutionResourceWaiter.Factory executionResourceWaiterFactory;
-        readonly VariableDictionary variables = new VariableDictionary();
+        private readonly Dictionary<string, string> variables = new Dictionary<string, string>();
 
         private RunbookRunResource[] runbookRuns { get; set; }
 
@@ -136,11 +136,11 @@ namespace Octopus.Cli.Commands.Runbooks
                 v => NoRunAfter = v);
 
             options.Add<string>("v|variable=",
-                "[Optional] Values for any prompted variables in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.",
+                "[Optional] Values for any prompted variables in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash. Specify this argument multiple times to add multiple variables.",
                 ParseVariable);
 
             options.Add<bool>("waitForRun", "[Optional] Whether to wait synchronously for deployment to finish.",
-                v => WaitForRun = v);
+                v => WaitForRun = true);
 
             options.Add<bool>("progress", "[Optional] Show progress of the deployment", v => { Progress = true; WaitForRun = true; NoRawLog = true; });
 
@@ -184,7 +184,8 @@ namespace Octopus.Cli.Commands.Runbooks
                 TenantIds = TenantIds.ToArray(),
                 TenantTagNames = TenantTagNames.ToArray(),
                 QueueTime = RunAt,
-                QueueTimeExpiry = NoRunAfter
+                QueueTimeExpiry = NoRunAfter,
+                FormValues = variables
             };
             var requestUri = runbook.Link("CreateRunbookRun");
             runbookRuns = await Repository.Client.Post<RunbookRunParameters, RunbookRunResource[]>(requestUri, payload);
@@ -246,19 +247,19 @@ namespace Octopus.Cli.Commands.Runbooks
         {
             if (RunAt == null) return;
             var now = DateTimeOffset.UtcNow;
-            commandOutputProvider.Information("Deployment will be scheduled to start in: {Duration:l}", (RunAt.Value - now).FriendlyDuration());
+            commandOutputProvider.Information("Runbook run will be scheduled to start in: {Duration:l}", (RunAt.Value - now).FriendlyDuration());
         }
-
+        
         void ParseVariable(string variable)
         {
-            var index = new[] { ':', '=' }.Select(s => variable.IndexOf(s)).Where(i => i > 0).OrderBy(i => i).FirstOrDefault();
+            var index = variable.IndexOfAny(new[] {':', '='});
             if (index <= 0)
                 return;
 
             var key = variable.Substring(0, index);
             var value = (index >= variable.Length - 1) ? string.Empty : variable.Substring(index + 1);
 
-            variables.Set(key, value);
+            variables.Add(key, value);
         }
 
         public void PrintDefaultOutput()

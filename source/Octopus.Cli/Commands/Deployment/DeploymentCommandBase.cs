@@ -53,7 +53,7 @@ namespace Octopus.Cli.Commands.Deployment
             options.Add<string>("skip=", "[Optional] Skip a step by name", v => SkipStepNames.Add(v));
             options.Add<bool>("noRawLog", "[Optional] Don't print the raw log of failed tasks", v => noRawLog = true);
             options.Add<string>("rawLogFile=", "[Optional] Redirect the raw log of failed tasks to a file", v => rawLogFile = v);
-            options.Add<string>("v|variable=", "[Optional] Values for any prompted variables in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.", ParseVariable);
+            options.Add<string>("v|variable=", "[Optional] Values for any prompted variables in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash. Specify this argument multiple times to add multiple variables.", ParseVariable);
             options.Add<DateTimeOffset>("deployAt=", "[Optional] Time at which deployment should start (scheduled deployment), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => DeployAt = v);
             options.Add<DateTimeOffset>("noDeployAfter=", "[Optional] Time at which scheduled deployment should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => NoDeployAfter = v);
             options.Add<string>("tenant=", "Create a deployment for the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).", t => Tenants.Add(t));
