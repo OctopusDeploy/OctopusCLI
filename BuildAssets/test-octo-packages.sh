@@ -13,7 +13,7 @@ if [[ -z "$TEST_QUICK" && ( -z "$REDHAT_SUBSCRIPTION_USERNAME" || -z "$REDHAT_SU
   exit 1
 fi
 
-SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 TEST_SCRIPT_FILE="$SCRIPT_DIR/test-octo-package.sh"
 DOCKER_OPTS=(
