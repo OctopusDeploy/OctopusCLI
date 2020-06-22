@@ -12,34 +12,7 @@ using Octostache;
 
 namespace Octopus.Cli.Commands.Runbooks
 {
-    public class RunbookRunParameters
-    {
-        public RunbookRunParameters()
-        {
-            FormValues = new Dictionary<string, string>();
-            EnvironmentIds = new string[] { };
-            TenantTagNames = new string[] { };
-            TenantIds = new string[] { };
-        }
 
-        public bool UseDefaultSnapshot { get; set; } // should be set to false by default in the CLI
-
-        public string RunbookId { get; set; }
-        public string ProjectId { get; set; }
-        // public string EnvironmentId { get; set; } // unused in cli - for endpoint backwards compat
-        public string[] EnvironmentIds { get; set; }
-        public string RunbookSnapshotNameOrId { get; set; }
-        public bool ForcePackageDownload { get; set; }
-        public bool UseGuidedFailure { get; set; }
-        public string[] SpecificMachineIds { get; set; }
-        public string[] ExcludedMachineIds { get; set; }
-        public string[] TenantIds { get; set; }
-        public string[] TenantTagNames { get; set; }
-        public string[] SkipActions { get; set; }
-        public DateTimeOffset? QueueTime { get; set; }
-        public DateTimeOffset? QueueTimeExpiry { get; set; }
-        public Dictionary<string, string> FormValues { get; set; }
-    }
 
     [Command("run-runbook", Description = "Runs a Runbook.")]
     public class RunRunbookCommand : ApiCommand, ISupportFormattedOutput
