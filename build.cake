@@ -369,10 +369,10 @@ Task("CreateLinuxPackages")
     MoveFiles(GetFiles($"{artifactsDir}/*.rpm"), $"{artifactsDir}/linuxpackages");
     CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-apt.sh", $"{artifactsDir}/linuxpackages");
     CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-rpm.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-apt.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-apt-dists.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-rpm.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-rpm-dists.sh", $"{artifactsDir}/linuxpackages");
+    CopyFileToDirectory($"{assetDir}/repos/test-octopuscli-feed-packages.sh", $"{artifactsDir}/linuxpackages");
+    CopyFileToDirectory($"{assetDir}/repos/test-octopuscli-feed-package.sh", $"{artifactsDir}/linuxpackages");
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/test-env-docker-images.conf", $"{artifactsDir}/linuxpackages");
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/install-linux-feed-package.sh", $"{artifactsDir}/linuxpackages");
     TarGzip($"{artifactsDir}/linuxpackages", $"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}");
     var buildSystem = BuildSystemAliases.BuildSystem(Context);
     buildSystem.TeamCity.PublishArtifacts($"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}.tar.gz");
