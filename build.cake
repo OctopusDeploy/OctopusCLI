@@ -359,7 +359,7 @@ Task("CreateLinuxPackages")
             $"{Environment.CurrentDirectory}/artifacts/OctopusTools.{nugetVersion}.linux-x64.extracted:/app",
             $"{Environment.CurrentDirectory}/artifacts:/out"
         }
-    }, "octopusdeploy/package-linux-docker:latest", "bash /build/create-linux-packages.sh");
+    }, "octopusdeploy/package-linux-docker:latest", "bash /build/create-octopuscli-linux-packages.sh");
     
     DeleteDirectory(artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.extracted", new DeleteDirectorySettings { Recursive = true, Force = true });
  
