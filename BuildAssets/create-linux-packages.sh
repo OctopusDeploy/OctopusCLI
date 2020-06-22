@@ -49,7 +49,7 @@ fpm --version "$VERSION" \
   --depends 'libkrb5-3' \
   --depends 'zlib1g' \
   --depends 'libicu52 | libicu55 | libicu57 | libicu60 | libicu63 | libicu66' \
-  --exclude 'opt/octopus/octopuscli/Octo' \ # Octo wrapper not needed here (it provides backwards compat in the .tar.gz direct download)
+  --exclude 'opt/octopus/octopuscli/Octo' `# Octo wrapper not needed here (it provides backwards compat in the .tar.gz direct download)` \
   "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli" \
   tmp_usr_bin/=/usr/bin/ \
   || exit
@@ -67,7 +67,7 @@ fpm --version "$VERSION" \
   --depends 'krb5-libs' \
   --depends 'zlib' \
   --depends 'libicu' \
-  --exclude 'opt/octopus/octopuscli/Octo' \ # Octo wrapper not needed here (it provides backwards compat in the .tar.gz direct download)
+  --exclude 'opt/octopus/octopuscli/Octo' `# Octo wrapper not needed here (it provides backwards compat in the .tar.gz direct download)` \
   "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli" \
   tmp_usr_bin/=/usr/bin/ \
   || exit
