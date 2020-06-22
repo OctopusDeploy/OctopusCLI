@@ -366,7 +366,6 @@ Task("CreateLinuxPackages")
     CreateDirectory($"{artifactsDir}/linuxpackages");
     MoveFiles(GetFiles($"{artifactsDir}/*.deb"), $"{artifactsDir}/linuxpackages");
     MoveFiles(GetFiles($"{artifactsDir}/*.rpm"), $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/test-linux-packages.sh", $"{artifactsDir}/linuxpackages");
     CopyFileToDirectory($"{assetDir}/repos/publish-apt.sh", $"{artifactsDir}/linuxpackages");
     CopyFileToDirectory($"{assetDir}/repos/publish-rpm.sh", $"{artifactsDir}/linuxpackages");
     CopyFileToDirectory($"{assetDir}/repos/test-apt.sh", $"{artifactsDir}/linuxpackages");
