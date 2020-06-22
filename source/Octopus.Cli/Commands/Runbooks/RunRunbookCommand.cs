@@ -249,7 +249,7 @@ namespace Octopus.Cli.Commands.Runbooks
             var now = DateTimeOffset.UtcNow;
             commandOutputProvider.Information("Runbook run will be scheduled to start in: {Duration:l}", (RunAt.Value - now).FriendlyDuration());
         }
-        
+
         void ParseVariable(string variable)
         {
             var index = variable.IndexOfAny(new[] {':', '='});
@@ -268,25 +268,24 @@ namespace Octopus.Cli.Commands.Runbooks
 
         public void PrintJsonOutput()
         {
-            foreach (var res in runbookRuns)
+            foreach (var run in runbookRuns)
             {
                 commandOutputProvider.Json(new
                 {
-                    res.SpaceId,
-                    res.ProjectId,
-                    res.RunbookId,
-                    Environment = res.EnvironmentId,
-                    Snapshot = res.RunbookSnapshotId,
-                    Tenant = res.TenantId,
-                    res.ForcePackageDownload,
-                    res.SkipActions,
-                    IncludedMachines = res.SpecificMachineIds,
-                    ExcludedMachines = res.ExcludedMachineIds,
-                    res.UseGuidedFailure,
-                    res.QueueTime,
-                    res.QueueTimeExpiry,
-                    Machines = res.DeployedToMachineIds.ToList()
-                        .Select(machine => machine.ToString()), // Sus - reference collection
+                    run.SpaceId,
+                    run.ProjectId,
+                    run.RunbookId,
+                    Environment = run.EnvironmentId,
+                    Snapshot = run.RunbookSnapshotId,
+                    Tenant = run.TenantId,
+                    run.ForcePackageDownload,
+                    run.SkipActions,
+                    IncludedMachines = run.SpecificMachineIds,
+                    ExcludedMachines = run.ExcludedMachineIds,
+                    run.UseGuidedFailure,
+                    run.QueueTime,
+                    run.QueueTimeExpiry,
+                    Machines = run.DeployedToMachineIds.ToString()
                 });
             }
         }
