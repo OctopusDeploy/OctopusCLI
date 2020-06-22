@@ -351,16 +351,16 @@ Task("CreateLinuxPackages")
         Tty = true,
         Env = new string[] { 
             $"VERSION={nugetVersion}",
-            "OCTOPUSCLI_BINARIES=/app/",
-            "OUT_PATH=/out"
+            $"BINARIES_PATH=/artifacts/OctopusTools.{nugetVersion}.linux-x64.extracted/",
+            "PACKAGES_PATH=/artifacts"
         },
         Volume = new string[] { 
-            $"{Environment.CurrentDirectory}/BuildAssets:/build",
-            $"{Environment.CurrentDirectory}/artifacts/OctopusTools.{nugetVersion}.linux-x64.extracted:/app",
-            $"{Environment.CurrentDirectory}/artifacts:/out"
+            $"{Environment.CurrentDirectory}/BuildAssets:/BuildAssets",
+            $"{Environment.CurrentDirectory}/linux-package-feeds:/opt/linux-package-feeds",
+            $"{Environment.CurrentDirectory}/artifacts:/artifacts"
         }
-    }, "octopusdeploy/package-linux-docker:latest", "bash /build/create-octopuscli-linux-packages.sh");
-    
+    }, "octopusdeploy/package-linux-docker:latest", "bash /BuildAssets/create-octopuscli-linux-packages.sh");
+
     DeleteDirectory(artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.extracted", new DeleteDirectorySettings { Recursive = true, Force = true });
  
     CreateDirectory($"{artifactsDir}/linuxpackages");
