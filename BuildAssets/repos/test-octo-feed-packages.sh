@@ -20,10 +20,15 @@ fi
 
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
-TEST_SCRIPT_FILE="$SCRIPT_DIR/test-octo-feed-package.sh"
-DOCKER_OPTS=(
-  --volume "$SCRIPT_DIR/../linux-package-feeds:/linux-package-feeds"
-  --env OCTOPUS_CLI_SERVER --env OCTOPUS_CLI_API_KEY --env OCTOPUS_SPACE --env OCTOPUS_EXPECT_ENV \
-  --env REDHAT_SUBSCRIPTION_USERNAME --env REDHAT_SUBSCRIPTION_PASSWORD \
-)
-source "$SCRIPT_DIR/test-linux-packages.sh"
+for DOCKER_IMAGE in $(cat "$SCRIPT_DIR/../linux-package-feeds/test-env-docker-images.conf" | grep -o '^[^#]*')
+do
+  echo "== Testing in '$DOCKER_IMAGE' =="
+  docker pull "$DOCKER_IMAGE" >/dev/null || exit
+  docker run --rm \
+    --hostname "testfeedpkgs$RANDOM" \
+    --volume "$(pwd):/working" --volume "$SCRIPT_DIR/test-octo-feed-package.sh:/test-octo-feed-package.sh" \
+    --volume "$SCRIPT_DIR/../linux-package-feeds:/linux-package-feeds"
+    --env OCTOPUS_CLI_SERVER --env OCTOPUS_CLI_API_KEY --env OCTOPUS_SPACE --env OCTOPUS_EXPECT_ENV \
+    --env REDHAT_SUBSCRIPTION_USERNAME --env REDHAT_SUBSCRIPTION_PASSWORD \
+    "$DOCKER_IMAGE" bash -c 'cd /working && bash /test-octo-feed-package.sh' || exit
+done
