@@ -2,7 +2,7 @@
 # Package files from OCTOPUSCLI_BINARIES, with executable permission and a /usr/bin symlink, into .deb and .rpm packages in OUT_PATH.
 
 which fpm >/dev/null || {
-  echo 'This script requires fpm and related tools, found in the container "octopusdeploy/bionic-fpm".' >&2
+  echo 'This script requires fpm and related tools, found in the container "octopusdeploy/package-linux-docker".' >&2
   exit 1
 }
 if [[ -z "$VERSION" ]]; then
@@ -30,11 +30,8 @@ fi
 # Create executable symlink to include in package
 mkdir tmp_usr_bin && ln -s /opt/octopus/octopuscli/octo tmp_usr_bin/octo || exit
 
-# Set permissions
-chmod 755 "$OCTOPUSCLI_BINARIES/octo" || exit
-
-# Exclude Octo legacy wrapper from distribution
-rm -f "$OCTOPUSCLI_BINARIES/Octo" || exit
+# Make sure the command has execute permissions
+chmod a+x "$OCTOPUSCLI_BINARIES/octo" || exit
 
 # Create packages
 fpm --version "$VERSION" \
@@ -52,6 +49,7 @@ fpm --version "$VERSION" \
   --depends 'libkrb5-3' \
   --depends 'zlib1g' \
   --depends 'libicu52 | libicu55 | libicu57 | libicu60 | libicu63 | libicu66' \
+  --exclude 'opt/octopus/octopuscli/Octo' `# Octo wrapper not needed here (it provides backwards compat in the .tar.gz direct download)` \
   "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli" \
   tmp_usr_bin/=/usr/bin/ \
   || exit
@@ -69,6 +67,7 @@ fpm --version "$VERSION" \
   --depends 'krb5-libs' \
   --depends 'zlib' \
   --depends 'libicu' \
+  --exclude 'opt/octopus/octopuscli/Octo' `# Octo wrapper not needed here (it provides backwards compat in the .tar.gz direct download)` \
   "$OCTOPUSCLI_BINARIES=/opt/octopus/octopuscli" \
   tmp_usr_bin/=/usr/bin/ \
   || exit
