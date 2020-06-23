@@ -91,7 +91,7 @@ namespace Octopus.Cli.Commands.Runbooks
                 v => ExcludedMachineIds.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                     .Select(m => m.Trim())));
 
-            options.Add<string>("tenantId=",
+            options.Add<string>("tenant=",
                 "[Optional] Create a deployment for the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).",
                 v => TenantIds.Add(v));
 

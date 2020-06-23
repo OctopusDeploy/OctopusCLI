@@ -36,7 +36,7 @@ namespace Octo.Tests.Commands
             Repository.Projects.FindByName(ProjectName).Returns(project);
             Repository.Runbooks.FindByName(project, RunbookName).Returns(runbook);
 
-            Repository.Client.Post<RunbookRunParameters, RunbookRunResource[]>("test", Arg.Any<RunbookRunParameters>()).Returns(Task.FromResult(new [] { runbookRun }));
+            Repository.Runbooks.Run(runbook, Arg.Any<RunbookRunParameters>()).Returns(Task.FromResult(new [] { runbookRun }));
             Repository.Tasks.Get(runbookRun.TaskId).Returns(taskResource);
 
             Repository.Tasks
@@ -46,9 +46,9 @@ namespace Octo.Tests.Commands
 
         private void AddRequiredArgs()
         {
-            CommandLineArgs.Add("--projectNameOrId=" + ProjectName);
-            CommandLineArgs.Add("--runbookNameOrId=" + RunbookName);
-            CommandLineArgs.Add("--environmentNameOrId=" + ValidEnvironment);
+            CommandLineArgs.Add("--project=" + ProjectName);
+            CommandLineArgs.Add("--runbook=" + RunbookName);
+            CommandLineArgs.Add("--environment=" + ValidEnvironment);
         }
 
         [Test]
@@ -79,9 +79,9 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        [TestCase("--projectNameOrId=" + ProjectName, "--environmentNameOrId=" + ValidEnvironment)]
-        [TestCase("--runbookNameOrId=" + RunbookName, "--environmentNameOrId=" + ValidEnvironment)]
-        [TestCase("--projectNameOrId=" + ProjectName, "--runbookNameOrId=" + RunbookName)]
+        [TestCase("--project=" + ProjectName, "--environment=" + ValidEnvironment)]
+        [TestCase("--runbook=" + RunbookName, "--environment=" + ValidEnvironment)]
+        [TestCase("--project=" + ProjectName, "--runbook=" + RunbookName)]
         public void WhenARequiredParameterIsNotSupplied_ShouldThrowException(params string[] arguments)
         {
             foreach (var arg in arguments)
@@ -117,7 +117,7 @@ namespace Octo.Tests.Commands
         public void WhenIncludedMachinesIntersectsWithExcludedMachines_ShouldThrowException()
         {
             AddRequiredArgs();
-            CommandLineArgs.Add("--includeMachines=" + "one,two");
+            CommandLineArgs.Add("--specificMachines=" + "one,two");
             CommandLineArgs.Add("--excludeMachines=" + "two,three");
 
             Func<Task> exec = () => runRunbookCommand.Execute(CommandLineArgs.ToArray());
@@ -128,8 +128,8 @@ namespace Octo.Tests.Commands
         public void WhenATentantWildcardIsSupplied_NoOtherTenantIdsOrTagsCanBeSupplied()
         {
             AddRequiredArgs();
-            CommandLineArgs.Add("--tenantIds=" + "*");
-            CommandLineArgs.Add("--tenantTags=" + "beta,stable");
+            CommandLineArgs.Add("--tenant=" + "*");
+            CommandLineArgs.Add("--tenantTag=" + "beta,stable");
 
             Func<Task> exec = () => runRunbookCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>();
