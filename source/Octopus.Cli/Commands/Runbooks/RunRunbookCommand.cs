@@ -7,6 +7,7 @@ using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
+using Octopus.Client.Exceptions;
 using Octopus.Client.Model;
 using Octostache;
 
@@ -160,8 +161,8 @@ namespace Octopus.Cli.Commands.Runbooks
                 QueueTimeExpiry = NoRunAfter,
                 FormValues = variables
             };
-            var requestUri = runbook.Link("CreateRunbookRun");
-            runbookRuns = await Repository.Client.Post<RunbookRunParameters, RunbookRunResource[]>(requestUri, payload);
+
+            runbookRuns = await Repository.Runbooks.Run(runbook, payload);
 
             if (runbookRuns.Any() && WaitForRun)
             {

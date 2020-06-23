@@ -127,63 +127,64 @@ namespace Octopus.Cli
 
         static int PrintError(Exception ex)
         {
-            var agg = ex as AggregateException;
-            if (agg != null)
+            switch (ex)
             {
-                var errors = new HashSet<Exception>(agg.InnerExceptions);
-                if (agg.InnerException != null)
-                    errors.Add(ex.InnerException);
-
-                var lastExit = 0;
-                foreach (var inner in errors)
+                case AggregateException agg:
                 {
-                    lastExit = PrintError(inner);
+                    var errors = new HashSet<Exception>(agg.InnerExceptions);
+                    if (agg.InnerException != null)
+                        errors.Add(ex.InnerException);
+
+                    var lastExit = 0;
+                    foreach (var inner in errors)
+                    {
+                        lastExit = PrintError(inner);
+                    }
+
+                    return lastExit;
                 }
-
-                return lastExit;
-            }
-
-            var securityException = ex as OctopusSecurityException;
-            if (securityException != null)
-            {
-                if (!string.IsNullOrWhiteSpace(securityException.HelpText))
+                case OctopusSecurityException securityException:
                 {
-                    Log.Error(securityException.HelpText);
+                    if (!string.IsNullOrWhiteSpace(securityException.HelpText))
+                    {
+                        Log.Error(securityException.HelpText);
+                    }
+
+                    Log.Error(securityException.Message);
+                    return -5;
                 }
-
-                Log.Error(securityException.Message);
-                return -5;
-            }
-
-            var cmd = ex as CommandException;
-            if (cmd != null)
-            {
-                Log.Error(ex.Message);
-                if (LogExtensions.IsKnownEnvironment())
+                case CommandException cmd:
                 {
-                    Log.Error($"This error is most likely occurring while executing {AssemblyExtensions.GetExecutableName()} as part of an automated build process. The following doc is recommended to get some tips on how to troubleshoot this: https://g.octopushq.com/OctoexeTroubleshooting");
+                    Log.Error(ex.Message);
+                    if (LogExtensions.IsKnownEnvironment())
+                    {
+                        Log.Error($"This error is most likely occurring while executing {AssemblyExtensions.GetExecutableName()} as part of an automated build process. The following doc is recommended to get some tips on how to troubleshoot this: https://g.octopushq.com/OctoexeTroubleshooting");
+                    }
+                    return -1;
                 }
-                return -1;
-            }
-            var reflex = ex as ReflectionTypeLoadException;
-            if (reflex != null)
-            {
-                Log.Error(ex, string.Empty);
-
-                foreach (var loaderException in reflex.LoaderExceptions)
+                case ReflectionTypeLoadException reflex:
                 {
-                    Log.Error(loaderException, string.Empty);
+                    Log.Error(ex, string.Empty);
+
+                    foreach (var loaderException in reflex.LoaderExceptions)
+                    {
+                        Log.Error(loaderException, string.Empty);
+                    }
+
+                    return -43;
                 }
-
-                return -43;
-            }
-
-            var octo = ex as OctopusException;
-            if (octo != null)
-            {
-                Log.Information("{HttpErrorMessage:l}", octo.Message);
-                Log.Error("Error from Octopus Server (HTTP {StatusCode} {StatusDescription})", octo.HttpStatusCode, (HttpStatusCode) octo.HttpStatusCode);
-                return -7;
+                case UnsupportedApiVersionException unsupported:
+                {
+                    Log.Error(unsupported.Message);
+                    return -1;
+                }
+                case OctopusException octo:
+                {
+                    Log.Information("{HttpErrorMessage:l}", octo.Message);
+                    Log.Error("Error from Octopus Server (HTTP {StatusCode} {StatusDescription})", octo.HttpStatusCode,
+                        (HttpStatusCode) octo.HttpStatusCode);
+                    return -7;
+                }
             }
 
             Log.Error(ex, string.Empty);
