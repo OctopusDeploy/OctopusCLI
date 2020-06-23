@@ -98,7 +98,7 @@ namespace Octopus.Cli.Commands.Runbooks
                 "[Optional] Create a deployment for tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.",
                 v => TenantTagNames.Add(v));
 
-            options.Add<string>("StepNamesToSkip=", "[Optional] Skip a step by name", v => StepNamesToSkip.Add(v));
+            options.Add<string>("skip=", "[Optional] Skip a step by name", v => StepNamesToSkip.Add(v));
 
             options.Add<DateTimeOffset>("runAt=",
                 "[Optional] Time at which deployment should start (scheduled deployment), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.",
