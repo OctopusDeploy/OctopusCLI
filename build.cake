@@ -435,12 +435,17 @@ private void UnTarGZip(string path, string destination)
         using (var gzipReader = GZipReader.Open(packageStream))
         {
             gzipReader.MoveToNextEntry();
-            using (var compressionStream = (Stream) gzipReader.OpenEntryStream())
+            using (var compressionStream = gzipReader.OpenEntryStream())
             {
-                using (var reader = (IReader) TarReader.Open(compressionStream))
+                using (var reader = TarReader.Open(compressionStream))
                 {
                     while (reader.MoveToNextEntry())
                     {
+                        var entryDestination = System.IO.Path.Combine(destination, reader.Entry.Key);
+                        if (IsRunningOnWindows() && System.IO.File.Exists(entryDestination)) {
+                             // In Windows, remove existing files before overwrite, to prevent existing filename case sticking
+                            System.IO.File.Delete(entryDestination);
+                        }
                         reader.WriteEntryToDirectory(destination, new ExtractionOptions {ExtractFullPath = true, Overwrite = true});
                     }
                 }
