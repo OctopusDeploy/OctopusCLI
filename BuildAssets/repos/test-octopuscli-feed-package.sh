@@ -25,6 +25,11 @@ fi
 
 
 export PKG_NAMES="octopuscli tentacle"
+# TODO: (ZZDY) Remove this workaround once tentacle is added to focal repo
+if grep --quiet focal /etc/apt/sources.list 2>/dev/null; then
+  PKG_NAMES="octopuscli"
+fi
+
 bash /opt/linux-package-feeds/install-linux-feed-package.sh || exit
 
 if command -v dpkg > /dev/null; then
@@ -37,6 +42,9 @@ echo Testing octo.
 octo version || exit
 OCTO_RESULT="$(octo list-environments --space="$OCTOPUS_SPACE")" || { echo "$OCTO_RESULT"; exit 1; }
 echo "$OCTO_RESULT" | grep "$OCTOPUS_EXPECT_ENV" || { echo "Expected environment not found: $OCTOPUS_EXPECT_ENV." >&2; exit 1; }
+
+# TODO: (ZZDY) Remove this workaround once tentacle is added to focal repo
+if [[ ! "$PKG_NAMES" == *tentacle ]]; then exit 0; fi
 
 echo Softly smoke-testing tentacle.
 /opt/octopus/tentacle/Tentacle version
