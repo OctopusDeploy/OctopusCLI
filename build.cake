@@ -364,19 +364,20 @@ Task("CreateLinuxPackages")
 
     DeleteDirectory(artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.extracted", new DeleteDirectorySettings { Recursive = true, Force = true });
  
-    CreateDirectory($"{artifactsDir}/linuxpackages");
-    MoveFiles(GetFiles($"{artifactsDir}/*.deb"), $"{artifactsDir}/linuxpackages");
-    MoveFiles(GetFiles($"{artifactsDir}/*.rpm"), $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-apt.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-rpm.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-octopuscli-feed-packages.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-octopuscli-feed-package.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{linuxPackageFeedsDir}/test-env-docker-images.conf", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{linuxPackageFeedsDir}/install-linux-feed-package.sh", $"{artifactsDir}/linuxpackages");
-    TarGzip($"{artifactsDir}/linuxpackages", $"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}");
+    var linuxPackagesDir = $"{artifactsDir}/linuxpackages";
+    CreateDirectory(linuxPackagesDir);
+    MoveFiles(GetFiles($"{artifactsDir}/*.deb"), linuxPackagesDir);
+    MoveFiles(GetFiles($"{artifactsDir}/*.rpm"), linuxPackagesDir);
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-apt.sh", linuxPackagesDir);
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-rpm.sh", linuxPackagesDir);
+    CopyFileToDirectory($"{assetDir}/repos/test-octopuscli-feed-packages.sh", linuxPackagesDir);
+    CopyFileToDirectory($"{assetDir}/repos/test-octopuscli-feed-package.sh", linuxPackagesDir);
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/test-env-docker-images.conf", linuxPackagesDir);
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/install-linux-feed-package.sh", linuxPackagesDir);
+    Zip(linuxPackagesDir, $"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}.zip");
     var buildSystem = BuildSystemAliases.BuildSystem(Context);
-    buildSystem.TeamCity.PublishArtifacts($"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}.tar.gz");
-    DeleteDirectory($"{artifactsDir}/linuxpackages", new DeleteDirectorySettings { Recursive = true, Force = true });
+    buildSystem.TeamCity.PublishArtifacts($"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}.zip");
+    DeleteDirectory(linuxPackagesDir, new DeleteDirectorySettings { Recursive = true, Force = true });
 });
 
 Task("CreateDockerContainerAndLinuxPackages")
