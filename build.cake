@@ -361,9 +361,9 @@ Task("CreateLinuxPackages")
             "PACKAGES_PATH=/artifacts"
         },
         Volume = new string[] { 
-            Path.Combine(Environment.CurrentDirectory, assetDir) + ":/BuildAssets",
-            Path.Combine(Environment.CurrentDirectory, linuxPackageFeedsDir) + ":/opt/linux-package-feeds",
-            Path.Combine(Environment.CurrentDirectory, artifactsDir) + ":/artifacts"
+            System.IO.Path.Combine(Environment.CurrentDirectory, assetDir) + ":/BuildAssets",
+            System.IO.Path.Combine(Environment.CurrentDirectory, linuxPackageFeedsDir) + ":/opt/linux-package-feeds",
+            System.IO.Path.Combine(Environment.CurrentDirectory, artifactsDir) + ":/artifacts"
         }
     }, "octopusdeploy/package-linux-docker:latest", "bash /BuildAssets/create-octopuscli-linux-packages.sh");
 
