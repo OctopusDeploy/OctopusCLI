@@ -343,6 +343,11 @@ Task("CreateLinuxPackages")
     .IsDependentOn("AssertLinuxSelfContainedArtifactsExists")
     .Does(() =>
 {
+    // This task requires `linuxPackageFeedsDir` to contain tools from https://github.com/OctopusDeploy/linux-package-feeds.
+    // They are currently added as an Artifact Dependency in TeamCity from "Infrastructure / Linux Package Feeds"
+    //   with the rule: LinuxPackageFeedsTools.*.zip!*=>linux-package-feeds
+    // See https://build.octopushq.com/admin/editDependencies.html?id=buildType:OctopusDeploy_OctopusCLI_BuildLinuxContainer
+
     UnTarGZip(
         artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.tar.gz",
         artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.extracted");
@@ -356,27 +361,28 @@ Task("CreateLinuxPackages")
             "PACKAGES_PATH=/artifacts"
         },
         Volume = new string[] { 
-            $"{Environment.CurrentDirectory}/BuildAssets:/BuildAssets",
-            $"{Environment.CurrentDirectory}/linux-package-feeds:/opt/linux-package-feeds",
-            $"{Environment.CurrentDirectory}/artifacts:/artifacts"
+            Path.Combine(Environment.CurrentDirectory, assetDir) + ":/BuildAssets",
+            Path.Combine(Environment.CurrentDirectory, linuxPackageFeedsDir) + ":/opt/linux-package-feeds",
+            Path.Combine(Environment.CurrentDirectory, artifactsDir) + ":/artifacts"
         }
     }, "octopusdeploy/package-linux-docker:latest", "bash /BuildAssets/create-octopuscli-linux-packages.sh");
 
     DeleteDirectory(artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.extracted", new DeleteDirectorySettings { Recursive = true, Force = true });
  
-    CreateDirectory($"{artifactsDir}/linuxpackages");
-    MoveFiles(GetFiles($"{artifactsDir}/*.deb"), $"{artifactsDir}/linuxpackages");
-    MoveFiles(GetFiles($"{artifactsDir}/*.rpm"), $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-apt.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-rpm.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-octopuscli-feed-packages.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-octopuscli-feed-package.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{linuxPackageFeedsDir}/test-env-docker-images.conf", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{linuxPackageFeedsDir}/install-linux-feed-package.sh", $"{artifactsDir}/linuxpackages");
-    TarGzip($"{artifactsDir}/linuxpackages", $"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}");
+    var linuxPackagesDir = $"{artifactsDir}/linuxpackages";
+    CreateDirectory(linuxPackagesDir);
+    MoveFiles(GetFiles($"{artifactsDir}/*.deb"), linuxPackagesDir);
+    MoveFiles(GetFiles($"{artifactsDir}/*.rpm"), linuxPackagesDir);
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-apt.sh", linuxPackagesDir);
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-rpm.sh", linuxPackagesDir);
+    CopyFileToDirectory($"{assetDir}/repos/test-octopuscli-feed-packages.sh", linuxPackagesDir);
+    CopyFileToDirectory($"{assetDir}/repos/test-octopuscli-feed-package.sh", linuxPackagesDir);
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/test-env-docker-images.conf", linuxPackagesDir);
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/install-linux-feed-package.sh", linuxPackagesDir);
+    Zip(linuxPackagesDir, $"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}.zip");
     var buildSystem = BuildSystemAliases.BuildSystem(Context);
-    buildSystem.TeamCity.PublishArtifacts($"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}.tar.gz");
-    DeleteDirectory($"{artifactsDir}/linuxpackages", new DeleteDirectorySettings { Recursive = true, Force = true });
+    buildSystem.TeamCity.PublishArtifacts($"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}.zip");
+    DeleteDirectory(linuxPackagesDir, new DeleteDirectorySettings { Recursive = true, Force = true });
 });
 
 Task("CreateDockerContainerAndLinuxPackages")
