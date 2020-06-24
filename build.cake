@@ -343,6 +343,11 @@ Task("CreateLinuxPackages")
     .IsDependentOn("AssertLinuxSelfContainedArtifactsExists")
     .Does(() =>
 {
+    // This task requires `linuxPackageFeedsDir` to contain tools from https://github.com/OctopusDeploy/linux-package-feeds.
+    // They are currently added as an Artifact Dependency in TeamCity from "Infrastructure / Linux Package Feeds"
+    //   with the rule: LinuxPackageFeedsTools.*.zip!*=>linux-package-feeds
+    // See https://build.octopushq.com/admin/editDependencies.html?id=buildType:OctopusDeploy_OctopusCLI_BuildLinuxContainer
+
     UnTarGZip(
         artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.tar.gz",
         artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.extracted");
@@ -356,9 +361,9 @@ Task("CreateLinuxPackages")
             "PACKAGES_PATH=/artifacts"
         },
         Volume = new string[] { 
-            $"{Environment.CurrentDirectory}/BuildAssets:/BuildAssets",
-            $"{Environment.CurrentDirectory}/linux-package-feeds:/opt/linux-package-feeds",
-            $"{Environment.CurrentDirectory}/artifacts:/artifacts"
+            Path.Combine(Environment.CurrentDirectory, assetDir) + ":/BuildAssets",
+            Path.Combine(Environment.CurrentDirectory, linuxPackageFeedsDir) + ":/opt/linux-package-feeds",
+            Path.Combine(Environment.CurrentDirectory, artifactsDir) + ":/artifacts"
         }
     }, "octopusdeploy/package-linux-docker:latest", "bash /BuildAssets/create-octopuscli-linux-packages.sh");
 
