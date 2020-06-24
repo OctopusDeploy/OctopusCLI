@@ -66,11 +66,11 @@ namespace Octopus.Cli.Commands.Runbooks
                 v => RunbookNameOrId = v);
 
             options.Add<string>("environment=",
-                "Name or ID of the environment to deploy to, e.g ., 'Production' or 'Environments-1'; specify this argument multiple times to run on multiple environments.",
+                "Name or ID of the environment to run in, e.g ., 'Production' or 'Environments-1'; specify this argument multiple times to run in multiple environments.",
                 v => EnvironmentNamesOrIds.Add(v));
 
             options.Add<string>("snapshot=",
-                "[Optional] Name or ID of the snapshot to run. If not supplied, the published snapshot should be used.",
+                "[Optional] Name or ID of the snapshot to run. If not supplied, the command will attempt to use the published snapshot.",
                 v => Snapshot = v);
 
             options.Add<bool>("forcePackageDownload",
@@ -82,31 +82,31 @@ namespace Octopus.Cli.Commands.Runbooks
                 v => GuidedFailure = v);
 
             options.Add<string>("specificMachines=",
-                "[Optional] A comma-separated list of machine names to target in the deployed environment. If not specified all machines in the environment will be considered.",
+                "[Optional] A comma-separated list of machine names to target in the specified environment/s. If not specified all machines in the environment will be considered.",
                 v => IncludedMachineIds.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                     .Select(m => m.Trim())));
 
             options.Add<string>("excludeMachines=",
-                "[Optional] A comma-separated list of machine names to exclude in the deployed environment. If not specified all machines in the environment will be considered.",
+                "[Optional] A comma-separated list of machine names to exclude in the specified environment/s. If not specified all machines in the environment will be considered.",
                 v => ExcludedMachineIds.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                     .Select(m => m.Trim())));
 
             options.Add<string>("tenant=",
-                "[Optional] Create a deployment for the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).",
+                "[Optional] Run a runbook on the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).",
                 v => TenantIds.Add(v));
 
             options.Add<string>("tenantTag=",
-                "[Optional] Create a deployment for tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.",
+                "[Optional] Run a runbook on the tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.",
                 v => TenantTagNames.Add(v));
 
             options.Add<string>("skip=", "[Optional] Skip a step by name", v => StepNamesToSkip.Add(v));
 
             options.Add<DateTimeOffset>("runAt=",
-                "[Optional] Time at which deployment should start (scheduled deployment), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.",
+                "[Optional] Time at which runbook run should start (scheduled run), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.",
                 v => RunAt = v);
 
             options.Add<DateTimeOffset>("noRunAfter=",
-                "[Optional] Time at which scheduled deployment should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.",
+                "[Optional] Time at which scheduled runbook run should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.",
                 v => NoRunAfter = v);
 
             options.Add<string>("v|variable=",
@@ -116,18 +116,18 @@ namespace Octopus.Cli.Commands.Runbooks
             options.Add<bool>("waitForRun", "[Optional] Whether to wait synchronously for deployment to finish.",
                 v => WaitForRun = true);
 
-            options.Add<bool>("progress", "[Optional] Show progress of the deployment", v => { Progress = true; WaitForRun = true; NoRawLog = true; });
+            options.Add<bool>("progress", "[Optional] Show progress of the runbook run", v => { Progress = true; WaitForRun = true; NoRawLog = true; });
 
             options.Add<TimeSpan>("runTimeout=",
-                "[Optional] Specifies maximum time (timespan format) that the console session will wait for the deployment to finish(default 00:10:00). This will not stop the deployment. Requires -- waitfordeployment parameter set.",
+                "[Optional] Specifies maximum time (timespan format) that the console session will wait for the runbook run to finish(default 00:10:00). This will not stop the run. Requires -- waitfordeployment parameter set.",
                 v => RunTimeout = v);
 
             options.Add<bool>("cancelOnTimeout",
-                "[Optional] Whether to cancel the deployment if the deployment timeout is reached (flag, default false).",
+                "[Optional] Whether to cancel the runbook run if the run timeout is reached (flag, default false).",
                 v => CancelOnTimeout = true);
 
             options.Add<TimeSpan>("runCheckSleepCycle=",
-                "[Optional] Specifies how much time (timespan format) should elapse between deployment status checks (default 00:00:10)",
+                "[Optional] Specifies how much time (timespan format) should elapse between runbook run status checks (default 00:00:10)",
                 v => RunCheckSleepCycle = v);
 
             options.Add<bool>("noRawLog", "[Optional] Don't print the raw log of failed tasks", v => NoRawLog = true);
