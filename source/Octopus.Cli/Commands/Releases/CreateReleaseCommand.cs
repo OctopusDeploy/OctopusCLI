@@ -25,8 +25,8 @@ namespace Octopus.Cli.Commands.Releases
         ReleasePlan plan;
         string versionNumber;
 
-        public CreateReleaseCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IPackageVersionResolver versionResolver, IReleasePlanBuilder releasePlanBuilder, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
-            : base(repositoryFactory, fileSystem, clientFactory, commandOutputProvider)
+        public CreateReleaseCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IPackageVersionResolver versionResolver, IReleasePlanBuilder releasePlanBuilder, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider, ExecutionResourceWaiter.Factory executionResourceWaiterFactory)
+            : base(repositoryFactory, fileSystem, clientFactory, commandOutputProvider, executionResourceWaiterFactory)
         {
             this.releasePlanBuilder = releasePlanBuilder;
 
@@ -73,7 +73,7 @@ namespace Octopus.Cli.Commands.Releases
 
             plan = await BuildReleasePlan(project).ConfigureAwait(false);
 
-            
+
             if (!string.IsNullOrWhiteSpace(VersionNumber))
             {
                 versionNumber = VersionNumber;
@@ -168,7 +168,7 @@ namespace Octopus.Cli.Commands.Releases
                 {
                     ReleaseNotes = project.ReleaseNotesTemplate;
                 }
-                
+
                 release = await Repository.Releases.Create(new ReleaseResource(versionNumber, project.Id, plan.Channel?.Id)
                     {
                         ReleaseNotes = ReleaseNotes,
@@ -201,7 +201,7 @@ namespace Octopus.Cli.Commands.Releases
                 commandOutputProvider.Debug("Automatically selecting the best channel for this release...");
                 return await AutoSelectBestReleasePlanOrThrow(project).ConfigureAwait(false);
             }
-            
+
             // Compatibility: this has to cater for Octopus before Channels existed
             commandOutputProvider.Information("Building release plan without a channel for Octopus Server without channels support...");
             return await releasePlanBuilder.Build(Repository, project, null, VersionPreReleaseTag).ConfigureAwait(false);
@@ -277,7 +277,7 @@ namespace Octopus.Cli.Commands.Releases
 
         public void PrintDefaultOutput()
         {
-            
+
         }
 
         public void PrintJsonOutput()
