@@ -119,7 +119,7 @@ namespace Octopus.Cli.Commands.Runbooks
             options.Add<bool>("progress", "[Optional] Show progress of the runbook run", v => { Progress = true; WaitForRun = true; NoRawLog = true; });
 
             options.Add<TimeSpan>("runTimeout=",
-                "[Optional] Specifies maximum time (timespan format) that the console session will wait for the runbook run to finish(default 00:10:00). This will not stop the run. Requires -- waitfordeployment parameter set.",
+                "[Optional] Specifies maximum time (timespan format) that the console session will wait for the runbook run to finish (default 00:10:00). This will not stop the run. Requires --waitForRun parameter to be set.",
                 v => RunTimeout = v);
 
             options.Add<bool>("cancelOnTimeout",
