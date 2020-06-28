@@ -140,11 +140,10 @@ namespace Octopus.Cli.Commands.Runbooks
         public async Task Request()
         {
             var project = await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
-            var runbook = await Repository.Runbooks.FindByNameOrIdOrFail(RunbookNameOrId, project)
-                .ConfigureAwait(false);
-            var environments = await Repository.Environments.FindByNamesOrIdsOrFail(EnvironmentNamesOrIds)
-                .ConfigureAwait(false);
-            var tenants = await Repository.Tenants.FindByNamesOrIdsOrFail(TenantNamesOrIds).ConfigureAwait(false);
+            var runbook = await Repository.Runbooks.FindByNameOrIdOrFail(RunbookNameOrId, project).ConfigureAwait(false);
+            var environments = await Repository.Environments.FindByNamesOrIdsOrFail(EnvironmentNamesOrIds).ConfigureAwait(false);
+            var tenants = await RetrieveTenants();
+
             LogScheduledDeployment();
 
             var payload = new RunbookRunParameters()
@@ -159,7 +158,7 @@ namespace Octopus.Cli.Commands.Runbooks
                 ExcludedMachineIds = ExcludedMachineIds.ToArray(),
                 SkipActions = StepNamesToSkip.ToArray(),
                 UseGuidedFailure = GuidedFailure,
-                TenantIds = tenants.Select(ten => ten.Id).ToArray(),
+                TenantIds = tenants,
                 TenantTagNames = TenantTagNames.ToArray(),
                 QueueTime = RunAt,
                 QueueTimeExpiry = NoRunAfter,
@@ -181,6 +180,13 @@ namespace Octopus.Cli.Commands.Runbooks
                     RunCheckSleepCycle,
                     RunTimeout).ConfigureAwait(false);
             }
+        }
+
+        private async Task<string[]> RetrieveTenants()
+        {
+            return !TenantNamesOrIds.Contains("*")
+                ? (await Repository.Tenants.FindByNamesOrIdsOrFail(TenantNamesOrIds).ConfigureAwait(false)).Select(ten => ten.Id).ToArray()
+                : TenantNamesOrIds.ToArray();
         }
 
         protected override Task ValidateParameters()
@@ -208,7 +214,7 @@ namespace Octopus.Cli.Commands.Runbooks
 
             if (TenantNamesOrIds.Contains("*") && (TenantNamesOrIds.Count > 1 || TenantTagNames.Count > 0))
                 throw new CommandException(
-                    "When running on all tenants using the --tenantIds=* wildcard, no other tenant filters can be provided");
+                    "When running on all tenants using the --tenant=* wildcard, no other tenant filters can be provided");
 
             return Task.FromResult(0);
         }
