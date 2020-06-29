@@ -24,7 +24,7 @@ do
   echo "== Testing in '$DOCKER_IMAGE' =="
   docker pull "$DOCKER_IMAGE" >/dev/null || exit
   docker run --rm \
-    --hostname "testpkgs$RANDOM" \
+    --hostname "octotestpkg$RANDOM" \
     --volume "$(pwd):/working" --volume "$SCRIPT_DIR/test-linux-package.sh:/test-linux-package.sh" \
     --volume "$(realpath "$LPF_PATH"):/opt/linux-package-feeds" \
     --env OCTOPUS_CLI_SERVER --env OCTOPUS_CLI_API_KEY --env OCTOPUS_SPACE --env OCTOPUS_EXPECT_ENV \

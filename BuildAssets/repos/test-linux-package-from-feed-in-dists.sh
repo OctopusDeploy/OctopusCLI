@@ -24,7 +24,7 @@ do
   echo "== Testing in '$DOCKER_IMAGE' =="
   docker pull "$DOCKER_IMAGE" >/dev/null || exit
   docker run --rm \
-    --hostname "testfeedpkgs$RANDOM" \
+    --hostname "octotestfeedpkg$RANDOM" \
     --volume "$(pwd):/working" --volume "$SCRIPT_DIR/test-linux-package-from-feed.sh:/test-linux-package-from-feed.sh" \
     --volume "$(realpath "$LPF_PATH"):/opt/linux-package-feeds" \
     --env PUBLISH_LINUX_EXTERNAL \
