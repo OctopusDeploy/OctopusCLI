@@ -26,12 +26,12 @@ if [[ ! -e /opt/linux-package-feeds ]]; then
 fi
 
 
+# Install the packages from our package feed (with any needed docker config, system registration) using a script from 'linux-package-feeds'.
 export PKG_NAMES="octopuscli tentacle"
 # TODO: (ZZDY) Remove this workaround once tentacle is added to focal repo
 if grep --quiet focal /etc/apt/sources.list 2>/dev/null; then
   PKG_NAMES="octopuscli"
 fi
-
 bash /opt/linux-package-feeds/install-linux-feed-package.sh || exit
 
 if command -v dpkg > /dev/null; then

@@ -26,6 +26,7 @@ if [[ ! -e /opt/linux-package-feeds ]]; then
 fi
 
 
+# Create .deb and .rpm packages, with executable permission and a /usr/bin symlink, using a script from 'linux-package-feeds'.
 COMMAND_FILE=octo
 INSTALL_PATH=/opt/octopus/octopuscli
 PACKAGE_NAME=octopuscli
@@ -50,5 +51,4 @@ FPM_RPM_OPTS=(
   --depends 'zlib'
   --depends 'libicu'
 )
-
 source /opt/linux-package-feeds/create-linux-packages.sh || exit
