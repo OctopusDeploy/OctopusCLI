@@ -375,8 +375,8 @@ Task("CreateLinuxPackages")
     MoveFiles(GetFiles($"{artifactsDir}/*.rpm"), linuxPackagesDir);
     CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-apt.sh", linuxPackagesDir);
     CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-rpm.sh", linuxPackagesDir);
-    CopyFileToDirectory($"{assetDir}/repos/test-octopuscli-feed-packages.sh", linuxPackagesDir);
-    CopyFileToDirectory($"{assetDir}/repos/test-octopuscli-feed-package.sh", linuxPackagesDir);
+    CopyFileToDirectory($"{assetDir}/repos/test-linux-package-from-feed-in-dists.sh", linuxPackagesDir);
+    CopyFileToDirectory($"{assetDir}/repos/test-linux-package-from-feed.sh", linuxPackagesDir);
     CopyFileToDirectory($"{linuxPackageFeedsDir}/test-env-docker-images.conf", linuxPackagesDir);
     CopyFileToDirectory($"{linuxPackageFeedsDir}/install-linux-feed-package.sh", linuxPackagesDir);
     Zip(linuxPackagesDir, $"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}.zip");
