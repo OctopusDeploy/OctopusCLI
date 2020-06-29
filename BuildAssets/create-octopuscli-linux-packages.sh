@@ -49,4 +49,4 @@ FPM_RPM_OPTS=(
   --depends 'libicu'
 )
 
-source /opt/linux-package-feeds/create-linux-packages.sh
+source /opt/linux-package-feeds/create-linux-packages.sh || exit
