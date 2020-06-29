@@ -358,7 +358,9 @@ Task("CreateLinuxPackages")
         Env = new string[] { 
             $"VERSION={nugetVersion}",
             $"BINARIES_PATH=/artifacts/OctopusTools.{nugetVersion}.linux-x64.extracted/",
-            "PACKAGES_PATH=/artifacts"
+            "PACKAGES_PATH=/artifacts",
+            "SIGN_PRIVATE_KEY",
+            "SIGN_PASSPHRASE"
         },
         Volume = new string[] { 
             System.IO.Path.Combine(Environment.CurrentDirectory, assetDir) + ":/BuildAssets",
