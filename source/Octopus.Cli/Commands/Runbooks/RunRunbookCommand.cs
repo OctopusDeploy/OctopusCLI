@@ -184,7 +184,7 @@ namespace Octopus.Cli.Commands.Runbooks
 
         private async Task<string[]> RetrieveTenants()
         {
-            return !TenantNamesOrIds.Contains("*")
+            return (!TenantNamesOrIds.Contains("*") && TenantNamesOrIds.Any())
                 ? (await Repository.Tenants.FindByNamesOrIdsOrFail(TenantNamesOrIds).ConfigureAwait(false)).Select(ten => ten.Id).ToArray()
                 : TenantNamesOrIds.ToArray();
         }
