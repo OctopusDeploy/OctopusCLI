@@ -2,7 +2,9 @@
 # Test that .deb and .rpm packages in the working directory install an octo command that can list-environments.
 
 if [[ ! -e "$LPF_PATH" ]]; then
-  echo 'This script requires the environment variable LPF_PATH - the location of "linux-package-feeds" tools to use.' >&2
+  echo "This script requires the environment variable LPF_PATH - the location of 'linux-package-feeds' scripts to use." >&2
+  echo "They come from https://github.com/OctopusDeploy/linux-package-feeds/tree/master/source, distributed in TeamCity" >&2
+  echo "  via 'Infrastructure / Linux Package Feeds'." >&2
   exit 1
 fi
 if [[ -z "$OCTOPUS_CLI_SERVER" || -z "$OCTOPUS_CLI_API_KEY" || -z "$OCTOPUS_SPACE" || -z "$OCTOPUS_EXPECT_ENV" ]]; then
