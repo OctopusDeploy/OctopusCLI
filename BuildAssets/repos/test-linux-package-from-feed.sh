@@ -46,6 +46,6 @@ echo "$OCTO_RESULT" | grep "$OCTOPUS_EXPECT_ENV" || { echo "Expected environment
 # TODO: (ZZDY) Remove this workaround once tentacle is added to focal repo
 if [[ ! "$PKG_NAMES" == *tentacle ]]; then exit 0; fi
 
-echo Softly smoke-testing tentacle.
-/opt/octopus/tentacle/Tentacle version
+echo Testing tentacle.
+/opt/octopus/tentacle/Tentacle version || exit
 echo
