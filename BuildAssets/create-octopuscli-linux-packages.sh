@@ -19,11 +19,14 @@ which fpm >/dev/null || {
   exit 1
 }
 if [[ ! -e /opt/linux-package-feeds ]]; then
-  echo "This script requires tools in '/opt/linux-package-feeds'. If running inside a container, check the volume mounts." >&2
+  echo "This script requires 'linux-package-feeds' scripts, installed in '/opt/linux-package-feeds'." >&2
+  echo "They come from https://github.com/OctopusDeploy/linux-package-feeds, distributed in TeamCity" >&2
+  echo "  via 'Infrastructure / Linux Package Feeds'. If running inside a Docker container, supply them using a volume mount." >&2
   exit 1
 fi
 
 
+# Create .deb and .rpm packages, with executable permission and a /usr/bin symlink, using a script from 'linux-package-feeds'.
 COMMAND_FILE=octo
 INSTALL_PATH=/opt/octopus/octopuscli
 PACKAGE_NAME=octopuscli
@@ -48,5 +51,4 @@ FPM_RPM_OPTS=(
   --depends 'zlib'
   --depends 'libicu'
 )
-
-source /opt/linux-package-feeds/create-linux-packages.sh
+source /opt/linux-package-feeds/create-linux-packages.sh || exit

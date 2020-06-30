@@ -19,17 +19,19 @@ if [[ -z "$OCTOPUS_CLI_SERVER" || -z "$OCTOPUS_CLI_API_KEY" || -z "$OCTOPUS_SPAC
 fi
 
 if [[ ! -e /opt/linux-package-feeds ]]; then
-  echo "This script requires tools in '/opt/linux-package-feeds'. If running inside a container, check the volume mounts." >&2
+  echo "This script requires 'linux-package-feeds' scripts, installed in '/opt/linux-package-feeds'." >&2
+  echo "They come from https://github.com/OctopusDeploy/linux-package-feeds, distributed in TeamCity" >&2
+  echo "  via 'Infrastructure / Linux Package Feeds'. If running inside a Docker container, supply them using a volume mount." >&2
   exit 1
 fi
 
 
+# Install the packages from our package feed (with any needed docker config, system registration) using a script from 'linux-package-feeds'.
 export PKG_NAMES="octopuscli tentacle"
 # TODO: (ZZDY) Remove this workaround once tentacle is added to focal repo
 if grep --quiet focal /etc/apt/sources.list 2>/dev/null; then
   PKG_NAMES="octopuscli"
 fi
-
 bash /opt/linux-package-feeds/install-linux-feed-package.sh || exit
 
 if command -v dpkg > /dev/null; then
@@ -46,6 +48,6 @@ echo "$OCTO_RESULT" | grep "$OCTOPUS_EXPECT_ENV" || { echo "Expected environment
 # TODO: (ZZDY) Remove this workaround once tentacle is added to focal repo
 if [[ ! "$PKG_NAMES" == *tentacle ]]; then exit 0; fi
 
-echo Softly smoke-testing tentacle.
-/opt/octopus/tentacle/Tentacle version
+echo Testing tentacle.
+/opt/octopus/tentacle/Tentacle version || exit
 echo
