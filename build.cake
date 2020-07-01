@@ -341,7 +341,7 @@ Task("BuildDockerImage")
 
 Task("CreateLinuxPackages")
     .IsDependentOn("AssertLinuxSelfContainedArtifactsExists")
-    .Does(() =>
+    .Does(context =>
 {
     if (string.IsNullOrEmpty(context.EnvironmentVariable("SIGN_PRIVATE_KEY"))
         || string.IsNullOrEmpty(context.EnvironmentVariable("SIGN_PASSPHRASE"))) {
