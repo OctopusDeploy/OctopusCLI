@@ -343,10 +343,17 @@ Task("CreateLinuxPackages")
     .IsDependentOn("AssertLinuxSelfContainedArtifactsExists")
     .Does(() =>
 {
-    // This task requires `linuxPackageFeedsDir` to contain scripts from https://github.com/OctopusDeploy/linux-package-feeds.
-    // They are currently added as an Artifact Dependency in TeamCity from "Infrastructure / Linux Package Feeds"
-    //   with the rule: LinuxPackageFeedsTools.*.zip!*=>linux-package-feeds
-    // See https://build.octopushq.com/admin/editDependencies.html?id=buildType:OctopusDeploy_OctopusCLI_BuildLinuxContainer
+    if (string.IsNullOrEmpty(context.EnvironmentVariable("SIGN_PRIVATE_KEY"))
+        || string.IsNullOrEmpty(context.EnvironmentVariable("SIGN_PASSPHRASE")) {
+        throw new Exception("This build requires environment variables `SIGN_PRIVATE_KEY` (in a format gpg1 can import)"
+            + " and `SIGN_PASSPHRASE`, which are used to sign the .rpm.");
+    }
+    if (!context.DirectoryExists(linuxPackageFeedsDir)) {
+        throw new Exception($"This build requires `{linuxPackageFeedsDir}` to contain scripts from https://github.com/OctopusDeploy/linux-package-feeds.\n"
+            + "They are usually added as an Artifact Dependency in TeamCity from 'Infrastructure / Linux Package Feeds' with the rule:\n"
+            + "  LinuxPackageFeedsTools.*.zip!*=>linux-package-feeds\n"
+            + "See https://build.octopushq.com/admin/editDependencies.html?id=buildType:OctopusDeploy_OctopusCLI_BuildLinuxContainer");
+    }
 
     UnTarGZip(
         artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.tar.gz",
