@@ -15,7 +15,7 @@ namespace Octopus.Cli.Commands.Runbooks
     public class RunRunbookCommand : ApiCommand, ISupportFormattedOutput
     {
         private readonly ExecutionResourceWaiter.Factory executionResourceWaiterFactory;
-        private readonly Dictionary<string, string> variables = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> Variables = new Dictionary<string, string>();
 
         private RunbookRunResource[] RunbookRuns { get; set; }
 
@@ -143,7 +143,6 @@ namespace Octopus.Cli.Commands.Runbooks
             var runbook = await Repository.Runbooks.FindByNameOrIdOrFail(RunbookNameOrId, project).ConfigureAwait(false);
             var environments = await Repository.Environments.FindByNamesOrIdsOrFail(EnvironmentNamesOrIds).ConfigureAwait(false);
             var tenants = await RetrieveTenants();
-
             LogScheduledDeployment();
 
             var payload = new RunbookRunParameters()
@@ -162,7 +161,7 @@ namespace Octopus.Cli.Commands.Runbooks
                 TenantTagNames = TenantTagNames.ToArray(),
                 QueueTime = RunAt,
                 QueueTimeExpiry = NoRunAfter,
-                FormValues = variables
+                FormValues = Variables
             };
 
             RunbookRuns = await Repository.Runbooks.Run(runbook, payload);
@@ -246,7 +245,7 @@ namespace Octopus.Cli.Commands.Runbooks
             var key = variable.Substring(0, index);
             var value = (index >= variable.Length - 1) ? string.Empty : variable.Substring(index + 1);
 
-            variables.Add(key, value);
+            Variables.Add(key, value);
         }
 
         public void PrintDefaultOutput()
