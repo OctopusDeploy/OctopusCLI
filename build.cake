@@ -344,7 +344,7 @@ Task("CreateLinuxPackages")
     .Does(() =>
 {
     if (string.IsNullOrEmpty(context.EnvironmentVariable("SIGN_PRIVATE_KEY"))
-        || string.IsNullOrEmpty(context.EnvironmentVariable("SIGN_PASSPHRASE")) {
+        || string.IsNullOrEmpty(context.EnvironmentVariable("SIGN_PASSPHRASE"))) {
         throw new Exception("This build requires environment variables `SIGN_PRIVATE_KEY` (in a format gpg1 can import)"
             + " and `SIGN_PASSPHRASE`, which are used to sign the .rpm.");
     }
