@@ -7,21 +7,17 @@ using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
-using Octopus.Client.Exceptions;
 using Octopus.Client.Model;
-using Octostache;
 
 namespace Octopus.Cli.Commands.Runbooks
 {
-
-
     [Command("run-runbook", Description = "Runs a Runbook.")]
     public class RunRunbookCommand : ApiCommand, ISupportFormattedOutput
     {
         private readonly ExecutionResourceWaiter.Factory executionResourceWaiterFactory;
-        private readonly Dictionary<string, string> variables = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> Variables = new Dictionary<string, string>();
 
-        private RunbookRunResource[] runbookRuns { get; set; }
+        private RunbookRunResource[] RunbookRuns { get; set; }
 
         private string ProjectNameOrId { get; set; } // required for tenant filtering with *, runbook filtering
         private string RunbookNameOrId { get; set; }
@@ -33,7 +29,7 @@ namespace Octopus.Cli.Commands.Runbooks
         private List<string> ExcludedMachineIds { get; } = new List<string>();
         private List<string> StepNamesToSkip { get; } = new List<string>();
         private bool UseDefaultSnapshot { get; } = false;
-        private List<string> TenantIds { get; } = new List<string>();
+        private List<string> TenantNamesOrIds { get; } = new List<string>();
         private List<string> TenantTagNames { get; } = new List<string>();
         private DateTimeOffset? RunAt { get; set; }
         private DateTimeOffset? NoRunAfter { get; set; }
@@ -93,7 +89,7 @@ namespace Octopus.Cli.Commands.Runbooks
 
             options.Add<string>("tenant=",
                 "[Optional] Run a runbook on the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).",
-                v => TenantIds.Add(v));
+                v => TenantNamesOrIds.Add(v));
 
             options.Add<string>("tenantTag=",
                 "[Optional] Run a runbook on the tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.",
@@ -116,7 +112,12 @@ namespace Octopus.Cli.Commands.Runbooks
             options.Add<bool>("waitForRun", "[Optional] Whether to wait synchronously for deployment to finish.",
                 v => WaitForRun = true);
 
-            options.Add<bool>("progress", "[Optional] Show progress of the runbook run", v => { Progress = true; WaitForRun = true; NoRawLog = true; });
+            options.Add<bool>("progress", "[Optional] Show progress of the runbook run", v =>
+            {
+                Progress = true;
+                WaitForRun = true;
+                NoRawLog = true;
+            });
 
             options.Add<TimeSpan>("runTimeout=",
                 "[Optional] Specifies maximum time (timespan format) that the console session will wait for the runbook run to finish (default 00:10:00). This will not stop the run. Requires --waitForRun parameter to be set.",
@@ -141,6 +142,7 @@ namespace Octopus.Cli.Commands.Runbooks
             var project = await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
             var runbook = await Repository.Runbooks.FindByNameOrIdOrFail(RunbookNameOrId, project).ConfigureAwait(false);
             var environments = await Repository.Environments.FindByNamesOrIdsOrFail(EnvironmentNamesOrIds).ConfigureAwait(false);
+            var tenants = await RetrieveTenants();
             LogScheduledDeployment();
 
             var payload = new RunbookRunParameters()
@@ -155,20 +157,20 @@ namespace Octopus.Cli.Commands.Runbooks
                 ExcludedMachineIds = ExcludedMachineIds.ToArray(),
                 SkipActions = StepNamesToSkip.ToArray(),
                 UseGuidedFailure = GuidedFailure,
-                TenantIds = TenantIds.ToArray(),
+                TenantIds = tenants,
                 TenantTagNames = TenantTagNames.ToArray(),
                 QueueTime = RunAt,
                 QueueTimeExpiry = NoRunAfter,
-                FormValues = variables
+                FormValues = Variables
             };
 
-            runbookRuns = await Repository.Runbooks.Run(runbook, payload);
+            RunbookRuns = await Repository.Runbooks.Run(runbook, payload);
 
-            if (runbookRuns.Any() && WaitForRun)
+            if (RunbookRuns.Any() && WaitForRun)
             {
                 var waiter = executionResourceWaiterFactory(Repository, ServerBaseUrl);
                 await waiter.WaitForRunbookRunToComplete(
-                    runbookRuns,
+                    RunbookRuns,
                     project,
                     Progress,
                     NoRawLog,
@@ -177,6 +179,13 @@ namespace Octopus.Cli.Commands.Runbooks
                     RunCheckSleepCycle,
                     RunTimeout).ConfigureAwait(false);
             }
+        }
+
+        private async Task<string[]> RetrieveTenants()
+        {
+            return (!TenantNamesOrIds.Contains("*") && TenantNamesOrIds.Any())
+                ? (await Repository.Tenants.FindByNamesOrIdsOrFail(TenantNamesOrIds).ConfigureAwait(false)).Select(ten => ten.Id).ToArray()
+                : TenantNamesOrIds.ToArray();
         }
 
         protected override Task ValidateParameters()
@@ -197,13 +206,14 @@ namespace Octopus.Cli.Commands.Runbooks
             }
 
             if ((RunAt ?? DateTimeOffset.Now) > NoRunAfter)
-                throw new CommandException("The Run will expire before it has a chance to execute.  Please select an expiry time that occurs after the deployment is scheduled to begin");
+                throw new CommandException(
+                    "The Run will expire before it has a chance to execute.  Please select an expiry time that occurs after the deployment is scheduled to begin");
 
             CheckForIntersection(IncludedMachineIds.ToList(), ExcludedMachineIds.ToList());
 
-            if (TenantIds.Contains("*") && (TenantIds.Count > 1 || TenantTagNames.Count > 0))
+            if (TenantNamesOrIds.Contains("*") && (TenantNamesOrIds.Count > 1 || TenantTagNames.Count > 0))
                 throw new CommandException(
-                    "When running on all tenants using the --tenantIds=* wildcard, no other tenant filters can be provided");
+                    "When running on all tenants using the --tenant=* wildcard, no other tenant filters can be provided");
 
             return Task.FromResult(0);
         }
@@ -217,14 +227,16 @@ namespace Octopus.Cli.Commands.Runbooks
                     $"Cannot specify the same machine as both included and excluded: {intersection.ReadableJoin(", ")}");
             }
         }
+
         private void LogScheduledDeployment()
         {
             if (RunAt == null) return;
             var now = DateTimeOffset.UtcNow;
-            commandOutputProvider.Information("Runbook run will be scheduled to start in: {Duration:l}", (RunAt.Value - now).FriendlyDuration());
+            commandOutputProvider.Information("Runbook run will be scheduled to start in: {Duration:l}",
+                (RunAt.Value - now).FriendlyDuration());
         }
 
-        void ParseVariable(string variable)
+        private void ParseVariable(string variable)
         {
             var index = variable.IndexOfAny(new[] {':', '='});
             if (index <= 0)
@@ -233,7 +245,7 @@ namespace Octopus.Cli.Commands.Runbooks
             var key = variable.Substring(0, index);
             var value = (index >= variable.Length - 1) ? string.Empty : variable.Substring(index + 1);
 
-            variables.Add(key, value);
+            Variables.Add(key, value);
         }
 
         public void PrintDefaultOutput()
@@ -242,7 +254,7 @@ namespace Octopus.Cli.Commands.Runbooks
 
         public void PrintJsonOutput()
         {
-            foreach (var run in runbookRuns)
+            foreach (var run in RunbookRuns)
             {
                 commandOutputProvider.Json(new
                 {
