@@ -121,7 +121,7 @@ namespace Octopus.Cli.Commands.Deployment
 
             commandOutputProvider.Debug("Loading dashboard...");
 
-            dashboard = await Repository.Dashboards.GetDynamicDashboard(projectsFilter, environmentsFilter).ConfigureAwait(false);
+            dashboard = await Repository.Dashboards.GetDynamicDashboard(projectsFilter, environmentsFilter, false).ConfigureAwait(false);
             tenantsById = dashboard.Tenants.ToDictionary(t => t.Id, t => t.Name);
 
             dashboardRelatedResourceses = new Dictionary<DashboardItemResource, DeploymentRelatedResources>();
