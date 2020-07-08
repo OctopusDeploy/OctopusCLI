@@ -46,7 +46,7 @@ namespace Octopus.Cli.Commands.Releases
 
             environment = await Repository.Environments.FindByNameOrIdOrFail(FromEnvironmentNameOrId).ConfigureAwait(false);
 
-            var dashboard = await Repository.Dashboards.GetDynamicDashboard(new[] {project.Id}, new[] {environment.Id}, true).ConfigureAwait(false);
+            var dashboard = await Repository.Dashboards.GetDynamicDashboard(new[] {project.Id}, new[] {environment.Id}, UseLatestSuccessfulRelease).ConfigureAwait(false);
             var dashboardItems = dashboard.Items
                 .Where(e => e.EnvironmentId == environment.Id && e.ProjectId == project.Id)
                 .OrderByDescending(i => SemanticVersion.Parse(i.ReleaseVersion));
