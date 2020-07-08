@@ -57,9 +57,9 @@ namespace Octopus.Cli.Commands.Releases
 
             if (dashboardItem == null)
             {
-                var deploymentType = UseLatestSuccessfulRelease ? "successful" : "";
+                var deploymentType = UseLatestSuccessfulRelease ? "successful " : "";
 
-                throw new CouldNotFindException($"latest {deploymentType} deployment of the project for this environment. Please check that a {deploymentType} deployment for this project/environment exists on the dashboard.");
+                throw new CouldNotFindException($"latest {deploymentType}deployment of the project for this environment. Please check that a {deploymentType} deployment for this project/environment exists on the dashboard.");
             }
 
             commandOutputProvider.Debug("Finding release details for release {Version:l}", dashboardItem.ReleaseVersion);
