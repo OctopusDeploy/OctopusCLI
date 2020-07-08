@@ -64,7 +64,7 @@ namespace Octo.Tests.Commands
 
             Repository.Releases.Get(Arg.Any<string>()).ReturnsForAnyArgs(new ReleaseResource { Version = "0.0.1" });
 
-            Repository.Dashboards.GetDynamicDashboard(Arg.Any<string[]>(), Arg.Any<string[]>(), Arg.Any<bool>()).ReturnsForAnyArgs(dashboardResources);
+            Repository.Dashboards.GetDynamicDashboard(Arg.Any<string[]>(), Arg.Any<string[]>()).ReturnsForAnyArgs(dashboardResources);
         }
 
         [Test]
