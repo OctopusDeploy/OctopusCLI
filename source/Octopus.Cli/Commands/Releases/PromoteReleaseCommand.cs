@@ -25,8 +25,10 @@ namespace Octopus.Cli.Commands.Releases
             options.Add<string>("from=", "Name or ID of the environment to get the current deployment from, e.g., 'Staging' or 'Environments-2'.", v => FromEnvironmentNameOrId = v);
             options.Add<string>("to=|deployTo=", "Name or ID of the environment to deploy to, e.g., 'Production' or 'Environments-1'.", v => DeployToEnvironmentNamesOrIds.Add(v));
             options.Add<bool>("updateVariables", "Overwrite the variable snapshot for the release by re-importing the variables from the project", v => UpdateVariableSnapshot = true);
+            options.Add<bool>("latestSuccessful", "Use the latest successful release to promote", v => UseLatestSuccessfulRelease = true);
         }
 
+        public bool UseLatestSuccessfulRelease { get; set; }
         public string FromEnvironmentNameOrId { get; set; }
         public bool UpdateVariableSnapshot { get; set; }
 
@@ -44,14 +46,24 @@ namespace Octopus.Cli.Commands.Releases
 
             environment = await Repository.Environments.FindByNameOrIdOrFail(FromEnvironmentNameOrId).ConfigureAwait(false);
 
-            var dashboard = await Repository.Dashboards.GetDynamicDashboard(new[] {project.Id}, new[] {environment.Id}).ConfigureAwait(false);
-            var dashboardItem = dashboard.Items.Where(e => e.EnvironmentId == environment.Id && e.ProjectId == project.Id)
-                .OrderByDescending(i => SemanticVersion.Parse(i.ReleaseVersion))
-                .FirstOrDefault();
+            var dashboardItemsOptions = UseLatestSuccessfulRelease
+                ? DashboardItemsOptions.IncludeCurrentAndPreviousSuccessfulDeployment
+                : DashboardItemsOptions.IncludeCurrentDeploymentOnly;
+
+            var dashboard = await Repository.Dashboards.GetDynamicDashboard(new[] {project.Id}, new[] {environment.Id}, dashboardItemsOptions).ConfigureAwait(false);
+            var dashboardItems = dashboard.Items
+                .Where(e => e.EnvironmentId == environment.Id && e.ProjectId == project.Id)
+                .OrderByDescending(i => SemanticVersion.Parse(i.ReleaseVersion));
+
+            var dashboardItem = UseLatestSuccessfulRelease
+                ? dashboardItems.FirstOrDefault(x => x.State == TaskState.Success)
+                : dashboardItems.FirstOrDefault();
 
             if (dashboardItem == null)
             {
-                throw new CouldNotFindException("latest deployment of the project for this environment. Please check that a deployment for this project/environment exists on the dashboard.");
+                var deploymentType = UseLatestSuccessfulRelease ? "successful " : "";
+
+                throw new CouldNotFindException($"latest {deploymentType}deployment of the project for this environment. Please check that a {deploymentType} deployment for this project/environment exists on the dashboard.");
             }
 
             commandOutputProvider.Debug("Finding release details for release {Version:l}", dashboardItem.ReleaseVersion);
