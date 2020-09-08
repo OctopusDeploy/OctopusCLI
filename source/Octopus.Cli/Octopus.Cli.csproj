@@ -5,6 +5,10 @@
     <TargetFrameworks Condition="$([MSBuild]::IsOSUnixLike())">netstandard2.0</TargetFrameworks>
     <Authors>Octopus Deploy</Authors>
     <Copyright>Octopus Deploy Pty Ltd</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/OctopusDeploy/OctopusCli</RepositoryUrl>
     <Description>Octopus Deploy is an automated release management tool for modern developers and DevOps teams.
 
       This package contains the .NET CLI library for interacting with the HTTP API in Octopus.</Description>
@@ -40,5 +44,7 @@
   <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(TargetFramework)', '^net\d'))">
   	<DefineConstants>NETFRAMEWORK</DefineConstants>
   </PropertyGroup>
-
+  <ItemGroup>
+    <None Include="icon.png" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 </Project>
