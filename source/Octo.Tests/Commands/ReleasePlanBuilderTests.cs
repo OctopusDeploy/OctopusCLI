@@ -307,11 +307,17 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void VersionControlledProject_ShouldGitReference()
+        public void VersionControlledProject_WithGitReference_ShouldBeViablePlan()
         {
             gitReference = "main";
             projectResource.IsVersionControlled = true;
+            var deploymentStepResource = ResourceBuilderHelpers.GetStep();
+            deploymentStepResource.Actions.Add(ResourceBuilderHelpers.GetAction().WithChannel(channelResource.Id));
+            deploymentProcessResource.Steps.Add(deploymentStepResource);
+
             var plan = ExecuteBuild();
+
+            plan.IsViableReleasePlan().Should().BeTrue();
         }
 
         [Test]
