@@ -11,6 +11,7 @@ using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Exceptions;
 using Octopus.Client.Model;
+using Octopus.Client.Model.VersionControl;
 using Serilog;
 using Serilog.Events;
 
@@ -33,6 +34,7 @@ namespace Octopus.Cli.Commands.Releases
             var options = Options.For("Release creation");
             options.Add<string>("project=", "Name or ID of the project", v => ProjectNameOrId = v);
             options.Add<string>("defaultPackageVersion=|packageVersion=", "Default version number of all packages to use for this release. Override per-package using --package.", versionResolver.Default);
+            options.Add<string>("ref=|gitRef=", "[Optional, Experimental] Git reference to use when creating the release.", v => GitReference = v);
             options.Add<string>("version=|releaseNumber=", "[Optional] Release number to use for the new release.", v => VersionNumber = v);
             options.Add<string>("channel=", "[Optional] Name or ID of the channel to use for the new release. Omit this argument to automatically select the best channel.", v => ChannelNameOrId = v);
             options.Add<string>("package=", "[Optional] Version number to use for a package in the release. Format: StepName:Version or PackageID:Version or StepName:PackageName:Version. StepName, PackageID, and PackageName can be replaced with an asterisk. An asterisk will be assumed for StepName, PackageID, or PackageName if they are omitted.", v => versionResolver.Add(v));
@@ -48,6 +50,7 @@ namespace Octopus.Cli.Commands.Releases
             options.Add<string>("deployTo=", "[Optional] Name or ID of the environment to automatically deploy to, e.g., 'Production' or 'Environments-1'; specify this argument multiple times to deploy to multiple environments.", v => DeployToEnvironmentNamesOrIds.Add(v));
         }
 
+        public string GitReference { get; set; }
         public string ChannelNameOrId { get; set; }
         public string VersionNumber { get; set; }
         public string ReleaseNotes { get; set; }
@@ -72,7 +75,6 @@ namespace Octopus.Cli.Commands.Releases
             project = await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
 
             plan = await BuildReleasePlan(project).ConfigureAwait(false);
-
 
             if (!string.IsNullOrWhiteSpace(VersionNumber))
             {
@@ -172,7 +174,11 @@ namespace Octopus.Cli.Commands.Releases
                 release = await Repository.Releases.Create(new ReleaseResource(versionNumber, project.Id, plan.Channel?.Id)
                     {
                         ReleaseNotes = ReleaseNotes,
-                        SelectedPackages = plan.GetSelections()
+                        SelectedPackages = plan.GetSelections(),
+                        VersionControlReferenceResource = new VersionControlReferenceResource
+                        {
+                            GitRef = GitReference
+                        }
                     }, ignoreChannelRules: IgnoreChannelRules)
                     .ConfigureAwait(false);
 
@@ -191,7 +197,7 @@ namespace Octopus.Cli.Commands.Releases
                 commandOutputProvider.Information("Building release plan for channel '{Channel:l}'...", ChannelNameOrId);
                 var matchingChannel = await Repository.Channels.FindByNameOrIdOrFail(project, ChannelNameOrId).ConfigureAwait(false);
 
-                return await releasePlanBuilder.Build(Repository, project, matchingChannel, VersionPreReleaseTag).ConfigureAwait(false);
+                return await releasePlanBuilder.Build(Repository, project, matchingChannel, VersionPreReleaseTag, GitReference).ConfigureAwait(false);
             }
 
             // All Octopus 3.2+ servers should have the Channels hypermedia link, we should use the channel information
@@ -204,7 +210,7 @@ namespace Octopus.Cli.Commands.Releases
 
             // Compatibility: this has to cater for Octopus before Channels existed
             commandOutputProvider.Information("Building release plan without a channel for Octopus Server without channels support...");
-            return await releasePlanBuilder.Build(Repository, project, null, VersionPreReleaseTag).ConfigureAwait(false);
+            return await releasePlanBuilder.Build(Repository, project, null, VersionPreReleaseTag, GitReference).ConfigureAwait(false);
         }
 
         private Task<bool> ServerSupportsChannels()
@@ -222,7 +228,7 @@ namespace Octopus.Cli.Commands.Releases
             {
                 commandOutputProvider.Information("Building a release plan for Channel '{Channel:l}'...", channel.Name);
 
-                var plan = await releasePlanBuilder.Build(Repository, project, channel, VersionPreReleaseTag).ConfigureAwait(false);
+                var plan = await releasePlanBuilder.Build(Repository, project, channel, VersionPreReleaseTag, GitReference).ConfigureAwait(false);
                 releasePlans.Add(plan);
                 if (plan.ChannelHasAnyEnabledSteps() == false)
                 {

@@ -13,6 +13,11 @@ namespace Octopus.Cli.Commands.Releases
 {
     public class ReleasePlanBuilder : IReleasePlanBuilder
     {
+        public const string GitReferenceMissingForVersionControlledProjectErrorMessage =
+            "Attempting to create a release for a version controlled project, but no git reference has been provided. Use the gitRef parameter to supply a git reference.";
+
+        public static string GitReferenceSuppliedForDatabaseProjectErrorMessage(string gitReference) =>
+            $"Attempting to create a release from version control because the git reference {gitReference} was provided. The selected project is not a version controlled project.";
         private readonly IPackageVersionResolver versionResolver;
         private readonly IChannelVersionRuleTester versionRuleTester;
         private readonly ICommandOutputProvider commandOutputProvider;
@@ -24,54 +29,122 @@ namespace Octopus.Cli.Commands.Releases
             this.commandOutputProvider = commandOutputProvider;
         }
 
-        public async Task<ReleasePlan> Build(IOctopusAsyncRepository repository, ProjectResource project, ChannelResource channel, string versionPreReleaseTag)
+        public async Task<ReleasePlan> Build(IOctopusAsyncRepository repository, ProjectResource project,
+            ChannelResource channel, string versionPreReleaseTag, string gitReference)
+        {
+            return string.IsNullOrWhiteSpace(gitReference)
+                ? await BuildReleaseFromDatabase(repository, project, channel, versionPreReleaseTag)
+                : await BuildReleaseFromVersionControl(repository, project, channel, versionPreReleaseTag, gitReference);
+        }
+
+        async Task<ReleasePlan> BuildReleaseFromVersionControl(IOctopusAsyncRepository repository, ProjectResource project,
+            ChannelResource channel, string versionPreReleaseTag, string gitReference)
         {
             if (repository == null) throw new ArgumentNullException(nameof(repository));
             if (project == null) throw new ArgumentNullException(nameof(project));
+            if (!project.IsVersionControlled)
+            {
+                throw new CommandException(GitReferenceSuppliedForDatabaseProjectErrorMessage(gitReference));
+            }
+            commandOutputProvider.Debug($"Finding deployment process at git reference {gitReference}...");
+            var deploymentProcess = await repository.DeploymentProcesses.Beta().Get(project, gitReference);
+            if (deploymentProcess == null)
+            {
+                throw new CouldNotFindException(
+                    $"a deployment process for project {project.Name} and git reference {gitReference}");
+            }
+
+            commandOutputProvider.Debug($"Finding release template at git reference {gitReference}...");
+            var releaseTemplate = await repository.DeploymentProcesses.GetTemplate(deploymentProcess, channel).ConfigureAwait(false);
+            if (releaseTemplate == null)
+            {
+                throw new CouldNotFindException(
+                    $"a release template for project {project.Name}, channel {channel.Name} and git reference {gitReference}");
+            }
+
+
+            return await Build(repository, project, channel, versionPreReleaseTag, releaseTemplate, deploymentProcess);
+        }
+
+        async Task<ReleasePlan> BuildReleaseFromDatabase(IOctopusAsyncRepository repository, ProjectResource project, ChannelResource channel, string versionPreReleaseTag)
+        {
+            if (repository == null) throw new ArgumentNullException(nameof(repository));
+            if (project == null) throw new ArgumentNullException(nameof(project));
+            if (project.IsVersionControlled)
+            {
+                throw new CommandException(GitReferenceMissingForVersionControlledProjectErrorMessage);
+            }
 
             commandOutputProvider.Debug("Finding deployment process...");
             var deploymentProcess = await repository.DeploymentProcesses.Get(project.DeploymentProcessId).ConfigureAwait(false);
+            if (deploymentProcess == null)
+            {
+                throw new CouldNotFindException(
+                    $"a deployment process for project {project.Name}");
+            }
+
 
             commandOutputProvider.Debug("Finding release template...");
             var releaseTemplate = await repository.DeploymentProcesses.GetTemplate(deploymentProcess, channel).ConfigureAwait(false);
+            if (releaseTemplate == null)
+            {
+                throw new CouldNotFindException(
+                    $"a release template for project {project.Name} and channel {channel.Name}");
+            }
 
+            return await Build(repository, project, channel, versionPreReleaseTag, releaseTemplate, deploymentProcess);
+        }
+
+        private async Task<ReleasePlan> Build(IOctopusAsyncRepository repository, ProjectResource project, ChannelResource channel,
+            string versionPreReleaseTag, ReleaseTemplateResource releaseTemplate, DeploymentProcessResource deploymentProcess)
+        {
             var plan = new ReleasePlan(project, channel, releaseTemplate, deploymentProcess, versionResolver);
 
             if (plan.UnresolvedSteps.Any())
             {
-                commandOutputProvider.Debug("The package version for some steps was not specified. Going to try and resolve those automatically...");
+                commandOutputProvider.Debug(
+                    "The package version for some steps was not specified. Going to try and resolve those automatically...");
                 foreach (var unresolved in plan.UnresolvedSteps)
                 {
                     if (!unresolved.IsResolveable)
                     {
-                        commandOutputProvider.Error("The version number for step '{Step:l}' cannot be automatically resolved because the feed or package ID is dynamic.", unresolved.ActionName);
+                        commandOutputProvider.Error(
+                            "The version number for step '{Step:l}' cannot be automatically resolved because the feed or package ID is dynamic.",
+                            unresolved.ActionName);
                         continue;
                     }
 
                     if (!string.IsNullOrEmpty(versionPreReleaseTag))
-                        commandOutputProvider.Debug("Finding latest package with pre-release '{Tag:l}' for step: {StepName:l}", versionPreReleaseTag, unresolved.ActionName);
+                        commandOutputProvider.Debug("Finding latest package with pre-release '{Tag:l}' for step: {StepName:l}",
+                            versionPreReleaseTag, unresolved.ActionName);
                     else
                         commandOutputProvider.Debug("Finding latest package for step: {StepName:l}", unresolved.ActionName);
 
                     var feed = await repository.Feeds.Get(unresolved.PackageFeedId).ConfigureAwait(false);
                     if (feed == null)
-                        throw new CommandException(string.Format("Could not find a feed with ID {0}, which is used by step: " + unresolved.ActionName, unresolved.PackageFeedId));
+                        throw new CommandException(string.Format(
+                            "Could not find a feed with ID {0}, which is used by step: " + unresolved.ActionName,
+                            unresolved.PackageFeedId));
 
                     var filters = BuildChannelVersionFilters(unresolved.ActionName, unresolved.PackageReferenceName, channel);
                     filters["packageId"] = unresolved.PackageId;
                     if (!string.IsNullOrWhiteSpace(versionPreReleaseTag))
                         filters["preReleaseTag"] = versionPreReleaseTag;
 
-                    var packages = await repository.Client.Get<List<PackageResource>>(feed.Link("SearchTemplate"), filters).ConfigureAwait(false);
+                    var packages = await repository.Client.Get<List<PackageResource>>(feed.Link("SearchTemplate"), filters)
+                        .ConfigureAwait(false);
                     var latestPackage = packages.FirstOrDefault();
 
                     if (latestPackage == null)
                     {
-                        commandOutputProvider.Error("Could not find any packages with ID '{PackageId:l}' in the feed '{FeedUri:l}'", unresolved.PackageId, feed.Name);
+                        commandOutputProvider.Error(
+                            "Could not find any packages with ID '{PackageId:l}' in the feed '{FeedUri:l}'",
+                            unresolved.PackageId, feed.Name);
                     }
                     else
                     {
-                        commandOutputProvider.Debug("Selected '{PackageId:l}' version '{Version:l}' for '{StepName:l}'", latestPackage.PackageId, latestPackage.Version, unresolved.ActionName);
+                        commandOutputProvider.Debug("Selected '{PackageId:l}' version '{Version:l}' for '{StepName:l}'",
+                            latestPackage.PackageId, latestPackage.Version, unresolved.ActionName);
                         unresolved.SetVersionFromLatest(latestPackage.Version);
                     }
                 }
@@ -83,7 +156,9 @@ namespace Octopus.Cli.Commands.Releases
                 foreach (var step in plan.PackageSteps)
                 {
                     // Note the rule can be null, meaning: anything goes
-                    var rule = channel.Rules.SingleOrDefault(r => r.ActionPackages.Any(pkg => pkg.DeploymentActionNameMatches(step.ActionName) && pkg.PackageReferenceNameMatches(step.PackageReferenceName)));
+                    var rule = channel.Rules.SingleOrDefault(r => r.ActionPackages.Any(pkg =>
+                        pkg.DeploymentActionNameMatches(step.ActionName) &&
+                        pkg.PackageReferenceNameMatches(step.PackageReferenceName)));
                     var result = await versionRuleTester.Test(repository, rule, step.Version).ConfigureAwait(false);
                     step.SetChannelVersionRuleTestResult(result);
                 }
@@ -91,7 +166,6 @@ namespace Octopus.Cli.Commands.Releases
 
             return plan;
         }
-
         IDictionary<string, object> BuildChannelVersionFilters(string stepName, string packageReferenceName, ChannelResource channel)
         {
             var filters = new Dictionary<string, object>();
