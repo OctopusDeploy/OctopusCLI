@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -175,7 +175,7 @@ namespace Octopus.Cli.Commands.Releases
                     {
                         ReleaseNotes = ReleaseNotes,
                         SelectedPackages = plan.GetSelections(),
-                        VersionControlReferenceResource = new VersionControlReferenceResource
+                        VersionControlReference = new VersionControlReferenceResource
                         {
                             GitRef = GitReference
                         }
