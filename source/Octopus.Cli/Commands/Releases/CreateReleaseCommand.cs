@@ -183,7 +183,7 @@ namespace Octopus.Cli.Commands.Releases
                     .ConfigureAwait(false);
 
                 commandOutputProvider.Information("Release {Version:l} created successfully!", release.Version);
-                if (!string.IsNullOrEmpty(release.VersionControlReference.GitCommit))
+                if (!string.IsNullOrEmpty(release.VersionControlReference?.GitCommit))
                 {
                     commandOutputProvider.Information("Release created from commit {Commit:l} of git reference {GitRef:l}.", release.VersionControlReference.GitCommit, release.VersionControlReference.GitRef);
                 }
