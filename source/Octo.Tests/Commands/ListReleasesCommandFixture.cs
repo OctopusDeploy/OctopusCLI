@@ -17,6 +17,7 @@ namespace Octo.Tests.Commands
     public class ListReleasesCommandFixture : ApiCommandFixtureBase
     {
         ListReleasesCommand listReleasesCommand;
+        const string VersionControlledProjectId = "Projects-3";
 
         [SetUp]
         public void SetUp()
@@ -27,12 +28,11 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldGetListOfReleases()
         {
-            const string versionControlledProjectId = "Projects-3";
             Repository.Projects.FindByNames(Arg.Any<IEnumerable<string>>()).Returns(new List<ProjectResource>
             {
                 new ProjectResource {Name = "ProjectA", Id = "projectaid"},
                 new ProjectResource {Name = "ProjectB", Id = "projectbid"},
-                new ProjectResource {Name = "Version controlled project", Id = versionControlledProjectId}
+                new ProjectResource {Name = "Version controlled project", Id = VersionControlledProjectId}
             });
 
             Repository.Releases.FindMany(Arg.Any<Func<ReleaseResource, bool>>()).Returns(new List<ReleaseResource>
@@ -57,7 +57,7 @@ namespace Octo.Tests.Commands
                 },
                 new ReleaseResource
                 {
-                    ProjectId = versionControlledProjectId,
+                    ProjectId = VersionControlledProjectId,
                     Version = "1.2.3",
                     Assembled = DateTimeOffset.MaxValue,
                     ReleaseNotes = "Version controlled release notes",
@@ -82,7 +82,8 @@ namespace Octo.Tests.Commands
             Repository.Projects.FindByNames(Arg.Any<IEnumerable<string>>()).Returns(new List<ProjectResource>
             {
                 new ProjectResource {Name = "ProjectA", Id = "projectaid"},
-                new ProjectResource {Name = "ProjectB", Id = "projectbid"}
+                new ProjectResource {Name = "ProjectB", Id = "projectbid"},
+                new ProjectResource {Name = "Version controlled project", Id = VersionControlledProjectId}
             });
 
             Repository.Releases.FindMany(Arg.Any<Func<ReleaseResource, bool>>()).Returns(new List<ReleaseResource>
@@ -100,6 +101,18 @@ namespace Octo.Tests.Commands
                     Version = "2.0",
                     Assembled = DateTimeOffset.MaxValue,
                     ReleaseNotes = "Release Notes 2"
+                },
+                new ReleaseResource
+                {
+                    ProjectId = VersionControlledProjectId,
+                    Version = "1.2.3",
+                    Assembled = DateTimeOffset.MaxValue,
+                    ReleaseNotes = "Version controlled release notes",
+                    VersionControlReference = new VersionControlReferenceResource
+                    {
+                        GitCommit = "87a072ad2b4a2e9bf2d7ff84d8636a032786394d",
+                        GitRef = "main"
+                    }
                 }
             });
 
@@ -108,13 +121,7 @@ namespace Octo.Tests.Commands
 
             await listReleasesCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
-            var logoutput = LogOutput.ToString();
-            Console.WriteLine(logoutput);
-            JsonConvert.DeserializeObject(logoutput);
-            logoutput.Should().Contain("ProjectA");
-            logoutput.Should().Contain("1.0");
-            logoutput.Should().Contain("2.0");
-
+            this.Assent(LogOutput.ToString().ScrubApprovalString());
         }
     }
 }
