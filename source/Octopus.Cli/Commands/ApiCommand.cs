@@ -303,13 +303,23 @@ namespace Octopus.Cli.Commands
 
         protected static IEnumerable<string> FormatReleasePropertiesAsStrings(ReleaseResource release)
         {
-            return new List<string>
+            var releaseProperties = new List<string>
             {
                 "Version: " + release.Version,
                 "Assembled: " + release.Assembled,
                 "Package Versions: " + GetPackageVersionsAsString(release.SelectedPackages),
                 "Release Notes: " + GetReleaseNotes(release)
             };
+            if (!string.IsNullOrEmpty(release.VersionControlReference?.GitRef))
+            {
+                releaseProperties.Add("Git Reference: " + release.VersionControlReference.GitRef);
+            }
+            if (!string.IsNullOrEmpty(release.VersionControlReference?.GitCommit))
+            {
+                releaseProperties.Add("Git Commit: " + release.VersionControlReference.GitCommit);
+            }
+
+            return releaseProperties;
         }
 
         protected static string GetReleaseNotes(ReleaseResource release)
