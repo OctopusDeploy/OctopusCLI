@@ -5,6 +5,7 @@ using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
 using Octopus.Cli.Commands.Releases;
+using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Model;
 using Octopus.Cli.Util;
 using Octopus.Client;
@@ -24,6 +25,7 @@ namespace Octo.Tests.Commands
         private IChannelVersionRuleTester versionRuleTester;
         private IOctopusAsyncRepository repository;
         private IDeploymentProcessRepository deploymentProcessRepository;
+        private IDeploymentProcessRepositoryBeta deploymentProcessRepositoryBeta;
         private IReleaseRepository releaseRepository;
         private IFeedRepository feedRepository;
         private ICommandOutputProvider commandOutputProvider;
@@ -37,6 +39,7 @@ namespace Octo.Tests.Commands
         private ChannelVersionRuleTestResult channelVersionRuleTestResult = new ChannelVersionRuleTestResult();
         private FeedResource feedResource;
         private List<PackageResource> packages = new List<PackageResource>();
+        private string gitReference;
 
         [SetUp]
         public void Setup()
@@ -89,18 +92,24 @@ namespace Octo.Tests.Commands
                 .Test(Arg.Any<IOctopusAsyncRepository>(), Arg.Any<ChannelVersionRuleResource>(), Arg.Any<string>())
                 .Returns(Task.FromResult(channelVersionRuleTestResult));
 
+            deploymentProcessRepositoryBeta = Substitute.For<IDeploymentProcessRepositoryBeta>();
+            deploymentProcessRepositoryBeta.Get(projectResource, Arg.Any<string>())
+                .Returns(Task.FromResult(deploymentProcessResource));
+
             releaseRepository = Substitute.For<IReleaseRepository>();
             feedRepository = Substitute.For<IFeedRepository>();
             feedRepository.Get(Arg.Any<string>()).Returns(feedResource);
 
             repository = Substitute.For<IOctopusAsyncRepository>();
             repository.DeploymentProcesses.Returns(deploymentProcessRepository);
+            repository.DeploymentProcesses.Beta().Returns(deploymentProcessRepositoryBeta);
             repository.Releases.Returns(releaseRepository);
             repository.Feeds.Returns(feedRepository);
             repository.Client
                 .Get<List<PackageResource>>(Arg.Any<string>(), Arg.Any<IDictionary<string, object>>()).Returns(packages);
 
             builder = new ReleasePlanBuilder(logger, versionResolver, versionRuleTester, commandOutputProvider);
+            gitReference = null;
         }
 
         [Test]
@@ -183,7 +192,7 @@ namespace Octo.Tests.Commands
             deploymentProcessResource.Steps.Add(deploymentStepResource);
 
             releaseTemplateResource.Packages.Add(GetReleaseTemplatePackage().WithPackage().WithVersion("1.0.0", versionResolver));
-            channelVersionRuleTestResult.IsSatified();
+            channelVersionRuleTestResult.IsSatisfied();
 
 
             // act
@@ -277,7 +286,7 @@ namespace Octo.Tests.Commands
             packages.Add(new PackageResource { Version = "1.0.1"});
 
             releaseTemplateResource.Packages.Add(new ReleaseTemplatePackage{ActionName = action.Name, PackageReferenceName = "Acme", IsResolvable = true});
-            channelVersionRuleTestResult.IsSatified();
+            channelVersionRuleTestResult.IsSatisfied();
             
             repository.Client
                 .Get<List<PackageResource>>(Arg.Any<string>(), Arg.Is<IDictionary<string, object>>(d => d.ContainsKey("versionRange") && (string)d["versionRange"] == "(,1.0)")).Returns(new List<PackageResource>());
@@ -287,6 +296,37 @@ namespace Octo.Tests.Commands
 
             // assert
             plan.IsViableReleasePlan().Should().BeFalse();
+        }
+
+        [Test]
+        public void VersionedControlledProject_ShouldRequireGitReference()
+        {
+            projectResource.IsVersionControlled = true;
+            var ex = Assert.ThrowsAsync<CommandException>(ExecuteBuildAsync);
+            ex.Message.Should().Be(ReleasePlanBuilder.GitReferenceMissingForVersionControlledProjectErrorMessage);
+        }
+
+        [Test]
+        public void VersionControlledProject_WithGitReference_ShouldBeViablePlan()
+        {
+            gitReference = "main";
+            projectResource.IsVersionControlled = true;
+            var deploymentStepResource = ResourceBuilderHelpers.GetStep();
+            deploymentStepResource.Actions.Add(ResourceBuilderHelpers.GetAction().WithChannel(channelResource.Id));
+            deploymentProcessResource.Steps.Add(deploymentStepResource);
+
+            var plan = ExecuteBuild();
+
+            plan.IsViableReleasePlan().Should().BeTrue();
+        }
+
+        [Test]
+        public void DatabaseProject_ShouldRejectGitReference()
+        {
+            projectResource.IsVersionControlled = false;
+            gitReference = "main";
+            var ex = Assert.ThrowsAsync<CommandException>(ExecuteBuildAsync);
+            ex.Message.Should().Be(ReleasePlanBuilder.GitReferenceSuppliedForDatabaseProjectErrorMessage(gitReference));
         }
 
         private static ReleaseTemplatePackage GetReleaseTemplatePackage()
@@ -305,7 +345,7 @@ namespace Octo.Tests.Commands
 
         private async Task<ReleasePlan> ExecuteBuildAsync()
         {
-            return await builder.Build(repository, projectResource, channelResource, versionPreReleaseTag: string.Empty);
+            return await builder.Build(repository, projectResource, channelResource, string.Empty, gitReference);
         }
     }
 
@@ -358,7 +398,7 @@ namespace Octo.Tests.Commands
             return releaseTemplatePackage;
         }
 
-        public static ChannelVersionRuleTestResult IsSatified(this ChannelVersionRuleTestResult versionRuleTestResult)
+        public static ChannelVersionRuleTestResult IsSatisfied(this ChannelVersionRuleTestResult versionRuleTestResult)
         {
             versionRuleTestResult.SatisfiesPreReleaseTag = true;
             versionRuleTestResult.SatisfiesVersionRange = true;

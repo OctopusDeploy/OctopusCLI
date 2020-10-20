@@ -32,6 +32,7 @@ var signingCertificatePassword = Argument("signing_certificate_password", "");
 var publishDir = "./publish";
 var artifactsDir = "./artifacts";
 var assetDir = "./BuildAssets";
+var linuxPackageFeedsDir = "./linux-package-feeds";
 var localPackagesDir = "../LocalPackages";
 var globalAssemblyFile = "./source/Octo/Properties/AssemblyInfo.cs";
 var projectToPublish = "./source/Octo/Octo.csproj";
@@ -132,7 +133,7 @@ Task("DotnetPublish")
 {
     DotNetCorePublish(projectToPublish, new DotNetCorePublishSettings
     {
-        Framework = "net451",
+        Framework = "net452",
         Configuration = configuration,
         OutputDirectory = $"{octoPublishFolder}/netfx",
         ArgumentCustomization = args => args.Append($"/p:Version={nugetVersion}")
@@ -232,6 +233,7 @@ Task("PackOctopusToolsNuget")
         var nuspecFile = "OctopusTools.nuspec";
 
         CopyDirectory($"{octoPublishFolder}/win-x64", nugetPackDir);
+        CopyFileToDirectory($"{assetDir}/icon.png", nugetPackDir);
         CopyFileToDirectory($"{assetDir}/LICENSE.txt", nugetPackDir);
         CopyFileToDirectory($"{assetDir}/VERIFICATION.txt", nugetPackDir);
         CopyFileToDirectory($"{assetDir}/init.ps1", nugetPackDir);
@@ -339,8 +341,20 @@ Task("BuildDockerImage")
 
 Task("CreateLinuxPackages")
     .IsDependentOn("AssertLinuxSelfContainedArtifactsExists")
-    .Does(() =>
+    .Does(context =>
 {
+    if (string.IsNullOrEmpty(context.EnvironmentVariable("SIGN_PRIVATE_KEY"))
+        || string.IsNullOrEmpty(context.EnvironmentVariable("SIGN_PASSPHRASE"))) {
+        throw new Exception("This build requires environment variables `SIGN_PRIVATE_KEY` (in a format gpg1 can import)"
+            + " and `SIGN_PASSPHRASE`, which are used to sign the .rpm.");
+    }
+    if (!context.DirectoryExists(linuxPackageFeedsDir)) {
+        throw new Exception($"This build requires `{linuxPackageFeedsDir}` to contain scripts from https://github.com/OctopusDeploy/linux-package-feeds.\n"
+            + "They are usually added as an Artifact Dependency in TeamCity from 'Infrastructure / Linux Package Feeds' with the rule:\n"
+            + "  LinuxPackageFeedsTools.*.zip!*=>linux-package-feeds\n"
+            + "See https://build.octopushq.com/admin/editDependencies.html?id=buildType:OctopusDeploy_OctopusCLI_BuildLinuxContainer");
+    }
+
     UnTarGZip(
         artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.tar.gz",
         artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.extracted");
@@ -350,32 +364,34 @@ Task("CreateLinuxPackages")
         Tty = true,
         Env = new string[] { 
             $"VERSION={nugetVersion}",
-            "OCTOPUSCLI_BINARIES=/app/",
-            "OUT_PATH=/out"
+            $"BINARIES_PATH=/artifacts/OctopusTools.{nugetVersion}.linux-x64.extracted/",
+            "PACKAGES_PATH=/artifacts",
+            "SIGN_PRIVATE_KEY",
+            "SIGN_PASSPHRASE"
         },
         Volume = new string[] { 
-            $"{Environment.CurrentDirectory}/BuildAssets:/build",
-            $"{Environment.CurrentDirectory}/artifacts/OctopusTools.{nugetVersion}.linux-x64.extracted:/app",
-            $"{Environment.CurrentDirectory}/artifacts:/out"
+            System.IO.Path.Combine(Environment.CurrentDirectory, assetDir) + ":/BuildAssets",
+            System.IO.Path.Combine(Environment.CurrentDirectory, linuxPackageFeedsDir) + ":/opt/linux-package-feeds",
+            System.IO.Path.Combine(Environment.CurrentDirectory, artifactsDir) + ":/artifacts"
         }
-    }, "octopusdeploy/bionic-fpm:latest", "bash /build/create-linux-packages.sh");
-    
+    }, "octopusdeploy/package-linux-docker:latest", "bash /BuildAssets/create-octopuscli-linux-packages.sh");
+
     DeleteDirectory(artifactsDir + $"/OctopusTools.{nugetVersion}.linux-x64.extracted", new DeleteDirectorySettings { Recursive = true, Force = true });
  
-    CreateDirectory($"{artifactsDir}/linuxpackages");
-    MoveFiles(GetFiles($"{artifactsDir}/*.deb"), $"{artifactsDir}/linuxpackages");
-    MoveFiles(GetFiles($"{artifactsDir}/*.rpm"), $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/test-linux-packages.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/publish-apt.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/publish-rpm.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-apt.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-apt-dists.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-rpm.sh", $"{artifactsDir}/linuxpackages");
-    CopyFileToDirectory($"{assetDir}/repos/test-rpm-dists.sh", $"{artifactsDir}/linuxpackages");
-    TarGzip($"{artifactsDir}/linuxpackages", $"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}");
+    var linuxPackagesDir = $"{artifactsDir}/linuxpackages";
+    CreateDirectory(linuxPackagesDir);
+    MoveFiles(GetFiles($"{artifactsDir}/*.deb"), linuxPackagesDir);
+    MoveFiles(GetFiles($"{artifactsDir}/*.rpm"), linuxPackagesDir);
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-apt.sh", linuxPackagesDir);
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/publish-rpm.sh", linuxPackagesDir);
+    CopyFileToDirectory($"{assetDir}/repos/test-linux-package-from-feed-in-dists.sh", linuxPackagesDir);
+    CopyFileToDirectory($"{assetDir}/repos/test-linux-package-from-feed.sh", linuxPackagesDir);
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/test-env-docker-images.conf", linuxPackagesDir);
+    CopyFileToDirectory($"{linuxPackageFeedsDir}/install-linux-feed-package.sh", linuxPackagesDir);
+    Zip(linuxPackagesDir, $"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}.zip");
     var buildSystem = BuildSystemAliases.BuildSystem(Context);
-    buildSystem.TeamCity.PublishArtifacts($"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}.tar.gz");
-    DeleteDirectory($"{artifactsDir}/linuxpackages", new DeleteDirectorySettings { Recursive = true, Force = true });
+    buildSystem.TeamCity.PublishArtifacts($"{artifactsDir}/OctopusTools.Packages.linux-x64.{nugetVersion}.zip");
+    DeleteDirectory(linuxPackagesDir, new DeleteDirectorySettings { Recursive = true, Force = true });
 });
 
 Task("CreateDockerContainerAndLinuxPackages")
@@ -434,12 +450,17 @@ private void UnTarGZip(string path, string destination)
         using (var gzipReader = GZipReader.Open(packageStream))
         {
             gzipReader.MoveToNextEntry();
-            using (var compressionStream = (Stream) gzipReader.OpenEntryStream())
+            using (var compressionStream = gzipReader.OpenEntryStream())
             {
-                using (var reader = (IReader) TarReader.Open(compressionStream))
+                using (var reader = TarReader.Open(compressionStream))
                 {
                     while (reader.MoveToNextEntry())
                     {
+                        var entryDestination = System.IO.Path.Combine(destination, reader.Entry.Key);
+                        if (IsRunningOnWindows() && System.IO.File.Exists(entryDestination)) {
+                             // In Windows, remove existing files before overwrite, to prevent existing filename case sticking
+                            System.IO.File.Delete(entryDestination);
+                        }
                         reader.WriteEntryToDirectory(destination, new ExtractionOptions {ExtractFullPath = true, Overwrite = true});
                     }
                 }

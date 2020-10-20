@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks Condition="!$([MSBuild]::IsOSUnixLike())">net451;netcoreapp2.0;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks Condition="!$([MSBuild]::IsOSUnixLike())">net452;netcoreapp2.0;netcoreapp3.1</TargetFrameworks>
     <TargetFrameworks Condition="$([MSBuild]::IsOSUnixLike())">netcoreapp2.0;netcoreapp3.1</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>portable</DebugType>
@@ -21,7 +21,7 @@
     <RuntimeIdentifiers>win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net452' ">
     <PlatformTarget>anycpu32bitpreferred</PlatformTarget>
   </PropertyGroup>
 

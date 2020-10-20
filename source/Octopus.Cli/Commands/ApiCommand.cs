@@ -60,8 +60,8 @@ namespace Octopus.Cli.Commands
 
             var options = Options.For("Common options");
             options.Add<string>("server=", $"[Optional] The base URL for your Octopus Server, e.g., 'https://octopus.example.com/'. This URL can also be set in the {ServerUrlEnvVar} environment variable.", v => serverBaseUrl = v);
-            options.Add<string>("apiKey=", $"[Optional] Your API key. Get this from the user profile page. Your must provide an apiKey or username and password. If the guest account is enabled, a key of API-GUEST can be used. This key can also be set in the {ApiKeyEnvVar} environment variable.", v => apiKey = v, sensitive: true);
-            options.Add<string>("user=", $"[Optional] Username to use when authenticating with the server. Your must provide an apiKey or username and password. This Username can also be set in the {UsernameEnvVar} environment variable.", v => username = v);
+            options.Add<string>("apiKey=", $"[Optional] Your API key. Get this from the user profile page. You must provide an apiKey or username and password. If the guest account is enabled, a key of API-GUEST can be used. This key can also be set in the {ApiKeyEnvVar} environment variable.", v => apiKey = v, sensitive: true);
+            options.Add<string>("user=", $"[Optional] Username to use when authenticating with the server. You must provide an apiKey or username and password. This Username can also be set in the {UsernameEnvVar} environment variable.", v => username = v);
             options.Add<string>("pass=", $"[Optional] Password to use when authenticating with the server. This Password can also be set in the {PasswordEnvVar} environment variable.", v => password = v, sensitive: true);
 
             options.Add<string>("configFile=", "[Optional] Text file of default values, with one 'key = value' per line.", v => ReadAdditionalInputsFromConfigurationFile(v));
@@ -141,7 +141,7 @@ namespace Octopus.Cli.Commands
             var endpoint = string.IsNullOrWhiteSpace(ApiKey)
                 ? new OctopusServerEndpoint(ServerBaseUrl)
                 : new OctopusServerEndpoint(ServerBaseUrl, ApiKey);
-            
+
 #if NETFRAMEWORK
             /*
              * There may be a delay between the completion of a large file upload and when Octopus responds
@@ -301,22 +301,25 @@ namespace Octopus.Cli.Commands
             return results;
         }
 
-        protected string GetPortalUrl(string path)
-        {
-            if (!path.StartsWith("/")) path = '/' + path;
-            var uri = new Uri(ServerBaseUrl + path);
-            return uri.AbsoluteUri;
-        }
-
         protected static IEnumerable<string> FormatReleasePropertiesAsStrings(ReleaseResource release)
         {
-            return new List<string>
+            var releaseProperties = new List<string>
             {
                 "Version: " + release.Version,
                 "Assembled: " + release.Assembled,
                 "Package Versions: " + GetPackageVersionsAsString(release.SelectedPackages),
                 "Release Notes: " + GetReleaseNotes(release)
             };
+            if (!string.IsNullOrEmpty(release.VersionControlReference?.GitRef))
+            {
+                releaseProperties.Add("Git Reference: " + release.VersionControlReference.GitRef);
+            }
+            if (!string.IsNullOrEmpty(release.VersionControlReference?.GitCommit))
+            {
+                releaseProperties.Add("Git Commit: " + release.VersionControlReference.GitCommit);
+            }
+
+            return releaseProperties;
         }
 
         protected static string GetReleaseNotes(ReleaseResource release)

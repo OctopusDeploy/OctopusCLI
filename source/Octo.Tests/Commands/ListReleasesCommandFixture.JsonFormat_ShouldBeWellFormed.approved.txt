@@ -1,0 +1,49 @@
+[
+  {
+    "Project": {
+      "Id": "projectaid",
+      "Name": "ProjectA"
+    },
+    "Releases": [
+      {
+        "Version": "1.0",
+        "Assembled": "0001-01-01T00:00:00.000+00:00",
+        "PackageVersions": "",
+        "ReleaseNotes": "Release Notes 1",
+        "GitReference": null,
+        "GitCommit": null
+      },
+      {
+        "Version": "2.0",
+        "Assembled": "9999-12-31T23:59:59.999+00:00",
+        "PackageVersions": "",
+        "ReleaseNotes": "Release Notes 2",
+        "GitReference": null,
+        "GitCommit": null
+      }
+    ]
+  },
+  {
+    "Project": {
+      "Id": "projectbid",
+      "Name": "ProjectB"
+    },
+    "Releases": []
+  },
+  {
+    "Project": {
+      "Id": "Projects-3",
+      "Name": "Version controlled project"
+    },
+    "Releases": [
+      {
+        "Version": "1.2.3",
+        "Assembled": "9999-12-31T23:59:59.999+00:00",
+        "PackageVersions": "",
+        "ReleaseNotes": "Version controlled release notes",
+        "GitReference": "main",
+        "GitCommit": "87a072ad2b4a2e9bf2d7ff84d8636a032786394d"
+      }
+    ]
+  }
+]

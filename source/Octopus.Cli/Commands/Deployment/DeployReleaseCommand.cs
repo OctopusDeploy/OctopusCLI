@@ -17,8 +17,8 @@ namespace Octopus.Cli.Commands.Deployment
         ChannelResource channel;
         ReleaseResource releaseToPromote;
 
-        public DeployReleaseCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
-            : base(repositoryFactory, fileSystem, clientFactory, commandOutputProvider)
+        public DeployReleaseCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider, ExecutionResourceWaiter.Factory executionResourceWaiterFactory)
+            : base(repositoryFactory, fileSystem, clientFactory, commandOutputProvider, executionResourceWaiterFactory)
         {
             var options = Options.For("Deployment");
             options.Add<string>("project=", "Name or ID of the project", v => ProjectNameOrId = v);
@@ -61,7 +61,7 @@ namespace Octopus.Cli.Commands.Deployment
 
         public void PrintDefaultOutput()
         {
-            
+
         }
 
         public void PrintJsonOutput()
