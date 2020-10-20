@@ -63,7 +63,8 @@ namespace Octopus.Cli.Commands.Runbooks
 
             options.Add<string>("environment=",
                 "Name or ID of the environment to run in, e.g ., 'Production' or 'Environments-1'; specify this argument multiple times to run in multiple environments.",
-                v => EnvironmentNamesOrIds.Add(v));
+                v => EnvironmentNamesOrIds.Add(v),
+                allowsMultiple: true);
 
             options.Add<string>("snapshot=",
                 "[Optional] Name or ID of the snapshot to run. If not supplied, the command will attempt to use the published snapshot.",
@@ -80,22 +81,29 @@ namespace Octopus.Cli.Commands.Runbooks
             options.Add<string>("specificMachines=",
                 "[Optional] A comma-separated list of machine names to target in the specified environment/s. If not specified all machines in the environment will be considered.",
                 v => IncludedMachineIds.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(m => m.Trim())));
+                    .Select(m => m.Trim())),
+                allowsMultiple: true);
 
             options.Add<string>("excludeMachines=",
                 "[Optional] A comma-separated list of machine names to exclude in the specified environment/s. If not specified all machines in the environment will be considered.",
                 v => ExcludedMachineIds.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(m => m.Trim())));
+                    .Select(m => m.Trim())),
+                allowsMultiple: true);
 
             options.Add<string>("tenant=",
                 "[Optional] Run a runbook on the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).",
-                v => TenantNamesOrIds.Add(v));
+                v => TenantNamesOrIds.Add(v),
+                allowsMultiple: true);
 
             options.Add<string>("tenantTag=",
                 "[Optional] Run a runbook on the tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.",
-                v => TenantTagNames.Add(v));
+                v => TenantTagNames.Add(v),
+                allowsMultiple: true);
 
-            options.Add<string>("skip=", "[Optional] Skip a step by name", v => StepNamesToSkip.Add(v));
+            options.Add<string>("skip=",
+                "[Optional] Skip a step by name",
+                v => StepNamesToSkip.Add(v),
+                allowsMultiple: true);
 
             options.Add<DateTimeOffset>("runAt=",
                 "[Optional] Time at which runbook run should start (scheduled run), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.",
@@ -106,8 +114,9 @@ namespace Octopus.Cli.Commands.Runbooks
                 v => NoRunAfter = v);
 
             options.Add<string>("v|variable=",
-                "[Optional] Values for any prompted variables in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash. Specify this argument multiple times to add multiple variables.",
-                ParseVariable);
+                "[Optional] Specifies the value for a prompted variable in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.",
+                ParseVariable,
+                allowsMultiple: true);
 
             options.Add<bool>("waitForRun", "[Optional] Whether to wait synchronously for deployment to finish.",
                 v => WaitForRun = true);
@@ -131,7 +140,9 @@ namespace Octopus.Cli.Commands.Runbooks
                 "[Optional] Specifies how much time (timespan format) should elapse between runbook run status checks (default 00:00:10)",
                 v => RunCheckSleepCycle = v);
 
-            options.Add<bool>("noRawLog", "[Optional] Don't print the raw log of failed tasks", v => NoRawLog = true);
+            options.Add<bool>("noRawLog", 
+                "[Optional] Don't print the raw log of failed tasks",
+                v => NoRawLog = true);
 
             options.Add<string>("rawLogFile=", "[Optional] Redirect the raw log of failed tasks to a file",
                 v => RawLogFile = v);
