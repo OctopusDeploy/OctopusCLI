@@ -1,14 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks Condition="!$([MSBuild]::IsOSUnixLike())">net451;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="!$([MSBuild]::IsOSUnixLike())">net452;netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="$([MSBuild]::IsOSUnixLike())">netstandard2.0</TargetFrameworks>
-    <PackageId>Octopus.Cli</PackageId>
     <Authors>Octopus Deploy</Authors>
     <Copyright>Octopus Deploy Pty Ltd</Copyright>
-    <PackageIconUrl>http://i.octopusdeploy.com/resources/Avatar3-32x32.png</PackageIconUrl>
-    <PackageProjectUrl>http://octopusdeploy.com/</PackageProjectUrl>
-    <PackageLicenseUrl>http://octopusdeploy.com/pricing</PackageLicenseUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/OctopusDeploy/OctopusCli</RepositoryUrl>
     <Description>Octopus Deploy is an automated release management tool for modern developers and DevOps teams.
@@ -19,6 +17,10 @@
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <DefineConstants>$(DefineConstants);HTTP_CLIENT_SUPPORTS_SSL_OPTIONS</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NoWarn>NU5104</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,7 +35,7 @@
     <PackageReference Include="NuGet.Packaging.Core" Version="3.6.0-octopus-58692" />
     <PackageReference Include="NuGet.Packaging.Core.Types" Version="3.6.0-octopus-58692" />
     <PackageReference Include="NuGet.Versioning" Version="3.6.0-octopus-58692" />
-    <PackageReference Include="Octopus.Client" Version="8.2.0" />
+    <PackageReference Include="Octopus.Client" Version="8.8.8" />
     <PackageReference Include="Octostache" Version="2.3.0" />
     <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="2.0.0" />
     <PackageReference Include="Serilog.Sinks.Trace" Version="2.0.0" />
@@ -46,5 +48,7 @@
   <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(TargetFramework)', '^net\d'))">
   	<DefineConstants>NETFRAMEWORK</DefineConstants>
   </PropertyGroup>
-
+  <ItemGroup>
+    <None Include="icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>

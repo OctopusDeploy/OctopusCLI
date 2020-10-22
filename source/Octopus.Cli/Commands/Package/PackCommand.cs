@@ -58,7 +58,7 @@ namespace Octopus.Cli.Commands.Package
             nuget.Add<string>("description=", "[Optional] A description of the package; defaults to a generic description.", v => description = v);
             nuget.Add<string>("releaseNotes=", "[Optional] Release notes for this version of the package.", v => releaseNotes = v);
             nuget.Add<string>("releaseNotesFile=", "[Optional] A file containing release notes for this version of the package.", v => releaseNotesFile = v);
-            
+
             var basic = Options.For("Basic options");
             basic.Add<string>("id=", "The ID of the package; e.g. MyCompany.MyApp.", v => id = v);
             basic.Add<PackageFormat>("format=", $"Package format. Valid values are {supportedPackageFormats}. Default is {DefaultPackageFormat}, though we recommend {RecommendedPackageFormat} going forward.", fmt => packageBuilder = SelectFormat(fmt));
@@ -200,7 +200,7 @@ namespace Octopus.Cli.Commands.Package
                 packageBuilder.PackageFormat,
                 OutputFolder = this.outFolder,
                 Files = packageBuilder.Files.Any() ? packageBuilder.Files : includes,
-            });   
+            });
         }
     }
 }
