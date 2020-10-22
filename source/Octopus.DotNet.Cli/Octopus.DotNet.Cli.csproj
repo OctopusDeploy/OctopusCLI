@@ -2,25 +2,24 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!-- 
-    We include all possible targets here so that no matter what framework version 
+    <!--
+    We include all possible targets here so that no matter what framework version
     the user has installed, there is an appropriate build in the tools package
     -->
     <TargetFrameworks>netcoreapp2.1;netcoreapp2.2;netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
     <PackAsTool>True</PackAsTool>
     <AssemblyName>dotnet-octo</AssemblyName>
-    
     <PackageId>Octopus.DotNet.Cli</PackageId>
     <Authors>Octopus Deploy</Authors>
     <Copyright>Octopus Deploy Pty Ltd</Copyright>
-    <PackageIconUrl>http://i.octopusdeploy.com/resources/Avatar3-32x32.png</PackageIconUrl>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>http://octopusdeploy.com/</PackageProjectUrl>
-    <PackageLicenseUrl>http://octopusdeploy.com/pricing</PackageLicenseUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/OctopusDeploy/OctopusCli</RepositoryUrl>
     <Description>Octopus Deploy is an automated release management tool for modern developers and DevOps teams.
 
-      This package contains the client library for the HTTP API in Octopus.</Description>
+      This package contains the dotnet tool version of the CLI library for interacting with the HTTP API in Octopus.</Description>
 
     <PackageType>DotnetCliTool</PackageType>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -35,6 +34,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Octopus.Cli\Octopus.Cli.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="icon.png" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
 </Project>

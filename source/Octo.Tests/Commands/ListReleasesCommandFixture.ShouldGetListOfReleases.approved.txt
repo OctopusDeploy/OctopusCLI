@@ -1,0 +1,23 @@
+Octopus Deploy Command Line Tool, version <VERSION>
+
+Releases: 3
+ - Project: ProjectA
+    Version: 1.0
+    Assembled: <ASSEMBLED-TIMESTAMP>
+    Package Versions: Deploy a package 1.0
+    Release Notes: Release Notes 1
+
+    Version: 2.0
+    Assembled: <ASSEMBLED-TIMESTAMP>
+    Package Versions: 
+    Release Notes: Release Notes 2
+
+ - Project: ProjectB
+ - Project: Version controlled project
+    Version: 1.2.3
+    Assembled: <ASSEMBLED-TIMESTAMP>
+    Package Versions: 
+    Release Notes: Version controlled release notes
+    Git Reference: main
+    Git Commit: 87a072ad2b4a2e9bf2d7ff84d8636a032786394d
+

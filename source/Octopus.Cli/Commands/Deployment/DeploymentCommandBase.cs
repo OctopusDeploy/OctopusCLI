@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
@@ -16,15 +15,22 @@ namespace Octopus.Cli.Commands.Deployment
 {
     public abstract class DeploymentCommandBase : ApiCommand
     {
-        private const char Separator = '/'; 
+        private readonly ExecutionResourceWaiter.Factory executionResourceWaiterFactory;
+        private const char Separator = '/';
         readonly VariableDictionary variables = new VariableDictionary();
         protected IReadOnlyList<DeploymentResource> deployments;
         protected List<DeploymentPromotionTarget> promotionTargets;
         protected List<TenantResource> deploymentTenants;
 
-        protected DeploymentCommandBase(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
+        protected DeploymentCommandBase(
+            IOctopusAsyncRepositoryFactory repositoryFactory,
+            IOctopusFileSystem fileSystem,
+            IOctopusClientFactory clientFactory,
+            ICommandOutputProvider commandOutputProvider,
+            ExecutionResourceWaiter.Factory executionResourceWaiterFactory)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
+            this.executionResourceWaiterFactory = executionResourceWaiterFactory;
             SpecificMachineNames = new List<string>();
             ExcludedMachineNames = new List<string>();
             SkipStepNames = new List<string>();
@@ -47,11 +53,11 @@ namespace Octopus.Cli.Commands.Deployment
             options.Add<string>("skip=", "[Optional] Skip a step by name.", v => SkipStepNames.Add(v), allowsMultiple: true);
             options.Add<bool>("noRawLog", "[Optional] Don't print the raw log of failed tasks.", v => noRawLog = true);
             options.Add<string>("rawLogFile=", "[Optional] Redirect the raw log of failed tasks to a file.", v => rawLogFile = v);
-            options.Add<string>("variable=|v=", "[Optional] Values for any prompted variables in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.", ParseVariable, allowsMultiple: true);
+            options.Add<string>("v|variable=", "[Optional] Specifies the value for a prompted variable in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.", ParseVariable, allowsMultiple: true);
             options.Add<DateTimeOffset>("deployAt=", "[Optional] Time at which deployment should start (scheduled deployment), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => DeployAt = v);
             options.Add<DateTimeOffset>("noDeployAfter=", "[Optional] Time at which scheduled deployment should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => NoDeployAfter = v);
-            options.Add<string>("tenant=", "Create a deployment for the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).", t => Tenants.Add(t), allowsMultiple: true);
-            options.Add<string>("tenantTag=", "Create a deployment for tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.", tt => TenantTags.Add(tt), allowsMultiple: true);
+            options.Add<string>("tenant=", "[Optional] Create a deployment for the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).", t => Tenants.Add(t), allowsMultiple: true);
+            options.Add<string>("tenantTag=", "[Optional] Create a deployment for tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.", tt => TenantTags.Add(tt), allowsMultiple: true);
         }
 
         protected bool ForcePackageRedeployment { get; set; }
@@ -76,7 +82,6 @@ namespace Octopus.Cli.Commands.Deployment
         bool noRawLog;
         bool showProgress;
         string rawLogFile;
-        TaskOutputProgressPrinter printer = new TaskOutputProgressPrinter();
 
         protected override async Task ValidateParameters()
         {
@@ -98,7 +103,7 @@ namespace Octopus.Cli.Commands.Deployment
              * Note that certain validations still need to be done on the server. Permissions and lifecycle progression
              * still rely on server side validation.
              */
-            
+
             // We might query the same tagset repeatedly, so store old queries here
             var tagSetResources = new Dictionary<string, TagSetResource>();
             // Make sure the tags are valid
@@ -111,12 +116,12 @@ namespace Octopus.Cli.Commands.Deployment
                     throw new CommandException(
                         $"Canonical Tag Name expected in the format of `TagSetName{Separator}TagName`");
                 }
-                
-                // Query the api if the results were not previously found 
+
+                // Query the api if the results were not previously found
                 if (!tagSetResources.ContainsKey(parts[0]))
                 {
                     tagSetResources.Add(parts[0], await Repository.TagSets.FindByName(parts[0]).ConfigureAwait(false));
-                } 
+                }
 
                 // Verify the presence of the tag
                 if (tagSetResources[parts[0]]?.Tags?.All(tag => parts[1] != tag.Name) ?? true)
@@ -161,13 +166,13 @@ namespace Octopus.Cli.Commands.Deployment
 
             var environment = await Repository.Environments.FindByNameOrIdOrFail(DeployToEnvironmentNamesOrIds[0]).ConfigureAwait(false);
             var releaseTemplate = await Repository.Releases.GetTemplate(release).ConfigureAwait(false);
-            
+
             deploymentTenants = await GetTenants(project, environment.Name, release, releaseTemplate).ConfigureAwait(false);
             var specificMachineIds = await GetSpecificMachines().ConfigureAwait(false);
             var excludedMachineIds = await GetExcludedMachines().ConfigureAwait(false);
 
             LogScheduledDeployment();
-            
+
             var createTasks = deploymentTenants.Select(tenant =>
             {
                 var promotion =
@@ -230,13 +235,23 @@ namespace Octopus.Cli.Commands.Deployment
         protected async Task DeployRelease(ProjectResource project, ReleaseResource release)
         {
             var deploymentsTask = IsTenantedDeployment ?
-                DeployTenantedRelease(project, release) : 
+                DeployTenantedRelease(project, release) :
                 DeployToEnvironments(project, release);
-            
+
             deployments = await deploymentsTask.ConfigureAwait(false);
             if (deployments.Any() && WaitForDeployment)
             {
-                await WaitForDeploymentToComplete(deployments, project, release).ConfigureAwait(false);
+                var waiter = executionResourceWaiterFactory(Repository, ServerBaseUrl);
+                await waiter.WaitForDeploymentToComplete(
+                    deployments,
+                    project,
+                    release,
+                    showProgress,
+                    noRawLog,
+                    rawLogFile,
+                    CancelOnTimeout,
+                    DeploymentStatusCheckSleepCycle,
+                    DeploymentTimeout).ConfigureAwait(false);
             }
         }
 
@@ -443,110 +458,6 @@ namespace Octopus.Cli.Commands.Deployment
                 deployment.UseGuidedFailure ? "Enabled" : "Not Enabled");
 
             return deployment;
-        }
-
-        public async Task WaitForDeploymentToComplete(IReadOnlyList<DeploymentResource> deployments, ProjectResource project, ReleaseResource release)
-        {
-            var getTasks = deployments.Select(dep => Repository.Tasks.Get(dep.TaskId));
-            var deploymentTasks = await Task.WhenAll(getTasks).ConfigureAwait(false);
-            if (showProgress && deployments.Count > 1)
-            {
-                commandOutputProvider.Information("Only progress of the first task ({Task:l}) will be shown", deploymentTasks.First().Name);
-            }
-
-            try
-            {
-                commandOutputProvider.Information("Waiting for {NumberOfTasks} deployment(s) to complete....", deploymentTasks.Length);
-                await Repository.Tasks.WaitForCompletion(deploymentTasks.ToArray(), DeploymentStatusCheckSleepCycle.Seconds, DeploymentTimeout, PrintTaskOutput).ConfigureAwait(false);
-                var failed = false;
-                foreach (var deploymentTask in deploymentTasks)
-                {
-                    var updated = await Repository.Tasks.Get(deploymentTask.Id).ConfigureAwait(false);
-                    if (updated.FinishedSuccessfully)
-                    {
-                        commandOutputProvider.Information("{Task:l}: {State}", updated.Description, updated.State);
-                    }
-                    else
-                    {
-                        commandOutputProvider.Error("{Task:l}: {State}, {Error:l}", updated.Description, updated.State, updated.ErrorMessage);
-                        failed = true;
-
-                        if (noRawLog)
-                        {
-                            continue;
-                        }
-
-                        try
-                        {
-                            var raw = await Repository.Tasks.GetRawOutputLog(updated).ConfigureAwait(false);
-                            if (!string.IsNullOrEmpty(rawLogFile))
-                            {
-                                File.WriteAllText(rawLogFile, raw);
-                            }
-                            else
-                            {
-                                commandOutputProvider.Error(raw);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            commandOutputProvider.Error(ex, "Could not retrieve the raw task log for the failed task.");
-                        }
-                    }
-                }
-                if (failed)
-                {
-                    throw new CommandException("One or more deployment tasks failed.");
-                }
-
-                commandOutputProvider.Information("Done!");
-            }
-            catch (TimeoutException e)
-            {
-                commandOutputProvider.Error(e.Message);
-
-                await CancelDeploymentOnTimeoutIfRequested(deploymentTasks).ConfigureAwait(false);
-
-                var guidedFailureDeployments =
-                    from d in deployments
-                    where d.UseGuidedFailure
-                    select d;
-                if (guidedFailureDeployments.Any())
-                {
-                    commandOutputProvider.Warning("One or more deployments are using guided failure. Use the links below to check if intervention is required:");
-                    foreach (var guidedFailureDeployment in guidedFailureDeployments)
-                    {
-                        var environment = await Repository.Environments.Get(guidedFailureDeployment.Link("Environment")).ConfigureAwait(false);
-                        commandOutputProvider.Warning("  - {Environment:l}: {Url:l}", environment.Name, GetPortalUrl(string.Format("/app#/projects/{0}/releases/{1}/deployments/{2}", project.Slug, release.Version, guidedFailureDeployment.Id)));
-                    }
-                }
-                throw new CommandException(e.Message);
-            }
-        }
-
-        private Task CancelDeploymentOnTimeoutIfRequested(IReadOnlyList<TaskResource> deploymentTasks)
-        {
-            if (!CancelOnTimeout)
-                return Task.WhenAll();
-
-            var tasks = deploymentTasks.Select(async task => {
-                commandOutputProvider.Warning("Cancelling deployment task '{Task:l}'", task.Description);
-                try
-                {
-                    await Repository.Tasks.Cancel(task).ConfigureAwait(false);
-                }
-                catch(Exception ex)
-                {
-                    commandOutputProvider.Error("Failed to cancel deployment task '{Task:l}': {ExceptionMessage:l}", task.Description, ex.Message);
-                }
-            });
-            return Task.WhenAll(tasks);
-        }
-
-        Task PrintTaskOutput(TaskResource[] taskResources)
-        {
-            var task = taskResources.First();
-            return printer.Render(Repository, commandOutputProvider, task);
         }
 
         void ParseVariable(string variable)

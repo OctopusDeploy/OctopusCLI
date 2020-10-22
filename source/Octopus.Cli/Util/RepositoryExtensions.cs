@@ -133,6 +133,9 @@ namespace Octopus.Cli.Util
             IEnumerable<string> namesOrIds)
             => repo.FindByNamesOrIdsOrFail(n => repo.FindByName(n), "Projects", "project", namesOrIds);
 
+        public static Task<RunbookResource> FindByNameOrIdOrFail(this IRunbookRepository repo, string nameOrId, ProjectResource project)
+            => repo.FindByNameOrIdOrFail(n => repo.FindByName(project, n), "Runbooks", "runbook", nameOrId,  enclosingContextDescription: $" in {project.Name}");
+
         public static Task<ChannelResource> FindByNameOrIdOrFail(this IChannelRepository repo, ProjectResource project,
             string nameOrId)
             => repo.FindByNameOrIdOrFail(n => repo.FindByName(project, n), "Channels", "channel",

@@ -47,15 +47,15 @@ namespace Octopus.Cli.Commands.Releases
             var min = SemanticVersion.Parse(MinVersion);
             var max = SemanticVersion.Parse(MaxVersion);
 
-            
+
             project = await GetProject().ConfigureAwait(false);
             var channelsTask = GetChannelIds(project);
             releases = await Repository.Projects.GetReleases(project).ConfigureAwait(false);
-            
+
             channels = await channelsTask.ConfigureAwait(false);
 
             commandOutputProvider.Debug("Finding releases for project...");
-            
+
             toDelete = new List<ReleaseResource>();
             wouldDelete = new List<ReleaseResource>();
             await releases.Paginate(Repository, page =>
