@@ -47,7 +47,7 @@ namespace Octo.Tests.Commands
 
             output.ToString()
                 .Should()
-                .MatchRegex(@"Usage: (octo|testhost) <command> \[<options>\]")
+                .MatchRegex(@"Usage: (octo|testhost|ReSharperTestRunner64) <command> \[<options>\]")
                 .And.Contain("Where <command> is one of:")
                 .And.Contain("create-foo");
         }
@@ -61,7 +61,7 @@ namespace Octo.Tests.Commands
 
             output.ToString()
                 .Should()
-                .MatchRegex(@"Usage: (octo|testhost) speak \[<options>\]");
+                .MatchRegex(@"Usage: (octo|testhost|ReSharperTestRunner64) speak \[<options>\]");
         }
 
         [Test]
