@@ -25,13 +25,13 @@ namespace Octopus.Cli.Commands.Deployment
             options.Add<string>("project=", "Name of the project", v => ProjectName = v);
             options.Add<string>("environment=",
                 "Name of an environment the override will apply to. Specify this argument multiple times to add multiple environments.",
-                v => EnvironmentNames.Add(v));
+                v => EnvironmentNames.Add(v), allowsMultiple: true);
             options.Add<string>("tenant=",
                 "[Optional] Name of a tenant the override will apply to. Specify this argument multiple times to add multiple tenants or use `*` wildcard for all tenants.",
-                t => TenantNames.Add(t));
+                t => TenantNames.Add(t), allowsMultiple: true);
             options.Add<string>("tenantTag=",
                 "[Optional] A tenant tag used to match tenants that the override will apply to. Specify this argument multiple times to add multiple tenant tags",
-                tt => TenantTags.Add(tt));
+                tt => TenantTags.Add(tt), allowsMultiple: true);
 
             deletedDeplomentOverrides = new List<Tuple<EnvironmentResource, TenantResource, DeletedOutcome>>();
         }

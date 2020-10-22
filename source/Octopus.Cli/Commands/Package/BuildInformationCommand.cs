@@ -24,7 +24,7 @@ namespace Octopus.Cli.Commands.Package
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Build information pushing");
-            options.Add<string>("package-id=", "The ID of the package. Specify multiple packages by specifying this argument multiple times: \n--package-id 'MyCompany.MyApp' --package-id 'MyCompany.MyApp2'.", packageId => PackageIds.Add(packageId));
+            options.Add<string>("package-id=", "The ID of the package. Specify multiple packages by specifying this argument multiple times: \n--package-id 'MyCompany.MyApp' --package-id 'MyCompany.MyApp2'.", packageId => PackageIds.Add(packageId), allowsMultiple: true);
             options.Add<string>("version=", "The version of the package; defaults to a timestamp-based version", v => Version = v);
             options.Add<string>("file=", "Octopus Build Information Json file.", file => File = file);
             options.Add<OverwriteMode>("overwrite-mode=", $"Determines behavior if the package already exists in the repository. Valid values are {Enum.GetNames(typeof(OverwriteMode)).ReadableJoin()}. Default is {DefaultOverwriteMode}.", mode => OverwriteMode = mode);
