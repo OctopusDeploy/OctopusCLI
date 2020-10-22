@@ -19,11 +19,11 @@ namespace Octopus.Cli.Commands
             this.exporterLocator = exporterLocator;
 
             var options = Options.For("Export");
-            options.Add<string>("type=", "The type to export", v => Type = v);
-            options.Add<string>("filePath=", "The full path and name of the export file", v => FilePath = v);
-            options.Add<string>("project=", "[Optional] Name of the project", v => Project = v);
-            options.Add<string>("name=", "[Optional] Name of the item to export", v => Name = v);
-            options.Add<string>("releaseVersion=", "[Optional] The version number, or range of version numbers to export", v => ReleaseVersion = v);
+            options.Add<string>("type=", "The type to export.", v => Type = v);
+            options.Add<string>("filePath=", "The full path and name of the export file.", v => FilePath = v);
+            options.Add<string>("project=", "[Optional] Name of the project.", v => Project = v);
+            options.Add<string>("name=", "[Optional] Name of the item to export.", v => Name = v);
+            options.Add<string>("releaseVersion=", "[Optional] The version number, or range of version numbers to export.", v => ReleaseVersion = v);
         }
 
         public string Type { get; set; }

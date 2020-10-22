@@ -40,19 +40,19 @@ namespace Octopus.Cli.Commands.Deployment
             promotionTargets = new List<DeploymentPromotionTarget>();
 
             var options = Options.For("Deployment");
-            options.Add<bool>("progress", "[Optional] Show progress of the deployment", v => { showProgress = true; WaitForDeployment = true; noRawLog = true; });
+            options.Add<bool>("progress", "[Optional] Show progress of the deployment.", v => { showProgress = true; WaitForDeployment = true; noRawLog = true; });
             options.Add<bool>("forcePackageDownload", "[Optional] Whether to force downloading of already installed packages (flag, default false).", v => ForcePackageDownload = true);
             options.Add<bool>("waitForDeployment", "[Optional] Whether to wait synchronously for deployment to finish.", v => WaitForDeployment = true);
             options.Add<TimeSpan>("deploymentTimeout=", "[Optional] Specifies maximum time (timespan format) that the console session will wait for the deployment to finish(default 00:10:00). This will not stop the deployment. Requires --waitForDeployment parameter set.", v => DeploymentTimeout = v);
             options.Add<bool>("cancelOnTimeout", "[Optional] Whether to cancel the deployment if the deployment timeout is reached (flag, default false).", v => CancelOnTimeout = true);
-            options.Add<TimeSpan>("deploymentCheckSleepCycle=", "[Optional] Specifies how much time (timespan format) should elapse between deployment status checks (default 00:00:10)", v => DeploymentStatusCheckSleepCycle = v);
-            options.Add<bool>("guidedFailure=", "[Optional] Whether to use guided failure mode. (True or False. If not specified, will use default setting from environment)", v => UseGuidedFailure = v);
+            options.Add<TimeSpan>("deploymentCheckSleepCycle=", "[Optional] Specifies how much time (timespan format) should elapse between deployment status checks (default 00:00:10).", v => DeploymentStatusCheckSleepCycle = v);
+            options.Add<bool>("guidedFailure=", "[Optional] Whether to use guided failure mode. (True or False. If not specified, will use default setting from environment).", v => UseGuidedFailure = v);
             options.Add<string>("specificMachines=", "[Optional] A comma-separated list of machine names to target in the deployed environment. If not specified all machines in the environment will be considered.", v => SpecificMachineNames.AddRange(v.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(m => m.Trim())), allowsMultiple: true);
             options.Add<string>("excludeMachines=", "[Optional] A comma-separated list of machine names to exclude in the deployed environment. If not specified all machines in the environment will be considered.", v => ExcludedMachineNames.AddRange(v.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(m => m.Trim())), allowsMultiple: true);
             options.Add<bool>("force", "[Optional] If a project is configured to skip packages with already-installed versions, override this setting to force re-deployment (flag, default false).", v => ForcePackageRedeployment = true);
-            options.Add<string>("skip=", "[Optional] Skip a step by name", v => SkipStepNames.Add(v), allowsMultiple: true);
-            options.Add<bool>("noRawLog", "[Optional] Don't print the raw log of failed tasks", v => noRawLog = true);
-            options.Add<string>("rawLogFile=", "[Optional] Redirect the raw log of failed tasks to a file", v => rawLogFile = v);
+            options.Add<string>("skip=", "[Optional] Skip a step by name.", v => SkipStepNames.Add(v), allowsMultiple: true);
+            options.Add<bool>("noRawLog", "[Optional] Don't print the raw log of failed tasks.", v => noRawLog = true);
+            options.Add<string>("rawLogFile=", "[Optional] Redirect the raw log of failed tasks to a file.", v => rawLogFile = v);
             options.Add<string>("v|variable=", "[Optional] Specifies the value for a prompted variable in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.", ParseVariable, allowsMultiple: true);
             options.Add<DateTimeOffset>("deployAt=", "[Optional] Time at which deployment should start (scheduled deployment), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => DeployAt = v);
             options.Add<DateTimeOffset>("noDeployAfter=", "[Optional] Time at which scheduled deployment should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => NoDeployAfter = v);

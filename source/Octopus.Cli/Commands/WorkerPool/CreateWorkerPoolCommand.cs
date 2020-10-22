@@ -16,7 +16,7 @@ namespace Octopus.Cli.Commands.WorkerPool
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("WorkerPool creation");
-            options.Add<string>("name=", "The name of the worker pool", v => WorkerPoolName = v);
+            options.Add<string>("name=", "The name of the worker pool.", v => WorkerPoolName = v);
             options.Add<bool>("ignoreIfExists", "If the pool already exists, an error will be returned. Set this flag to ignore the error.", v => IgnoreIfExists = true);
         }
 

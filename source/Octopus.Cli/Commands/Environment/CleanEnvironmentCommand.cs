@@ -37,7 +37,7 @@ namespace Octopus.Cli.Commands.Environment
             options.Add<MachineModelHealthStatus>("health-status=|healthStatus=", $"Health status of Machines to clean up ({string.Join(", ", HealthStatusProvider.HealthStatusNames)}). Can be specified many times.", v => healthStatuses.Add(v), allowsMultiple: true);
             options.Add<bool>("disabled=", "[Optional] Disabled status filter of Machine to clean up.", v => isDisabled = v);
             options.Add<bool>("calamari-outdated=", "[Optional] State of Calamari to clean up. By default ignores Calamari state.", v => isCalamariOutdated = v);
-            options.Add<bool>("tentacle-outdated=", "[Optional] State of Tentacle version to clean up. By default ignores Tentacle state", v => isTentacleOutdated = v);
+            options.Add<bool>("tentacle-outdated=", "[Optional] State of Tentacle version to clean up. By default ignores Tentacle state.", v => isTentacleOutdated = v);
         }
 
         public async Task Request()
