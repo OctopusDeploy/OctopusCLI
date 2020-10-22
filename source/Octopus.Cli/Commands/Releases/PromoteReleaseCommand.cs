@@ -25,7 +25,7 @@ namespace Octopus.Cli.Commands.Releases
             options.Add<string>("from=", "Name or ID of the environment to get the current deployment from, e.g., 'Staging' or 'Environments-2'.", v => FromEnvironmentNameOrId = v);
             options.Add<string>("to=|deployTo=", "Name or ID of the environment to deploy to, e.g., 'Production' or 'Environments-1'.", v => DeployToEnvironmentNamesOrIds.Add(v), allowsMultiple: true);
             options.Add<bool>("updateVariables", "Overwrite the variable snapshot for the release by re-importing the variables from the project.", v => UpdateVariableSnapshot = true);
-            options.Add<bool>("latestSuccessful", "Use the latest successful release to promote", v => UseLatestSuccessfulRelease = true);
+            options.Add<bool>("latestSuccessful", "Use the latest successful release to promote.", v => UseLatestSuccessfulRelease = true);
         }
 
         public bool UseLatestSuccessfulRelease { get; set; }

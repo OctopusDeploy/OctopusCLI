@@ -36,7 +36,7 @@ namespace Octopus.Cli.Commands.Releases
             if (string.IsNullOrWhiteSpace(ReleaseVersionNumber)) throw new CommandException("Please specify a release version number using the version parameter: --version=1.0.5");
             if (!SemanticVersion.TryParse(ReleaseVersionNumber, out _)) throw new CommandException("Please provide a valid release version format, you can refer to https://semver.org/ for a valid format: --version=1.0.5");
             if (string.IsNullOrWhiteSpace(ReasonToPrevent)) throw new CommandException("Please specify a reason why you would like to prevent this release from progressing to next phase using the reason parameter: --reason=Contract Tests Failed");
-            
+
             await base.ValidateParameters().ConfigureAwait(false);
         }
 
