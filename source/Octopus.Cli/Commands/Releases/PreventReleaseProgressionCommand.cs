@@ -18,7 +18,7 @@ namespace Octopus.Cli.Commands.Releases
         public PreventReleaseProgressionCommand(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
-            var options = Options.For("Preventing release progression.");
+            var options = Options.For("Preventing release progression");
             options.Add<string>("project=", "Name or ID of the project.", v => ProjectNameOrId = v);
             options.Add<string>("version=|releaseNumber=", "Release version/number.", v => ReleaseVersionNumber = v);
             options.Add<string>("reason=", "Reason to prevent this release from progressing to next phase.", v => ReasonToPrevent = v);

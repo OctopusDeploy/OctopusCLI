@@ -56,8 +56,8 @@ namespace Octopus.Cli.Commands.Deployment
             options.Add<string>("v|variable=", "[Optional] Specifies the value for a prompted variable in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.", ParseVariable, allowsMultiple: true);
             options.Add<DateTimeOffset>("deployAt=", "[Optional] Time at which deployment should start (scheduled deployment), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => DeployAt = v);
             options.Add<DateTimeOffset>("noDeployAfter=", "[Optional] Time at which scheduled deployment should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.", v => NoDeployAfter = v);
-            options.Add<string>("tenant=", "Create a deployment for the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).", t => Tenants.Add(t), allowsMultiple: true);
-            options.Add<string>("tenantTag=", "Create a deployment for tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.", tt => TenantTags.Add(tt), allowsMultiple: true);
+            options.Add<string>("tenant=", "[Optional] Create a deployment for the tenant with this name or ID; specify this argument multiple times to add multiple tenants or use `*` wildcard to deploy to all tenants who are ready for this release (according to lifecycle).", t => Tenants.Add(t), allowsMultiple: true);
+            options.Add<string>("tenantTag=", "[Optional] Create a deployment for tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags, just like you can in the user interface.", tt => TenantTags.Add(tt), allowsMultiple: true);
         }
 
         protected bool ForcePackageRedeployment { get; set; }
