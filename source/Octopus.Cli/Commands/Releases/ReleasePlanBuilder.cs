@@ -159,7 +159,7 @@ namespace Octopus.Cli.Commands.Releases
                     var rule = channel.Rules.SingleOrDefault(r => r.ActionPackages.Any(pkg =>
                         pkg.DeploymentActionNameMatches(step.ActionName) &&
                         pkg.PackageReferenceNameMatches(step.PackageReferenceName)));
-                    var result = await versionRuleTester.Test(repository, rule, step.Version).ConfigureAwait(false);
+                    var result = await versionRuleTester.Test(repository, rule, step.Version, step.PackageFeedId).ConfigureAwait(false);
                     step.SetChannelVersionRuleTestResult(result);
                 }
             }
@@ -174,7 +174,7 @@ namespace Octopus.Cli.Commands.Releases
                 return filters;
 
             var rule = channel.Rules.FirstOrDefault(r => r.ActionPackages.Any(pkg => pkg.DeploymentActionNameMatches(stepName) && pkg.PackageReferenceNameMatches(packageReferenceName)));
-            
+
             if (rule == null)
                 return filters;
 

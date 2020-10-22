@@ -29,7 +29,7 @@ namespace Octo.Tests.Commands
         private IReleaseRepository releaseRepository;
         private IFeedRepository feedRepository;
         private ICommandOutputProvider commandOutputProvider;
-        
+
         private ProjectResource projectResource;
         private ChannelResource channelResource;
 
@@ -75,7 +75,7 @@ namespace Octo.Tests.Commands
             {
                 Links = new LinkCollection {{"SearchTemplate", TestHelpers.GetId("searchUri")}}
             };
-            
+
             // setup mocks
             logger = Substitute.For<ILogger>();
             versionResolver = Substitute.For<IPackageVersionResolver>();
@@ -89,7 +89,7 @@ namespace Octo.Tests.Commands
                 .GetTemplate(Arg.Is<DeploymentProcessResource>(deploymentProcessResource),
                     Arg.Is<ChannelResource>(channelResource)).Returns(Task.FromResult(releaseTemplateResource));
             versionRuleTester
-                .Test(Arg.Any<IOctopusAsyncRepository>(), Arg.Any<ChannelVersionRuleResource>(), Arg.Any<string>())
+                .Test(Arg.Any<IOctopusAsyncRepository>(), Arg.Any<ChannelVersionRuleResource>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(channelVersionRuleTestResult));
 
             deploymentProcessRepositoryBeta = Substitute.For<IDeploymentProcessRepositoryBeta>();
@@ -205,7 +205,7 @@ namespace Octo.Tests.Commands
         [Test]
         public void StepWithNoPackageVersion_ShouldNotBeViablePlan()
         {
-            // arrange 
+            // arrange
             releaseTemplateResource.Packages.Add(GetReleaseTemplatePackage().WithPackage()
                 .WithVersion(string.Empty, versionResolver));
 
@@ -224,7 +224,7 @@ namespace Octo.Tests.Commands
 
             // act
             var plan = ExecuteBuild();
-            
+
             // assert
             plan.IsViableReleasePlan().Should().BeFalse();
         }
@@ -282,15 +282,15 @@ namespace Octo.Tests.Commands
                 },
                 VersionRange = "(,1.0)"
             });
-            
+
             packages.Add(new PackageResource { Version = "1.0.1"});
 
             releaseTemplateResource.Packages.Add(new ReleaseTemplatePackage{ActionName = action.Name, PackageReferenceName = "Acme", IsResolvable = true});
             channelVersionRuleTestResult.IsSatisfied();
-            
+
             repository.Client
                 .Get<List<PackageResource>>(Arg.Any<string>(), Arg.Is<IDictionary<string, object>>(d => d.ContainsKey("versionRange") && (string)d["versionRange"] == "(,1.0)")).Returns(new List<PackageResource>());
-            
+
             // act
             var plan = ExecuteBuild();
 
