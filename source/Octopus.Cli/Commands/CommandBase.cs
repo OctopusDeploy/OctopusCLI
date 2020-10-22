@@ -18,7 +18,7 @@ namespace Octopus.Cli.Commands
         protected CommandBase(ICommandOutputProvider commandOutputProvider)
         {
             this.commandOutputProvider = commandOutputProvider;
-            
+
             var options = Options.For("Common options");
             options.Add<bool>("help", "[Optional] Print help for a command.", x => printHelp = true);
             options.Add<OutputFormat>("helpOutputFormat=", $"[Optional] Output format for help, valid options are {Enum.GetNames(typeof(OutputFormat)).ReadableJoin("or")}", s => HelpOutputFormat = s);
@@ -93,7 +93,7 @@ namespace Octopus.Cli.Commands
                         Type = p.Type.Name,
                         Sensitive = p.Sensitive ? (bool?)true : null,
                         AllowsMultiple = p.AllowsMultiple ? (bool?)true : null, //allows tools (such as nuke.build) to auto-generate better code
-                        Values = (p.Type.IsEnum) ? Enum.GetNames(p.Type) : null 
+                        Values = p.Type.IsEnum ? Enum.GetNames(p.Type).Where(x => p.Type.GetField(x).GetCustomAttribute<ObsoleteAttribute>() == null) : null
                     })
                 })
             }, writer);

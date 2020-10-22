@@ -19,9 +19,11 @@ namespace Octopus.Cli.Commands.Package
     public class PackCommand : CommandBase, ISupportFormattedOutput
     {
         const PackageCompressionLevel DefaultPackageCompressionLevel = PackageCompressionLevel.Optimal;
-        const PackageFormat DefaultPackageFormat = PackageFormat.Nupkg;
+        const PackageFormat DefaultPackageFormat = PackageFormat.NuPkg;
         const PackageFormat RecommendedPackageFormat = PackageFormat.Zip;
+#pragma warning disable 618 //ignore obsolete member
         private readonly string supportedPackageFormats= Enum.GetNames(typeof(PackageFormat)).Except(new [] {PackageFormat.Nuget.ToString()}).ReadableJoin();
+#pragma warning restore 618
 
         readonly IList<string> authors = new List<string>();
         readonly IOctopusFileSystem fileSystem;
@@ -167,8 +169,10 @@ namespace Octopus.Cli.Commands.Package
             {
                 case PackageFormat.Zip:
                     return new ZipPackageBuilder(fileSystem, commandOutputProvider);
-                case PackageFormat.Nupkg:
+                case PackageFormat.NuPkg:
+#pragma warning disable 618 //ignore obsolete member
                 case PackageFormat.Nuget:
+#pragma warning restore 618
                     return new NuGetPackageBuilder(fileSystem, commandOutputProvider);
                 default:
                     throw new CommandException("Unknown package format: " + fmt);

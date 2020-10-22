@@ -36,7 +36,7 @@ namespace Octo.Tests.Commands
             optionSet.Add<PackageFormat>("packageFormat=", "Package Format", v => { });
 
             var ex = Assert.Throws<CommandException>(() => optionSet.Parse(new[] {"--packageFormat", "invalidvalue"}));
-            Assert.That(ex.Message, Is.EqualTo("Could not convert string `invalidvalue' to type PackageFormat for option `--packageFormat'. Valid values are Zip, Nupkg and Nuget."));
+            Assert.That(ex.Message, Is.EqualTo("Could not convert string `invalidvalue' to type PackageFormat for option `--packageFormat'. Valid values are Zip, NuPkg and Nuget."));
         }
     }
 }
