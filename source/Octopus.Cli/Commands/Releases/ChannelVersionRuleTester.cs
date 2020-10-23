@@ -8,7 +8,7 @@ namespace Octopus.Cli.Commands.Releases
 {
     public class ChannelVersionRuleTester : IChannelVersionRuleTester
     {
-        public async Task<ChannelVersionRuleTestResult> Test(IOctopusAsyncRepository repository, ChannelVersionRuleResource rule, string packageVersion)
+        public async Task<ChannelVersionRuleTestResult> Test(IOctopusAsyncRepository repository, ChannelVersionRuleResource rule, string packageVersion, string feedId)
         {
             if (rule == null)
             {
@@ -22,7 +22,8 @@ namespace Octopus.Cli.Commands.Releases
             {
                 version = packageVersion,
                 versionRange = rule.VersionRange,
-                preReleaseTag = rule.Tag
+                preReleaseTag = rule.Tag,
+                feedId = feedId
             };
 
             var response = (await repository.LoadRootDocument().ConfigureAwait(false)).UsePostForChannelVersionRuleTest()
