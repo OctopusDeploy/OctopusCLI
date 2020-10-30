@@ -99,6 +99,7 @@ namespace Octo.Tests.Commands
             resolver.Add("PackageA:1.0.0");
             resolver.Add("PackageB:1.0.0-alpha1");
             resolver.Add("PackageB=1.0.0-alpha1");
+            resolver.Add("PackageC=1-0_0.alpha1[]");
 
             Assert.That(resolver.ResolveVersion("Step", "PackageA"), Is.EqualTo("1.0.0"));
             Assert.That(resolver.ResolveVersion("Step", "PackageA", null), Is.EqualTo("1.0.0"));
@@ -106,18 +107,9 @@ namespace Octo.Tests.Commands
             Assert.That(resolver.ResolveVersion("Step", "PackageB"), Is.EqualTo("1.0.0-alpha1"));
             Assert.That(resolver.ResolveVersion("Step", "PackageB", null), Is.EqualTo("1.0.0-alpha1"));
             Assert.That(resolver.ResolveVersion("Step", "PackageB", string.Empty), Is.EqualTo("1.0.0-alpha1"));
-        }
-
-        [Test]
-        public void ShouldThrowOnInvalidConstraint()
-        {
-            Assert.Throws<CommandException>(() => resolver.Add(":"));
-            Assert.Throws<CommandException>(() => resolver.Add("="));
-            Assert.Throws<CommandException>(() => resolver.Add(":1.0.0"));
-            Assert.Throws<CommandException>(() => resolver.Add("=1.0.0"));
-            Assert.Throws<CommandException>(() => resolver.Add("PackageA:"));
-            Assert.Throws<CommandException>(() => resolver.Add("PackageA:1.FRED.9"));
-            Assert.Throws<CommandException>(() => resolver.Add("PackageA=1.FRED.9"));
+            Assert.That(resolver.ResolveVersion("Step", "PackageC"), Is.EqualTo("1-0_0.alpha1[]"));
+            Assert.That(resolver.ResolveVersion("Step", "PackageC", null), Is.EqualTo("1-0_0.alpha1[]"));
+            Assert.That(resolver.ResolveVersion("Step", "PackageC", string.Empty), Is.EqualTo("1-0_0.alpha1[]"));
         }
 
         [Test]

@@ -127,11 +127,6 @@ namespace Octopus.Cli.Commands.Releases
                 throw new CommandException("The package argument '" + stepNameOrPackageIdAndVersion + "' does not use expected format of : {Step Name}:{Version}");
             }
 
-            if (!SemanticVersion.TryParse(version, out var parsedVersion))
-            {
-                throw new CommandException("The version portion of the package constraint '" + stepNameOrPackageIdAndVersion + "' is not a valid semantic version number.");
-            }
-
             Add(stepNameOrPackageId, packageReferenceName, version);
         }
 
@@ -221,15 +216,15 @@ namespace Octopus.Cli.Commands.Releases
             }
             catch (Exception ex)
             {
-               log.Warning(ex, "Could not read manifest from '{PackageFile:l}'", packageFile); 
+               log.Warning(ex, "Could not read manifest from '{PackageFile:l}'", packageFile);
             }
 
             return false;
         }
 
         /// <summary>
-        /// Takes a string containing a concatenated package ID and version (e.g. a filename or database-key) and 
-        /// attempts to parse a package ID and semantic version.  
+        /// Takes a string containing a concatenated package ID and version (e.g. a filename or database-key) and
+        /// attempts to parse a package ID and semantic version.
         /// </summary>
         /// <param name="filename">The filename of the package</param>
         /// <param name="packageIdentity">The package identity</param>
