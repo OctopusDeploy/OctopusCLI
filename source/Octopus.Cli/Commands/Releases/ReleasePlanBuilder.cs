@@ -104,6 +104,9 @@ namespace Octopus.Cli.Commands.Releases
             {
                 commandOutputProvider.Debug(
                     "The package version for some steps was not specified. Going to try and resolve those automatically...");
+
+                var allRelevantFeeds = await LoadFeedsForSteps(repository, project, plan.UnresolvedSteps);
+
                 foreach (var unresolved in plan.UnresolvedSteps)
                 {
                     if (!unresolved.IsResolveable)
@@ -120,8 +123,7 @@ namespace Octopus.Cli.Commands.Releases
                     else
                         commandOutputProvider.Debug("Finding latest package for step: {StepName:l}", unresolved.ActionName);
 
-                    var feed = await repository.Feeds.Get(unresolved.PackageFeedId).ConfigureAwait(false);
-                    if (feed == null)
+                    if (!allRelevantFeeds.TryGetValue(unresolved.PackageFeedId, out var feed))
                         throw new CommandException(string.Format(
                             "Could not find a feed with ID {0}, which is used by step: " + unresolved.ActionName,
                             unresolved.PackageFeedId));
@@ -166,6 +168,18 @@ namespace Octopus.Cli.Commands.Releases
 
             return plan;
         }
+
+        private static async Task<Dictionary<string, FeedResource>> LoadFeedsForSteps(IOctopusAsyncRepository repository, ProjectResource project, IEnumerable<ReleasePlanItem> steps)
+        {
+            // PackageFeedId can be an id or a name
+            var allRelevantFeedIdOrName = steps.Select(step => step.PackageFeedId).ToArray();
+            var allRelevantFeeds = project.IsVersionControlled
+                ? (await repository.Feeds.FindByNames(allRelevantFeedIdOrName).ConfigureAwait(false)).ToDictionary(feed => feed.Name)
+                : (await repository.Feeds.Get(allRelevantFeedIdOrName).ConfigureAwait(false)).ToDictionary(feed => feed.Id);
+
+            return allRelevantFeeds;
+        }
+
         IDictionary<string, object> BuildChannelVersionFilters(string stepName, string packageReferenceName, ChannelResource channel)
         {
             var filters = new Dictionary<string, object>();
