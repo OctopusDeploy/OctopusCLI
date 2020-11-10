@@ -73,6 +73,8 @@ namespace Octo.Tests.Commands
             };
             feedResource = new FeedResource
             {
+                Id = "feeds-builtin",
+                Name = "Built in feed",
                 Links = new LinkCollection {{"SearchTemplate", TestHelpers.GetId("searchUri")}}
             };
 
@@ -96,9 +98,13 @@ namespace Octo.Tests.Commands
             deploymentProcessRepositoryBeta.Get(projectResource, Arg.Any<string>())
                 .Returns(Task.FromResult(deploymentProcessResource));
 
+            var feeds = new List<FeedResource>
+            {
+                feedResource
+            };
             releaseRepository = Substitute.For<IReleaseRepository>();
             feedRepository = Substitute.For<IFeedRepository>();
-            feedRepository.Get(Arg.Any<string>()).Returns(feedResource);
+            feedRepository.Get(Arg.Any<string[]>()).Returns(feeds);
 
             repository = Substitute.For<IOctopusAsyncRepository>();
             repository.DeploymentProcesses.Returns(deploymentProcessRepository);
@@ -283,9 +289,9 @@ namespace Octo.Tests.Commands
                 VersionRange = "(,1.0)"
             });
 
-            packages.Add(new PackageResource { Version = "1.0.1"});
+            packages.Add(new PackageResource { Version = "1.0.1" });
 
-            releaseTemplateResource.Packages.Add(new ReleaseTemplatePackage{ActionName = action.Name, PackageReferenceName = "Acme", IsResolvable = true});
+            releaseTemplateResource.Packages.Add(new ReleaseTemplatePackage{ActionName = action.Name, PackageReferenceName = "Acme", IsResolvable = true, FeedId = "feeds-builtin" });
             channelVersionRuleTestResult.IsSatisfied();
 
             repository.Client
@@ -372,7 +378,7 @@ namespace Octo.Tests.Commands
         public static ReleaseTemplatePackage WithPackage(this ReleaseTemplatePackage releaseTemplatePackage)
         {
             releaseTemplatePackage.PackageId = TestHelpers.GetId("package");
-            releaseTemplatePackage.FeedId = TestHelpers.GetId("feed");
+            releaseTemplatePackage.FeedId = "feeds-builtin";
             return releaseTemplatePackage;
         }
 
