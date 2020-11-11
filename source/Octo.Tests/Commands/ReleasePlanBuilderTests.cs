@@ -41,6 +41,8 @@ namespace Octo.Tests.Commands
         private List<PackageResource> packages = new List<PackageResource>();
         private string gitReference;
 
+        public const string BuiltInFeedId = "feeds-builtin";
+
         [SetUp]
         public void Setup()
         {
@@ -73,7 +75,7 @@ namespace Octo.Tests.Commands
             };
             feedResource = new FeedResource
             {
-                Id = "feeds-builtin",
+                Id = BuiltInFeedId,
                 Name = "Built in feed",
                 Links = new LinkCollection {{"SearchTemplate", TestHelpers.GetId("searchUri")}}
             };
@@ -277,7 +279,7 @@ namespace Octo.Tests.Commands
             // arrange
             var deploymentStepResource = ResourceBuilderHelpers.GetStep();
             var action = ResourceBuilderHelpers.GetAction();
-            action.Packages.Add(new PackageReference("Acme", "Acme", "feeds-builtin", PackageAcquisitionLocation.Server));
+            action.Packages.Add(new PackageReference("Acme", "Acme", BuiltInFeedId, PackageAcquisitionLocation.Server));
             deploymentStepResource.Actions.Add(action);
             deploymentProcessResource.Steps.Add(deploymentStepResource);
             channelResource.AddRule(new ChannelVersionRuleResource
@@ -291,7 +293,7 @@ namespace Octo.Tests.Commands
 
             packages.Add(new PackageResource { Version = "1.0.1" });
 
-            releaseTemplateResource.Packages.Add(new ReleaseTemplatePackage{ActionName = action.Name, PackageReferenceName = "Acme", IsResolvable = true, FeedId = "feeds-builtin" });
+            releaseTemplateResource.Packages.Add(new ReleaseTemplatePackage{ActionName = action.Name, PackageReferenceName = "Acme", IsResolvable = true, FeedId = BuiltInFeedId });
             channelVersionRuleTestResult.IsSatisfied();
 
             repository.Client
@@ -378,7 +380,7 @@ namespace Octo.Tests.Commands
         public static ReleaseTemplatePackage WithPackage(this ReleaseTemplatePackage releaseTemplatePackage)
         {
             releaseTemplatePackage.PackageId = TestHelpers.GetId("package");
-            releaseTemplatePackage.FeedId = "feeds-builtin";
+            releaseTemplatePackage.FeedId = ReleasePlanBuilderTests.BuiltInFeedId;
             return releaseTemplatePackage;
         }
 
