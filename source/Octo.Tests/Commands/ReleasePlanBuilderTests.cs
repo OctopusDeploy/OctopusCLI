@@ -107,6 +107,7 @@ namespace Octo.Tests.Commands
             releaseRepository = Substitute.For<IReleaseRepository>();
             feedRepository = Substitute.For<IFeedRepository>();
             feedRepository.Get(Arg.Any<string[]>()).Returns(feeds);
+            feedRepository.FindByNames(Arg.Any<IEnumerable<string>>()).Returns(feeds);
 
             repository = Substitute.For<IOctopusAsyncRepository>();
             repository.DeploymentProcesses.Returns(deploymentProcessRepository);
@@ -329,6 +330,22 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
+        public void VersionControlledProject_ResolvableUsingFeed_ShouldBeViablePlan()
+        {
+            // arrange
+            gitReference = "main";
+            projectResource.IsVersionControlled = true;
+            releaseTemplateResource.Packages.Add(GetReleaseTemplatePackage().WithPackage(ResourceBuilderHelpers.KeyedBy.Name).IsResolvable());
+            packages.Add(new PackageResource { Version = "1.0.0"});
+
+            // act
+            var plan = ExecuteBuild();
+
+            // assert
+            plan.IsViableReleasePlan().Should().BeTrue();
+        }
+
+        [Test]
         public void DatabaseProject_ShouldRejectGitReference()
         {
             projectResource.IsVersionControlled = false;
@@ -377,10 +394,17 @@ namespace Octo.Tests.Commands
             return action;
         }
 
-        public static ReleaseTemplatePackage WithPackage(this ReleaseTemplatePackage releaseTemplatePackage)
+        public enum KeyedBy
+        {
+            Id,
+            Name
+        };
+
+        public static ReleaseTemplatePackage WithPackage(this ReleaseTemplatePackage releaseTemplatePackage, KeyedBy keyedBy = KeyedBy.Id)
         {
             releaseTemplatePackage.PackageId = TestHelpers.GetId("package");
-            releaseTemplatePackage.FeedId = ReleasePlanBuilderTests.BuiltInFeedId;
+            var feedKey = keyedBy == KeyedBy.Id ? ReleasePlanBuilderTests.BuiltInFeedId : "Built in feed";
+            releaseTemplatePackage.FeedId = feedKey;
             return releaseTemplatePackage;
         }
 
