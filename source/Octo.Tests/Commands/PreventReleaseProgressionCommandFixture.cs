@@ -21,6 +21,7 @@ namespace Octo.Tests.Commands
         PreventReleaseProgressionCommand preventReleaseProgressionCommand;
         ProjectResource projectResource;
         ReleaseResource releaseResource;
+        ReleaseResource releaseResource2;
         const string ReasonToPrevent = "Test Prevention";
 
         [SetUp]
@@ -47,6 +48,18 @@ namespace Octo.Tests.Commands
 
             var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved) };
             Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
+            
+            releaseResource2 = new ReleaseResource
+            {
+                Id = "Releases-2",
+                ProjectId = projectResource.Id,
+                SpaceId = projectResource.SpaceId,
+                Version = "latest"
+            };
+            Repository.Projects.GetReleaseByVersion(projectResource, releaseResource2.Version).Returns(releaseResource2);
+            
+            var defects2 = new[] { new DefectResource("Test Defect 2", DefectStatus.Resolved) };
+            Repository.Defects.GetDefects(releaseResource2).Returns(new ResourceCollection<DefectResource>(defects2, new LinkCollection()));
         }
 
         [Test]
@@ -136,6 +149,19 @@ namespace Octo.Tests.Commands
             await preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
 
             preventReleaseProgressionCommand.ReleaseVersionNumber.Should().Be(releaseResource.Version);
+            await Repository.Projects.Received(1).GetReleaseByVersion(projectResource, preventReleaseProgressionCommand.ReleaseVersionNumber);
+        }
+        
+        [Test]
+        public async Task ShouldSupportDockerVersionForRelease()
+        {
+            CommandLineArgs.Add($"--project={projectResource.Name}");
+            CommandLineArgs.Add($"--version={releaseResource2.Version}");
+            CommandLineArgs.Add($"--reason={ReasonToPrevent}");
+
+            await preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
+
+            preventReleaseProgressionCommand.ReleaseVersionNumber.Should().Be(releaseResource2.Version);
             await Repository.Projects.Received(1).GetReleaseByVersion(projectResource, preventReleaseProgressionCommand.ReleaseVersionNumber);
         }
 

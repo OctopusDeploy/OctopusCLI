@@ -20,6 +20,14 @@
         "ReleaseNotes": "Release Notes 2",
         "GitReference": null,
         "GitCommit": null
+      },
+      {
+        "Version": "whateverdockerversion",
+        "Assembled": "9999-12-31T23:59:59.999+00:00",
+        "PackageVersions": "",
+        "ReleaseNotes": "Release Notes 3",
+        "GitReference": null,
+        "GitCommit": null
       }
     ]
   },

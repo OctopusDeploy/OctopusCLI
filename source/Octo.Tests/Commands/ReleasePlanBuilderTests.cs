@@ -192,15 +192,17 @@ namespace Octo.Tests.Commands
             plan.IsViableReleasePlan().Should().BeTrue();
         }
 
-        [Test]
-        public void SinglePackageStep_ShouldBeViablePlan()
+        [TestCase("1.0.0")]
+        [TestCase("v1.0.0")]
+        [TestCase("blah")]
+        public void SinglePackageStep_ShouldBeViablePlan(string version)
         {
             // arrange
             var deploymentStepResource = ResourceBuilderHelpers.GetStep();
             deploymentStepResource.Actions.Add(ResourceBuilderHelpers.GetAction().WithChannel(channelResource.Id).WithPackage());
             deploymentProcessResource.Steps.Add(deploymentStepResource);
 
-            releaseTemplateResource.Packages.Add(GetReleaseTemplatePackage().WithPackage().WithVersion("1.0.0", versionResolver));
+            releaseTemplateResource.Packages.Add(GetReleaseTemplatePackage().WithPackage().WithVersion(version, versionResolver));
             channelVersionRuleTestResult.IsSatisfied();
 
 
@@ -238,8 +240,10 @@ namespace Octo.Tests.Commands
             plan.IsViableReleasePlan().Should().BeFalse();
         }
 
-        [Test]
-        public void MultipleSteps_OneNotResolvable_ShouldNotBeViablePlan()
+        [TestCase("1.0.0")]
+        [TestCase("v1.0.0")]
+        [TestCase("blah")]
+        public void MultipleSteps_OneNotResolvable_ShouldNotBeViablePlan(string version)
         {
             // arrange
             var releaseTemplatePackage = GetReleaseTemplatePackage().WithPackage();
@@ -251,7 +255,7 @@ namespace Octo.Tests.Commands
             releaseTemplateResource.Packages.Add(releaseTemplatePackage);
 
             repository.Client.Get<IList<PackageResource>>(Arg.Any<string>(), Arg.Any<IDictionary<string, object>>())
-                .Returns(new List<PackageResource> {new PackageResource {Version = "1.0.0"}});
+                .Returns(new List<PackageResource> {new PackageResource {Version = version}});
 
             // act
             var plan = ExecuteBuild();

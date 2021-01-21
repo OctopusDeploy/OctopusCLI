@@ -29,14 +29,16 @@ namespace Octo.Tests.Commands
                         Name = "",
                         Id = "deploymentid1",
                         ProjectId = "projectaid",
-                        EnvironmentId = "environmentid1"
+                        EnvironmentId = "environmentid1",
+                        ReleaseId = "Release1"
                     },
                     new DeploymentResource
                     {
                         Name = "",
                         Id = "deploymentid2",
                         ProjectId = "projectbid",
-                        EnvironmentId = "environmentid2"
+                        EnvironmentId = "environmentid2",
+                        ReleaseId = "Release2"
                     },
                 }, new LinkCollection());
 
@@ -69,7 +71,8 @@ namespace Octo.Tests.Commands
             Repository.Tenants.FindAll()
                 .Returns(Task.FromResult(new List<TenantResource>()));
 
-            Repository.Releases.Get(Arg.Any<string>()).ReturnsForAnyArgs(new ReleaseResource { Version = "0.0.1" });
+            Repository.Releases.Get(Arg.Is("Release1")).Returns(new ReleaseResource { Version = "0.0.1" });
+            Repository.Releases.Get(Arg.Is("Release2")).Returns(new ReleaseResource { Version = "somedockertag" });
         }
 
         [Test]
@@ -97,6 +100,8 @@ namespace Octo.Tests.Commands
             JsonConvert.DeserializeObject(logoutput);
             logoutput.Should().Contain("ProjectA");
             logoutput.Should().Contain("ProjectB");
+            logoutput.Should().Contain("0.0.1");
+            logoutput.Should().Contain("somedockertag");
         }
     }
 }

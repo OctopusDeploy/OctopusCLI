@@ -18,6 +18,7 @@ namespace Octo.Tests.Commands
         private EnvironmentResource environment;
         private ProjectResource project;
         private ReleaseResource release;
+        private ReleaseResource release2;
         private TenantResource octopusTenant;
 
         private ProjectResource savedProject = default(ProjectResource);
@@ -30,6 +31,7 @@ namespace Octo.Tests.Commands
             environment = new EnvironmentResource { Name = "Production", Id = "Environments-001" };
             project = new ProjectResource("Projects-1", "OctoFx", "OctoFx");
             release = new ReleaseResource("1.2.0", "Projects-1", "Channels-1");
+            release2 = new ReleaseResource("somedockertag", "Projects-1", "Channels-1");
             octopusTenant = new TenantResource
             {
                 Id = "Tenants-1",
@@ -47,6 +49,10 @@ namespace Octo.Tests.Commands
 
             Repository.Projects.GetReleaseByVersion(Arg.Any<ProjectResource>(), "1.2.0").Returns(
                 release
+            );
+            
+            Repository.Projects.GetReleaseByVersion(Arg.Any<ProjectResource>(), "somedockertag").Returns(
+                release2
             );
 
             Repository.Tenants.FindByNames(Arg.Any<IEnumerable<string>>()).Returns(
@@ -80,6 +86,24 @@ namespace Octo.Tests.Commands
             var autoDeployOverride = savedProject.AutoDeployReleaseOverrides.Single();
             Assert.AreEqual(project.Id, savedProject.Id);
             Assert.AreEqual(release.Id, autoDeployOverride.ReleaseId);
+            Assert.AreEqual(null, autoDeployOverride.TenantId);
+            Assert.AreEqual(environment.Id, autoDeployOverride.EnvironmentId);
+        }
+        
+        [Test]
+        public async Task ShouldAddOverrideForEnvironmentAndDockerTagVersionedRelease()
+        {
+            CommandLineArgs.Add("-project=OctoFx");
+            CommandLineArgs.Add("-environment=Production");
+            CommandLineArgs.Add("-version=somedockertag");
+
+            await createAutoDeployOverrideCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
+
+            LogLines.Should().Contain("Auto deploy will deploy version somedockertag of the project OctoFx to the environment Production");
+            await Repository.Projects.ReceivedWithAnyArgs().Modify(null).ConfigureAwait(false);
+            var autoDeployOverride = savedProject.AutoDeployReleaseOverrides.Single();
+            Assert.AreEqual(project.Id, savedProject.Id);
+            Assert.AreEqual(release2.Id, autoDeployOverride.ReleaseId);
             Assert.AreEqual(null, autoDeployOverride.TenantId);
             Assert.AreEqual(environment.Id, autoDeployOverride.EnvironmentId);
         }

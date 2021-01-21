@@ -26,7 +26,8 @@ namespace Octo.Tests.Commands
 
             var project = new ProjectResource();
             var release = new ReleaseResource { Version = "1.0.0" };
-            var releases = new ResourceCollection<ReleaseResource>(new[] { release }, new LinkCollection());
+            var release2 = new ReleaseResource { Version = "somedockertag" };
+            var releases = new ResourceCollection<ReleaseResource>(new[] { release, release2 }, new LinkCollection());
             var deploymentPromotionTarget = new DeploymentPromotionTarget { Name = ValidEnvironment, Id = "Env-1" };
             var promotionTargets = new List<DeploymentPromotionTarget> { deploymentPromotionTarget };
             var tenantPromotionTarget1 = new DeploymentPromomotionTenant() { Id = "Tenant-1", PromoteTo = promotionTargets };
@@ -38,8 +39,11 @@ namespace Octo.Tests.Commands
 
             Repository.Projects.FindByName(ProjectName).Returns(project);
             Repository.Projects.GetReleases(project).Returns(releases);
+            Repository.Projects.GetReleaseByVersion(project, "1.0.0").Returns(release);
+            Repository.Projects.GetReleaseByVersion(project, "somedockertag").Returns(release2);
             Repository.Releases.GetPreview(deploymentPromotionTarget).Returns(deploymentPreviewResource);
             Repository.Releases.GetTemplate(release).Returns(deploymentTemplate);
+            Repository.Releases.GetTemplate(release2).Returns(deploymentTemplate);
             Repository.Deployments.Create(Arg.Any<DeploymentResource>()).Returns(deployment);
             Repository.Tasks.Get(deployment.TaskId).Returns(taskResource);
             Repository.Tenants.Get(Arg.Is<string[]>(arg => arg.All(arg2 => arg2 == "Tenant-1" || arg2 == "Tenant-2")))
@@ -89,15 +93,16 @@ namespace Octo.Tests.Commands
             Repository.Tasks.DidNotReceive().Cancel(Arg.Any<TaskResource>());
         }
 
-        [Test]
-        public void ShouldRejectIfMultipleEnvironmentsAndTenanted()
+        [TestCase("1.0.0")]
+        [TestCase("somedockertag")]
+        public void ShouldRejectIfMultipleEnvironmentsAndTenanted(string version)
         {
             CommandLineArgs.Add("--project=" + ProjectName);
             CommandLineArgs.Add("--deploymenttimeout=00:00:01");
             CommandLineArgs.Add("--deployto=TestEnvironment");
             CommandLineArgs.Add("--deployto=DevEnvironment");
             CommandLineArgs.Add("--tenant=James");
-            CommandLineArgs.Add("--version=latest");
+            CommandLineArgs.Add("--version=" + version);
             CommandLineArgs.Add("--progress");
             CommandLineArgs.Add("--cancelontimeout");
 
@@ -108,14 +113,16 @@ namespace Octo.Tests.Commands
             Repository.Deployments.DidNotReceive().Create(Arg.Any<DeploymentResource>());
         }
 
-        [Test] public async Task ShouldValidateEnvironmentsUsingCaselessMatch()
+        [TestCase("1.0.0")]
+        [TestCase("somedockertag")]
+        public async Task ShouldValidateEnvironmentsUsingCaselessMatch(string version)
         {
             const string targetEnvironment = "DevEnvironment";
 
             CommandLineArgs.Add("--project=" + ProjectName);
             CommandLineArgs.Add("--deploymenttimeout=00:00:01");
             CommandLineArgs.Add($"--deployto={targetEnvironment.ToLower()}");
-            CommandLineArgs.Add("--version=latest");
+            CommandLineArgs.Add("--version=" + version);
             CommandLineArgs.Add("--progress");
             CommandLineArgs.Add("--cancelontimeout");
 
@@ -133,8 +140,9 @@ namespace Octo.Tests.Commands
             await Repository.Deployments.Received(1).Create(Arg.Any<DeploymentResource>());
         }
 
-        [Test]
-        public void ShouldTryLoadTenant()
+        [TestCase("1.0.0")]
+        [TestCase("somedockertag")]
+        public void ShouldTryLoadTenant(string version)
         {
             var tenant1 = new TenantResource() { Id = "Tenant-1", Name = "Tenant One" };
             Repository.Tenants
@@ -146,7 +154,7 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--deploymenttimeout=00:00:01");
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
             CommandLineArgs.Add("--tenant=*");
-            CommandLineArgs.Add("--version=latest");
+            CommandLineArgs.Add("--version=" + version);
             CommandLineArgs.Add("--progress");
             CommandLineArgs.Add("--cancelontimeout");
 
