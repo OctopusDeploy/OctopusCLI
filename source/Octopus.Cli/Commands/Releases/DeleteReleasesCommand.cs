@@ -8,7 +8,6 @@ using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
 using Octopus.Versioning.Octopus;
-using Serilog;
 
 namespace Octopus.Cli.Commands.Releases
 {

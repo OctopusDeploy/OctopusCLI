@@ -8,10 +8,8 @@ using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
-using Octopus.Client.Model;
 using Octopus.Versioning.Octopus;
 using Serilog;
-using SemanticVersion = Octopus.Client.Model.SemanticVersion;
 
 namespace Octopus.Cli.Commands.Releases
 {
@@ -86,7 +84,7 @@ namespace Octopus.Cli.Commands.Releases
         readonly IDictionary<PackageKey, string> stepNameToVersion = new Dictionary<PackageKey, string>(new PackageKey());
         string defaultVersion;
 
-        public PackageVersionResolver(Serilog.ILogger log, IOctopusFileSystem fileSystem)
+        public PackageVersionResolver(ILogger log, IOctopusFileSystem fileSystem)
         {
             this.log = log;
             this.fileSystem = fileSystem;

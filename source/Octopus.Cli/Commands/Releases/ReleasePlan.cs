@@ -5,7 +5,6 @@ using System.Text;
 using Octopus.Cli.Infrastructure;
 using Octopus.Client.Model;
 using Octopus.Versioning.Octopus;
-using Serilog;
 
 namespace Octopus.Cli.Commands.Releases
 {
