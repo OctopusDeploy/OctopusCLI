@@ -113,9 +113,7 @@ namespace Octo.Tests.Commands
                 .WithMessage("Please specify a release version number using the version parameter: --version=1.0.5");
         }
 
-        [TestCase("abc")]
-        [TestCase("a.b.c")]
-        [TestCase("1.3.b")]
+        [TestCase("999999999999999999999999999999999999999999999999999999"), Description("Number larger than an int")]
         public void ShouldValidateReleaseVersionNumberParameterForFormat(string releaseVersionNumber)
         {
             CommandLineArgs.Add($"--project={projectResource.Name}");
@@ -124,7 +122,7 @@ namespace Octo.Tests.Commands
 
             Func<Task> exec = () => preventReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
-                .WithMessage("Please provide a valid release version format, you can refer to https://semver.org/ for a valid format: --version=1.0.5");
+                .WithMessage("Please provide a valid release version format: --version=1.0.5");
         }
 
         [TestCase("version")]

@@ -13,6 +13,7 @@ namespace Octopus.Cli.Commands.Releases
     [Command("allow-releaseprogression", Description = "Allows a release to progress to the next phase.")]
     public class AllowReleaseProgressionCommand : ApiCommand, ISupportFormattedOutput
     {
+        private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
         ProjectResource project;
         ReleaseResource release;
 
@@ -32,7 +33,7 @@ namespace Octopus.Cli.Commands.Releases
         {
             if (string.IsNullOrWhiteSpace(ProjectNameOrId)) throw new CommandException("Please specify a project name or ID using the parameter: --project=XYZ");
             if (string.IsNullOrWhiteSpace(ReleaseVersionNumber)) throw new CommandException("Please specify a release version number using the version parameter: --version=1.0.5");
-
+            if (!OctopusVersionParser.TryParse(ReleaseVersionNumber, out _)) throw new CommandException("Please provide a valid release version format: --version=1.0.5");
             await base.ValidateParameters().ConfigureAwait(false);
         }
 

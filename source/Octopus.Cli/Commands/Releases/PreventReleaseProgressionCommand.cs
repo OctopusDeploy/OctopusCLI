@@ -6,12 +6,14 @@ using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Exceptions;
 using Octopus.Client.Model;
+using Octopus.Versioning.Octopus;
 
 namespace Octopus.Cli.Commands.Releases
 {
     [Command("prevent-releaseprogression", Description = "Prevents a release from progressing to the next phase.")]
     public class PreventReleaseProgressionCommand : ApiCommand, ISupportFormattedOutput
     {
+        private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
         ProjectResource project;
         ReleaseResource release;
 
@@ -34,6 +36,7 @@ namespace Octopus.Cli.Commands.Releases
         {
             if (string.IsNullOrWhiteSpace(ProjectNameOrId)) throw new CommandException("Please specify a project name or ID using the parameter: --project=XYZ");
             if (string.IsNullOrWhiteSpace(ReleaseVersionNumber)) throw new CommandException("Please specify a release version number using the version parameter: --version=1.0.5");
+            if (!OctopusVersionParser.TryParse(ReleaseVersionNumber, out _)) throw new CommandException("Please provide a valid release version format: --version=1.0.5");
             if (string.IsNullOrWhiteSpace(ReasonToPrevent)) throw new CommandException("Please specify a reason why you would like to prevent this release from progressing to next phase using the reason parameter: --reason=Contract Tests Failed");
 
             await base.ValidateParameters().ConfigureAwait(false);
