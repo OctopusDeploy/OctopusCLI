@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks Condition="!$([MSBuild]::IsOSUnixLike())">net452;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="!$([MSBuild]::IsOSUnixLike())">net452;netstandard2.1</TargetFrameworks>
     <TargetFrameworks Condition="$([MSBuild]::IsOSUnixLike())">netstandard2.0</TargetFrameworks>
     <Authors>Octopus Deploy</Authors>
     <Copyright>Octopus Deploy Pty Ltd</Copyright>
@@ -36,6 +36,7 @@
     <PackageReference Include="NuGet.Packaging.Core.Types" Version="3.6.0-octopus-58692" />
     <PackageReference Include="NuGet.Versioning" Version="3.6.0-octopus-58692" />
     <PackageReference Include="Octopus.Client" Version="8.8.8" />
+    <PackageReference Include="Octopus.Versioning" Version="4.3.4-tryparse0001" />
     <PackageReference Include="Octostache" Version="2.3.0" />
     <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="2.0.0" />
     <PackageReference Include="Serilog.Sinks.Trace" Version="2.0.0" />

@@ -7,6 +7,7 @@ using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
+using Octopus.Versioning.Octopus;
 using Serilog;
 
 namespace Octopus.Cli.Exporters
@@ -14,6 +15,8 @@ namespace Octopus.Cli.Exporters
     [Exporter("release", "List", Description = "Exports either a single release, or multiple releases.")]
     public class ReleaseExporter : BaseExporter
     {
+        private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
+        
         public ReleaseExporter(IOctopusAsyncRepository repository, IOctopusFileSystem fileSystem, ILogger log) :
             base(repository, fileSystem, log)
         {
@@ -31,8 +34,8 @@ namespace Octopus.Cli.Exporters
             if (project == null)
                 throw new CouldNotFindException("a project named", projectName);
 
-            SemanticVersion minVersionToExport;
-            SemanticVersion maxVersionToExport;
+            OctopusVersion minVersionToExport;
+            OctopusVersion maxVersionToExport;
 
             // I don't think -> works on the command line unless it is quoted --releaseVersion="1.0.0->1.0.1"
             if (releaseVersion.IndexOf("->", StringComparison.Ordinal) > 0)
@@ -40,8 +43,8 @@ namespace Octopus.Cli.Exporters
                 var releaseVersions = releaseVersion.Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries);
                 if (releaseVersions.Count() > 2)
                     throw new CommandException("Incorrect format for exporting multiple releases, please specify the release versions as --releaseVersion=1.0.0-1.0.3");
-                minVersionToExport = SemanticVersion.Parse(releaseVersions[0]);
-                maxVersionToExport = SemanticVersion.Parse(releaseVersions[1]);
+                minVersionToExport = OctopusVersionParser.Parse(releaseVersions[0]);
+                maxVersionToExport = OctopusVersionParser.Parse(releaseVersions[1]);
             }
             else if (releaseVersion.IndexOf("-", StringComparison.Ordinal) > 0)
             {
@@ -49,16 +52,16 @@ namespace Octopus.Cli.Exporters
                 if (releaseVersions.Count() > 2)
                     throw new CommandException("Incorrect format for exporting multiple releases, please specify the release versions as --releaseVersion=1.0.0-1.0.3");
 
-                minVersionToExport = SemanticVersion.Parse(releaseVersions[0]);
-                if (!SemanticVersion.TryParse(releaseVersions[1], out maxVersionToExport))
+                minVersionToExport = OctopusVersionParser.Parse(releaseVersions[0]);
+                if (!OctopusVersionParser.TryParse(releaseVersions[1], out maxVersionToExport))
                 {
-                    minVersionToExport = SemanticVersion.Parse(releaseVersion);
+                    minVersionToExport = OctopusVersionParser.Parse(releaseVersion);
                     maxVersionToExport = minVersionToExport;
                 }
             }
             else
             {
-                minVersionToExport = SemanticVersion.Parse(releaseVersion);
+                minVersionToExport = OctopusVersionParser.Parse(releaseVersion);
                 maxVersionToExport = minVersionToExport;
             }
 
@@ -69,8 +72,8 @@ namespace Octopus.Cli.Exporters
             {
                 foreach (var release in page.Items)
                 {
-                    var version = SemanticVersion.Parse(release.Version);
-                    if (minVersionToExport <= version && version <= maxVersionToExport)
+                    var version = OctopusVersionParser.Parse(release.Version);
+                    if (minVersionToExport.CompareTo(version) <= 0 && version.CompareTo(maxVersionToExport) <= 0)
                     {
                         Log.Debug("Found release {Version:l}", version);
                         releasesToExport.Add(release);

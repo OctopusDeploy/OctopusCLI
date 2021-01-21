@@ -7,6 +7,7 @@ using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
+using Octopus.Versioning.Octopus;
 using Serilog;
 
 namespace Octopus.Cli.Commands.Releases
@@ -14,6 +15,7 @@ namespace Octopus.Cli.Commands.Releases
     [Command("delete-releases", Description = "Deletes a range of releases.")]
     public class DeleteReleasesCommand : ApiCommand, ISupportFormattedOutput
     {
+        private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
         ProjectResource project;
         HashSet<string> channels;
         ResourceCollection<ReleaseResource> releases;
@@ -44,8 +46,8 @@ namespace Octopus.Cli.Commands.Releases
             if (string.IsNullOrWhiteSpace(MinVersion)) throw new CommandException("Please specify a minimum version number using the parameter: --minVersion=X.Y.Z");
             if (string.IsNullOrWhiteSpace(MaxVersion)) throw new CommandException("Please specify a maximum version number using the parameter: --maxVersion=X.Y.Z");
 
-            var min = SemanticVersion.Parse(MinVersion);
-            var max = SemanticVersion.Parse(MaxVersion);
+            var min = OctopusVersionParser.Parse(MinVersion);
+            var max = OctopusVersionParser.Parse(MaxVersion);
 
 
             project = await GetProject().ConfigureAwait(false);
@@ -65,8 +67,8 @@ namespace Octopus.Cli.Commands.Releases
                     if (channels.Any() && !channels.Contains(release.ChannelId))
                         continue;
 
-                    var version = SemanticVersion.Parse(release.Version);
-                    if (min > version || version > max)
+                    var version = OctopusVersionParser.Parse(release.Version);
+                    if (min.CompareTo(version) > 0 || version.CompareTo(max) > 0)
                         continue;
 
                     if (WhatIf)
