@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks Condition="!$([MSBuild]::IsOSUnixLike())">net452;netstandard2.1</TargetFrameworks>
-    <TargetFrameworks Condition="$([MSBuild]::IsOSUnixLike())">netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSUnixLike())">netstandard2.1</TargetFrameworks>
     <Authors>Octopus Deploy</Authors>
     <Copyright>Octopus Deploy Pty Ltd</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -15,7 +15,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' ">
     <DefineConstants>$(DefineConstants);HTTP_CLIENT_SUPPORTS_SSL_OPTIONS</DefineConstants>
   </PropertyGroup>
 
