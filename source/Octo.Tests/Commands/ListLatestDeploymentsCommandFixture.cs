@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -6,7 +5,6 @@ using Newtonsoft.Json;
 using NSubstitute;
 using NUnit.Framework;
 using Octopus.Cli.Commands.Deployment;
-using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
 
 namespace Octo.Tests.Commands
@@ -29,13 +27,15 @@ namespace Octo.Tests.Commands
                     {
                         EnvironmentId = "environmentid1",
                         ProjectId = "projectaid",
-                        TenantId = "tenantid1"                        
+                        TenantId = "tenantid1",
+                        ReleaseId = "Release1"
                     },
                     new DashboardItemResource
                     {
                         EnvironmentId = "environmentid1",
                         ProjectId = "projectaid",
-                        TenantId = "tenantid2"                        
+                        TenantId = "tenantid2",
+                        ReleaseId = "Release2"
                     }
                 },
                 Tenants = new List<DashboardTenantResource>
@@ -62,7 +62,8 @@ namespace Octo.Tests.Commands
                         new EnvironmentResource {Name = "EnvA", Id = "environmentid1"}
                     }));
 
-            Repository.Releases.Get(Arg.Any<string>()).ReturnsForAnyArgs(new ReleaseResource { Version = "0.0.1" });
+            Repository.Releases.Get(Arg.Is("Release1")).Returns(new ReleaseResource { Version = "0.0.1" });
+            Repository.Releases.Get(Arg.Is("Release2")).Returns(new ReleaseResource { Version = "V1.0.0" });
 
             Repository.Dashboards.GetDynamicDashboard(Arg.Any<string[]>(), Arg.Any<string[]>()).ReturnsForAnyArgs(dashboardResources);
         }
@@ -76,6 +77,7 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain(" - Tenant: tenant1");
             LogLines.Should().Contain(" - Tenant: <Removed>");
+            LogLines.Should().Contain("   Version: V1.0.0");
         }
 
         [Test]
@@ -90,6 +92,7 @@ namespace Octo.Tests.Commands
             JsonConvert.DeserializeObject(logoutput);
             logoutput.Should().Contain("tenant1");
             logoutput.Should().Contain("<Removed>");
+            logoutput.Should().Contain("V1.0.0");
         }
     }
 }

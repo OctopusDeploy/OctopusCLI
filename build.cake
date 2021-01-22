@@ -409,7 +409,7 @@ private void SignBinaries(string path)
 
 	Sign(files, new SignToolSignSettings {
 			ToolPath = MakeAbsolute(File("./certificates/signtool.exe")),
-            TimeStampUri = new Uri("http://timestamp.verisign.com/scripts/timstamp.dll"),
+            TimeStampUri = new Uri("http://timestamp.digicert.com"),
             CertPath = signingCertificatePath,
             Password = signingCertificatePassword
     });

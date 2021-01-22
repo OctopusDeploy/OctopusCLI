@@ -57,6 +57,13 @@ namespace Octo.Tests.Commands
                 },
                 new ReleaseResource
                 {
+                    ProjectId = "projectaid",
+                    Version = "whateverdockerversion",
+                    Assembled = DateTimeOffset.MaxValue,
+                    ReleaseNotes = "Release Notes 3"
+                },
+                new ReleaseResource
+                {
                     ProjectId = VersionControlledProjectId,
                     Version = "1.2.3",
                     Assembled = DateTimeOffset.MaxValue,
@@ -101,6 +108,13 @@ namespace Octo.Tests.Commands
                     Version = "2.0",
                     Assembled = DateTimeOffset.MaxValue,
                     ReleaseNotes = "Release Notes 2"
+                },
+                new ReleaseResource
+                {
+                    ProjectId = "projectaid",
+                    Version = "whateverdockerversion",
+                    Assembled = DateTimeOffset.MaxValue,
+                    ReleaseNotes = "Release Notes 3"
                 },
                 new ReleaseResource
                 {

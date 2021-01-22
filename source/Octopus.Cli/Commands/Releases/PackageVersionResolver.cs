@@ -8,9 +8,8 @@ using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
-using Octopus.Client.Model;
+using Octopus.Versioning.Octopus;
 using Serilog;
-using SemanticVersion = Octopus.Client.Model.SemanticVersion;
 
 namespace Octopus.Cli.Commands.Releases
 {
@@ -67,6 +66,8 @@ namespace Octopus.Cli.Commands.Releases
 
     public class PackageVersionResolver : IPackageVersionResolver
     {
+        private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
+
         /// <summary>
         /// Used to indicate a match with any matching step name or package reference name
         /// </summary>
@@ -83,7 +84,7 @@ namespace Octopus.Cli.Commands.Releases
         readonly IDictionary<PackageKey, string> stepNameToVersion = new Dictionary<PackageKey, string>(new PackageKey());
         string defaultVersion;
 
-        public PackageVersionResolver(Serilog.ILogger log, IOctopusFileSystem fileSystem)
+        public PackageVersionResolver(ILogger log, IOctopusFileSystem fileSystem)
         {
             this.log = log;
             this.fileSystem = fileSystem;
@@ -147,9 +148,9 @@ namespace Octopus.Cli.Commands.Releases
             var key = new PackageKey(stepNameOrPackageId, packageReferenceName ?? WildCard);
             if (stepNameToVersion.TryGetValue(key, out var current))
             {
-                var newVersion = SemanticVersion.Parse(packageVersion);
-                var currentVersion = SemanticVersion.Parse(current);
-                if (newVersion < currentVersion)
+                var newVersion = OctopusVersionParser.Parse(packageVersion);
+                var currentVersion = OctopusVersionParser.Parse(current);
+                if (newVersion.CompareTo(currentVersion) < 0)
                 {
                     return;
                 }
@@ -162,10 +163,10 @@ namespace Octopus.Cli.Commands.Releases
         {
             try
             {
-                SemanticVersion.Parse(packageVersion);
+                OctopusVersionParser.Parse(packageVersion);
                 defaultVersion = packageVersion;
             }
-            catch (ArgumentException)
+            catch (Exception)
             {
                 if (packageVersion.Contains(":"))
                 {

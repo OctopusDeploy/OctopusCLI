@@ -1,6 +1,6 @@
 Octopus Deploy Command Line Tool, version <VERSION>
 
-Releases: 3
+Releases: 4
  - Project: ProjectA
     Version: 1.0
     Assembled: <ASSEMBLED-TIMESTAMP>
@@ -11,6 +11,11 @@ Releases: 3
     Assembled: <ASSEMBLED-TIMESTAMP>
     Package Versions: 
     Release Notes: Release Notes 2
+
+    Version: whateverdockerversion
+    Assembled: <ASSEMBLED-TIMESTAMP>
+    Package Versions: 
+    Release Notes: Release Notes 3
 
  - Project: ProjectB
  - Project: Version controlled project

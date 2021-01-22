@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using Octopus.Cli.Infrastructure;
 using Octopus.Client.Model;
-using Serilog;
+using Octopus.Versioning.Octopus;
 
 namespace Octopus.Cli.Commands.Releases
 {
     public class ReleasePlan
     {
+        private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
         readonly ReleasePlanItem[] packageSteps;
         private readonly ReleasePlanItem[] scriptSteps;
 
@@ -88,10 +89,10 @@ namespace Octopus.Cli.Commands.Releases
 
         public string GetHighestVersionNumber()
         {
-            var step = PackageSteps.Select(p => SemanticVersion.Parse(p.Version)).OrderByDescending(v => v).FirstOrDefault();
+            var step = PackageSteps.Select(p => OctopusVersionParser.Parse(p.Version)).OrderByDescending(v => v).FirstOrDefault();
             if (step == null)
             {
-                throw new CommandException("None of the deployment packageSteps in this release reference a NuGet package, so the highest package version number cannot be determined.");
+                throw new CommandException("None of the deployment packageSteps in this release reference a package, so the highest package version number cannot be determined.");
             }
 
             return step.ToString();

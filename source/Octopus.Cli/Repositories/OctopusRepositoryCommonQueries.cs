@@ -6,12 +6,13 @@ using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
-using Serilog;
+using Octopus.Versioning.Octopus;
 
 namespace Octopus.Cli.Repositories
 {
     public class OctopusRepositoryCommonQueries
     {
+        private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
         readonly IOctopusAsyncRepository repository;
         readonly ICommandOutputProvider commandOutputProvider;
 
@@ -60,14 +61,14 @@ namespace Octopus.Cli.Repositories
                 {
                     releaseToPromote = releases
                         .Items // We only need the first page
-                        .OrderByDescending(r => SemanticVersion.Parse(r.Version))
+                        .OrderByDescending(r => OctopusVersionParser.Parse(r.Version))
                         .FirstOrDefault();
                 }
                 else
                 {
                     await releases.Paginate(repository, page =>
                     {
-                        releaseToPromote = Enumerable.OrderByDescending<ReleaseResource, SemanticVersion>(page.Items, r => SemanticVersion.Parse(r.Version))
+                        releaseToPromote = Enumerable.OrderByDescending<ReleaseResource, OctopusVersion>(page.Items, r => OctopusVersionParser.Parse(r.Version))
                             .FirstOrDefault(r => r.ChannelId == channel.Id);
 
                        // If we haven't found one yet, keep paginating

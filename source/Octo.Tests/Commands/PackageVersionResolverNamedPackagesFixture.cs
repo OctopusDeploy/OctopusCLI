@@ -29,6 +29,16 @@ namespace Octo.Tests.Commands
             Assert.That(resolver.ResolveVersion("Step", "PackageA", "Package1"), Is.EqualTo("1.0.0"));
             Assert.That(resolver.ResolveVersion("Step", "PackageB", "Package1"), Is.EqualTo("1.1.0"));
         }
+        
+        [Test]
+        public void ShouldReturnDockerPackageVersionToUse()
+        {
+            resolver.Add("PackageA", "Package1", "iamadockertag");
+            resolver.Add("PackageB", "Package1", "v1.0.0");
+
+            Assert.That(resolver.ResolveVersion("Step", "PackageA", "Package1"), Is.EqualTo("iamadockertag"));
+            Assert.That(resolver.ResolveVersion("Step", "PackageB", "Package1"), Is.EqualTo("v1.0.0"));
+        }
 
         [Test]
         public void ShouldBeCaseInsensitive()

@@ -1,18 +1,20 @@
-﻿using System.Threading.Tasks;
-using System.Linq;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using Octopus.Cli.Commands.Deployment;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
-using Serilog;
-using Octopus.Cli.Commands.Deployment;
+using Octopus.Versioning.Octopus;
 
 namespace Octopus.Cli.Commands.Releases
 {
     [Command("promote-release", Description = "Promotes a release.")]
     public class PromoteReleaseCommand : DeploymentCommandBase, ISupportFormattedOutput
     {
+        private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
+        
         ProjectResource project;
         EnvironmentResource environment;
         ReleaseResource release;
@@ -53,7 +55,7 @@ namespace Octopus.Cli.Commands.Releases
             var dashboard = await Repository.Dashboards.GetDynamicDashboard(new[] {project.Id}, new[] {environment.Id}, dashboardItemsOptions).ConfigureAwait(false);
             var dashboardItems = dashboard.Items
                 .Where(e => e.EnvironmentId == environment.Id && e.ProjectId == project.Id)
-                .OrderByDescending(i => SemanticVersion.Parse(i.ReleaseVersion));
+                .OrderByDescending(i => OctopusVersionParser.Parse(i.ReleaseVersion));
 
             var dashboardItem = UseLatestSuccessfulRelease
                 ? dashboardItems.FirstOrDefault(x => x.State == TaskState.Success)
