@@ -67,7 +67,7 @@ namespace Octopus.Cli.Commands.Releases
     public class PackageVersionResolver : IPackageVersionResolver
     {
         private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
-        
+
         /// <summary>
         /// Used to indicate a match with any matching step name or package reference name
         /// </summary>
@@ -166,7 +166,7 @@ namespace Octopus.Cli.Commands.Releases
                 OctopusVersionParser.Parse(packageVersion);
                 defaultVersion = packageVersion;
             }
-            catch (ArgumentException)
+            catch (Exception)
             {
                 if (packageVersion.Contains(":"))
                 {
