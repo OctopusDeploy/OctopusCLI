@@ -25,77 +25,81 @@ namespace Octo.Tests.Commands
         }
 
         [TestCase("1.0.0", "1.1.0")]
-        [TestCase("v1.0.0", "v1.1.0")]
-        [TestCase("V1.0.0", "somedockertag")]
-        public void ShouldReturnPackageVersionToUse(string version1, string version2)
+        [TestCase("v1.0.0", "V1.1.0")]
+        [TestCase("somedockertag", "blah")]
+        public void ShouldReturnPackageVersionToUse(string packageAVersion, string packageBVersion)
         {
-            resolver.Add("PackageA", version1);
-            resolver.Add("PackageB", version2);
+            resolver.Add("PackageA", packageAVersion);
+            resolver.Add("PackageB", packageBVersion);
 
-            Assert.That(resolver.ResolveVersion("Step", "PackageA"), Is.EqualTo(version1));
-            Assert.That(resolver.ResolveVersion("Step", "PackageA", null), Is.EqualTo(version1));
-            Assert.That(resolver.ResolveVersion("Step", "PackageA", string.Empty), Is.EqualTo(version1));
-            Assert.That(resolver.ResolveVersion("Step", "PackageB"), Is.EqualTo(version2));
-            Assert.That(resolver.ResolveVersion("Step", "PackageB", null), Is.EqualTo(version2));
-            Assert.That(resolver.ResolveVersion("Step", "PackageB", string.Empty), Is.EqualTo(version2));
+            Assert.That(resolver.ResolveVersion("Step", "PackageA"), Is.EqualTo(packageAVersion));
+            Assert.That(resolver.ResolveVersion("Step", "PackageA", null), Is.EqualTo(packageAVersion));
+            Assert.That(resolver.ResolveVersion("Step", "PackageA", string.Empty), Is.EqualTo(packageAVersion));
+            Assert.That(resolver.ResolveVersion("Step", "PackageB"), Is.EqualTo(packageBVersion));
+            Assert.That(resolver.ResolveVersion("Step", "PackageB", null), Is.EqualTo(packageBVersion));
+            Assert.That(resolver.ResolveVersion("Step", "PackageB", string.Empty), Is.EqualTo(packageBVersion));
         }
 
-        [TestCase("1.1.0")]
-        [TestCase("v1.1.0")]
-        [TestCase("1.2.3somedockertag")]
-        public void ShouldBeCaseInsensitive(string version)
+        [Test]
+        public void ShouldBeCaseInsensitive()
         {
             resolver.Add("PackageA", "1.0.0");
-            resolver.Add("packageA", version);
+            resolver.Add("packageA", "1.1.0");
+
+            Assert.That(resolver.ResolveVersion("Step", "PackageA"), Is.EqualTo("1.1.0"));
+            Assert.That(resolver.ResolveVersion("Step", "PackageA", null), Is.EqualTo("1.1.0"));
+            Assert.That(resolver.ResolveVersion("Step", "PackageA", string.Empty), Is.EqualTo("1.1.0"));
+            Assert.That(resolver.ResolveVersion("Step", "packagea"), Is.EqualTo("1.1.0"));
+            Assert.That(resolver.ResolveVersion("Step", "packagea", null), Is.EqualTo("1.1.0"));
+            Assert.That(resolver.ResolveVersion("Step", "packagea", string.Empty), Is.EqualTo("1.1.0"));
+        }
+
+        [TestCase("0.9.0", "1.0.0", "1.1.0")]
+        [TestCase("v0.9.0", "V1.0.0", "1.1.0")]
+        [TestCase("0.9.0", "1.0.0", "v1.1.0")]
+        [TestCase("0.9.0-myfeature", "v0.8.0.1", "v0.9.0")]
+        public void ShouldReturnHighestWhenConflicts(string version1, string version2, string highestVersion)
+        {
+            resolver.Add("PackageA", version1);
+            resolver.Add("PackageA", version2);
+            resolver.Add("PackageA", highestVersion);
+
+            Assert.That(resolver.ResolveVersion("Step", "PackageA"), Is.EqualTo(highestVersion));
+            Assert.That(resolver.ResolveVersion("Step", "PackageA", null), Is.EqualTo(highestVersion));
+            Assert.That(resolver.ResolveVersion("Step", "PackageA", string.Empty), Is.EqualTo(highestVersion));
+        }
+
+        [TestCase("1.0.0")]
+        [TestCase("V2.91.0")]
+        [TestCase("V2-91_0")]
+        public void ShouldReturnNullForUnknownSelection(string version)
+        {
+            resolver.Add("PackageA", version);
 
             Assert.That(resolver.ResolveVersion("Step", "PackageA"), Is.EqualTo(version));
             Assert.That(resolver.ResolveVersion("Step", "PackageA", null), Is.EqualTo(version));
             Assert.That(resolver.ResolveVersion("Step", "PackageA", string.Empty), Is.EqualTo(version));
-            Assert.That(resolver.ResolveVersion("Step", "packagea"), Is.EqualTo(version));
-            Assert.That(resolver.ResolveVersion("Step", "packagea", null), Is.EqualTo(version));
-            Assert.That(resolver.ResolveVersion("Step", "packagea", string.Empty), Is.EqualTo(version));
-        }
-
-        [TestCase("0.9.0", "1.0.0", "1.1.0")]
-        [TestCase("v0.9.0", "V1.0.0", "v1.1.0")]
-        public void ShouldReturnHighestWhenConflicts(string version1, string version2, string version3)
-        {
-            resolver.Add("PackageA", version1);
-            resolver.Add("PackageA", version2);
-            resolver.Add("PackageA", version3);
-
-            Assert.That(resolver.ResolveVersion("Step", "PackageA"), Is.EqualTo(version3));
-            Assert.That(resolver.ResolveVersion("Step", "PackageA", null), Is.EqualTo(version3));
-            Assert.That(resolver.ResolveVersion("Step", "PackageA", string.Empty), Is.EqualTo(version3));
-        }
-
-        [Test]
-        public void ShouldReturnNullForUnknownSelection()
-        {
-            resolver.Add("PackageA", "1.0.0");
-
-            Assert.That(resolver.ResolveVersion("Step", "PackageA"), Is.EqualTo("1.0.0"));
-            Assert.That(resolver.ResolveVersion("Step", "PackageA", null), Is.EqualTo("1.0.0"));
-            Assert.That(resolver.ResolveVersion("Step", "PackageA", string.Empty), Is.EqualTo("1.0.0"));
             Assert.That(resolver.ResolveVersion("Step", "PackageZ"), Is.Null);
             Assert.That(resolver.ResolveVersion("Step", "PackageZ", null), Is.Null);
             Assert.That(resolver.ResolveVersion("Step", "PackageZ", string.Empty), Is.Null);
         }
 
-        [Test]
-        public void ShouldReturnDefaultWhenSet()
+        [TestCase("2.91.0")]
+        [TestCase("V2.91.0")]
+        [TestCase("V2-91_0")]
+        public void ShouldReturnDefaultWhenSet(string version)
         {
-            resolver.Default("2.91.0");
+            resolver.Default(version);
 
-            Assert.That(resolver.ResolveVersion("Step", "PackageA"), Is.EqualTo("2.91.0"));
-            Assert.That(resolver.ResolveVersion("Step", "PackageA", null), Is.EqualTo("2.91.0"));
-            Assert.That(resolver.ResolveVersion("Step", "PackageA", string.Empty), Is.EqualTo("2.91.0"));
-            Assert.That(resolver.ResolveVersion("Step", "PackageB"), Is.EqualTo("2.91.0"));
-            Assert.That(resolver.ResolveVersion("Step", "PackageB", null), Is.EqualTo("2.91.0"));
-            Assert.That(resolver.ResolveVersion("Step", "PackageB", string.Empty), Is.EqualTo("2.91.0"));
-            Assert.That(resolver.ResolveVersion("Step", "PackageC"), Is.EqualTo("2.91.0"));
-            Assert.That(resolver.ResolveVersion("Step", "PackageC", null), Is.EqualTo("2.91.0"));
-            Assert.That(resolver.ResolveVersion("Step", "PackageC", string.Empty), Is.EqualTo("2.91.0"));
+            Assert.That(resolver.ResolveVersion("Step", "PackageA"), Is.EqualTo(version));
+            Assert.That(resolver.ResolveVersion("Step", "PackageA", null), Is.EqualTo(version));
+            Assert.That(resolver.ResolveVersion("Step", "PackageA", string.Empty), Is.EqualTo(version));
+            Assert.That(resolver.ResolveVersion("Step", "PackageB"), Is.EqualTo(version));
+            Assert.That(resolver.ResolveVersion("Step", "PackageB", null), Is.EqualTo(version));
+            Assert.That(resolver.ResolveVersion("Step", "PackageB", string.Empty), Is.EqualTo(version));
+            Assert.That(resolver.ResolveVersion("Step", "PackageC"), Is.EqualTo(version));
+            Assert.That(resolver.ResolveVersion("Step", "PackageC", null), Is.EqualTo(version));
+            Assert.That(resolver.ResolveVersion("Step", "PackageC", string.Empty), Is.EqualTo(version));
         }
 
         [Test]
