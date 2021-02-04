@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 using Octopus.Cli.Diagnostics;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Model;
@@ -13,9 +9,6 @@ using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
-using System.Diagnostics;
-using Serilog;
-using Serilog.Events;
 
 #if NETFRAMEWORK
 using System.Net;
