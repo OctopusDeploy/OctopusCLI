@@ -56,23 +56,23 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain("Workers: 2");
             LogLines.Should()
-            .NotContain(string.Format(MachineLogFormat,
-                workerList[0].Name,
-                workerList[0].Status.ToString(),
-                workerList[0].Id,
-                "SomePool"));
+                .NotContain(string.Format(MachineLogFormat,
+                    workerList[0].Name,
+                    workerList[0].Status.ToString(),
+                    workerList[0].Id,
+                    "SomePool"));
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                workerList[1].Name,
-                workerList[1].Status.ToString(),
-                workerList[1].Id,
-                "SomePool"));
+                .Contain(string.Format(MachineLogFormat,
+                    workerList[1].Name,
+                    workerList[1].Status.ToString(),
+                    workerList[1].Id,
+                    "SomePool"));
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                workerList[2].Name,
-                workerList[2].Status.ToString(),
-                workerList[2].Id,
-                "SomePool"));
+                .Contain(string.Format(MachineLogFormat,
+                    workerList[2].Name,
+                    workerList[2].Status.ToString(),
+                    workerList[2].Id,
+                    "SomePool"));
         }
 
         [Test]
@@ -101,11 +101,11 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain("Workers: 1");
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                workerList[0].Name,
-                workerList[0].Status.ToString(),
-                workerList[0].Id,
-                "SomePool"));
+                .Contain(string.Format(MachineLogFormat,
+                    workerList[0].Name,
+                    workerList[0].Status.ToString(),
+                    workerList[0].Id,
+                    "SomePool"));
         }
 
         [Test]
@@ -137,23 +137,23 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain("Workers: 3");
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                workerList[0].Name,
-                workerList[0].Status.ToString(),
-                workerList[0].Id,
-                "SomePool"));
+                .Contain(string.Format(MachineLogFormat,
+                    workerList[0].Name,
+                    workerList[0].Status.ToString(),
+                    workerList[0].Id,
+                    "SomePool"));
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                workerList[1].Name,
-                workerList[1].Status.ToString(),
-                workerList[1].Id,
-                "SomeOtherPool"));
+                .Contain(string.Format(MachineLogFormat,
+                    workerList[1].Name,
+                    workerList[1].Status.ToString(),
+                    workerList[1].Id,
+                    "SomeOtherPool"));
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                workerList[2].Name,
-                workerList[2].Status.ToString(),
-                workerList[2].Id,
-                "SomeOtherPool"));
+                .Contain(string.Format(MachineLogFormat,
+                    workerList[2].Name,
+                    workerList[2].Status.ToString(),
+                    workerList[2].Id,
+                    "SomeOtherPool"));
         }
 
         [Test]
@@ -187,23 +187,23 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain("Workers: 1");
             LogLines.Should()
-            .NotContain(string.Format(MachineLogFormat,
-                workerList[0].Name,
-                workerList[0].Status.ToString(),
-                workerList[0].Id,
-                "SomePool"));
+                .NotContain(string.Format(MachineLogFormat,
+                    workerList[0].Name,
+                    workerList[0].Status.ToString(),
+                    workerList[0].Id,
+                    "SomePool"));
             LogLines.Should()
-            .NotContain(string.Format(MachineLogFormat,
-                workerList[1].Name,
-                workerList[1].Status.ToString(),
-                workerList[1].Id,
-                "SomePool"));
+                .NotContain(string.Format(MachineLogFormat,
+                    workerList[1].Name,
+                    workerList[1].Status.ToString(),
+                    workerList[1].Id,
+                    "SomePool"));
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                workerList[2].Name,
-                workerList[2].Status.ToString(),
-                workerList[2].Id,
-                "SomePool"));
+                .Contain(string.Format(MachineLogFormat,
+                    workerList[2].Name,
+                    workerList[2].Status.ToString(),
+                    workerList[2].Id,
+                    "SomePool"));
         }
 
         [Test]
@@ -273,11 +273,11 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain("Workers: 1");
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                "PC01466",
-                "Healthy - Disabled",
-                "Machines-002",
-                "SomePool"));
+                .Contain(string.Format(MachineLogFormat,
+                    "PC01466",
+                    "Healthy - Disabled",
+                    "Machines-002",
+                    "SomePool"));
         }
 
         [Test]

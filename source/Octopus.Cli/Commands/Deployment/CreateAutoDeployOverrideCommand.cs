@@ -14,12 +14,12 @@ namespace Octopus.Cli.Commands.Deployment
     [Command("create-autodeployoverride", Description = "Overrides the release that auto deploy will use.")]
     public class CreateAutoDeployOverrideCommand : ApiCommand, ISupportFormattedOutput
     {
+        readonly List<Tuple<EnvironmentResource, TenantResource, CreatedOutcome>> createdDeploymentOverides;
         EnvironmentResource environment;
         ProjectResource project;
         ConfiguredTaskAwaitable<ReleaseResource> releaseTask;
         IReadOnlyList<TenantResource> tenants;
         ReleaseResource release;
-        readonly List<Tuple<EnvironmentResource, TenantResource, CreatedOutcome>> createdDeploymentOverides;
 
         public CreateAutoDeployOverrideCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider) :
             base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)

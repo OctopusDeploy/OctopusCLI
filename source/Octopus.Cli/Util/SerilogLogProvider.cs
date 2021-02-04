@@ -19,7 +19,7 @@ namespace Octopus.Cli.Util
 
         public Logger GetLogger(string name)
         {
-            return new SerilogLogger(Logger.ForContext("SourceContext", name, false)).Log;
+            return new SerilogLogger(Logger.ForContext("SourceContext", name)).Log;
         }
 
         public IDisposable OpenNestedContext(string message)

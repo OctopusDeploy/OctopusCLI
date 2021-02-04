@@ -13,9 +13,9 @@ namespace Octopus.Cli.Commands.Deployment
     [Command("delete-autodeployoverride", Description = "Deletes auto deploy release overrides.")]
     public class DeleteAutoDeployOverrideCommand : ApiCommand, ISupportFormattedOutput
     {
+        readonly List<Tuple<EnvironmentResource, TenantResource, DeletedOutcome>> deletedDeplomentOverrides;
         IReadOnlyList<TenantResource> tenants;
         ProjectResource project;
-        readonly List<Tuple<EnvironmentResource, TenantResource, DeletedOutcome>> deletedDeplomentOverrides;
 
         public DeleteAutoDeployOverrideCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory octopusClientFactory, ICommandOutputProvider commandOutputProvider) :
             base(octopusClientFactory, repositoryFactory, fileSystem, commandOutputProvider)

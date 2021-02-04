@@ -21,7 +21,7 @@ namespace Octo.Tests.Commands
         ReleaseResource release;
         TenantResource octopusTenant;
 
-        ProjectResource savedProject = default;
+        ProjectResource savedProject;
 
         [SetUp]
         public void SetUp()

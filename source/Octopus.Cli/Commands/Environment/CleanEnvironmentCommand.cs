@@ -24,13 +24,13 @@ namespace Octopus.Cli.Commands.Environment
 
         readonly HashSet<MachineModelStatus> statuses = new HashSet<MachineModelStatus>();
         readonly HashSet<MachineModelHealthStatus> healthStatuses = new HashSet<MachineModelHealthStatus>();
+        readonly List<MachineResult> commandResults = new List<MachineResult>();
         string environmentName;
         bool? isDisabled;
         bool? isCalamariOutdated;
         bool? isTentacleOutdated;
         EnvironmentResource environmentResource;
         IEnumerable<MachineResource> machines;
-        readonly List<MachineResult> commandResults = new List<MachineResult>();
 
         public CleanEnvironmentCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)

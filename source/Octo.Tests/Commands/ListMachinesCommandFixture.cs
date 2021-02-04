@@ -69,23 +69,23 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain("Machines: 2");
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                "PC01466",
-                MachineModelStatus.Offline.ToString(),
-                "Machines-002",
-                "Development"));
+                .Contain(string.Format(MachineLogFormat,
+                    "PC01466",
+                    MachineModelStatus.Offline.ToString(),
+                    "Machines-002",
+                    "Development"));
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                "PC01996",
-                MachineModelStatus.Offline.ToString(),
-                "Machines-003",
-                "Development"));
+                .Contain(string.Format(MachineLogFormat,
+                    "PC01996",
+                    MachineModelStatus.Offline.ToString(),
+                    "Machines-003",
+                    "Development"));
             LogLines.Should()
-            .NotContain(string.Format(MachineLogFormat,
-                "PC01234",
-                MachineModelStatus.Online.ToString(),
-                "Machines-001",
-                "Development"));
+                .NotContain(string.Format(MachineLogFormat,
+                    "PC01234",
+                    MachineModelStatus.Online.ToString(),
+                    "Machines-001",
+                    "Development"));
         }
 
         [Test]
@@ -115,23 +115,23 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain("Machines: 1");
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                "PC01234",
-                MachineModelStatus.Online.ToString(),
-                "Machines-001",
-                "Development"));
+                .Contain(string.Format(MachineLogFormat,
+                    "PC01234",
+                    MachineModelStatus.Online.ToString(),
+                    "Machines-001",
+                    "Development"));
             LogLines.Should()
-            .NotContain(string.Format(MachineLogFormat,
-                "PC01466",
-                MachineModelStatus.Online.ToString(),
-                "Machines-002",
-                "Development"));
+                .NotContain(string.Format(MachineLogFormat,
+                    "PC01466",
+                    MachineModelStatus.Online.ToString(),
+                    "Machines-002",
+                    "Development"));
             LogLines.Should()
-            .NotContain(string.Format(MachineLogFormat,
-                "PC01996",
-                MachineModelStatus.Offline.ToString(),
-                "Machines-003",
-                "Development"));
+                .NotContain(string.Format(MachineLogFormat,
+                    "PC01996",
+                    MachineModelStatus.Offline.ToString(),
+                    "Machines-003",
+                    "Development"));
         }
 
         [Test]
@@ -167,17 +167,17 @@ namespace Octo.Tests.Commands
             await listMachinesCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
             LogLines.Should().Contain("Machines: 2");
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                "PC01234",
-                MachineModelStatus.Online.ToString(),
-                "Machines-001",
-                "Development"));
+                .Contain(string.Format(MachineLogFormat,
+                    "PC01234",
+                    MachineModelStatus.Online.ToString(),
+                    "Machines-001",
+                    "Development"));
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                "PC01466",
-                MachineModelStatus.Online.ToString(),
-                "Machines-002",
-                "Development"));
+                .Contain(string.Format(MachineLogFormat,
+                    "PC01466",
+                    MachineModelStatus.Online.ToString(),
+                    "Machines-002",
+                    "Development"));
         }
 
         [Test]
@@ -221,23 +221,23 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain("Machines: 1");
             LogLines.Should()
-            .NotContain(string.Format(MachineLogFormat,
-                "PC01234",
-                MachineModelStatus.Online.ToString(),
-                "Machines-001",
-                "Development"));
+                .NotContain(string.Format(MachineLogFormat,
+                    "PC01234",
+                    MachineModelStatus.Online.ToString(),
+                    "Machines-001",
+                    "Development"));
             LogLines.Should()
-            .NotContain(string.Format(MachineLogFormat,
-                "PC01466",
-                MachineModelStatus.Online.ToString(),
-                "Machines-002",
-                "Development"));
+                .NotContain(string.Format(MachineLogFormat,
+                    "PC01466",
+                    MachineModelStatus.Online.ToString(),
+                    "Machines-002",
+                    "Development"));
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                "PC01996",
-                MachineModelStatus.Offline.ToString(),
-                "Machines-003",
-                "Development"));
+                .Contain(string.Format(MachineLogFormat,
+                    "PC01996",
+                    MachineModelStatus.Offline.ToString(),
+                    "Machines-003",
+                    "Development"));
         }
 
         [Test]
@@ -284,11 +284,11 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain("Machines: 1");
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                "PC01466",
-                MachineModelHealthStatus.HasWarnings.ToString(),
-                "Machines-002",
-                "Development"));
+                .Contain(string.Format(MachineLogFormat,
+                    "PC01466",
+                    MachineModelHealthStatus.HasWarnings.ToString(),
+                    "Machines-002",
+                    "Development"));
         }
 
         [Test]
@@ -404,11 +404,11 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain("Machines: 1");
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                "PC01466",
-                "Healthy - Disabled",
-                "Machines-002",
-                "Development"));
+                .Contain(string.Format(MachineLogFormat,
+                    "PC01466",
+                    "Healthy - Disabled",
+                    "Machines-002",
+                    "Development"));
         }
 
         [Test]
@@ -463,17 +463,17 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain("Machines: 2");
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                "PC01234",
-                MachineModelStatus.Online.ToString(),
-                "Machines-001",
-                "Development"));
+                .Contain(string.Format(MachineLogFormat,
+                    "PC01234",
+                    MachineModelStatus.Online.ToString(),
+                    "Machines-001",
+                    "Development"));
             LogLines.Should()
-            .Contain(string.Format(MachineLogFormat,
-                "PC01466",
-                MachineModelStatus.Online.ToString(),
-                "Machines-002",
-                "Development"));
+                .Contain(string.Format(MachineLogFormat,
+                    "PC01466",
+                    MachineModelStatus.Online.ToString(),
+                    "Machines-002",
+                    "Development"));
         }
 
         [Test]

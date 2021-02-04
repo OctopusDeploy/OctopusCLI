@@ -20,6 +20,8 @@ namespace Octo.Tests.Commands
     public class ReleasePlanBuilderTests
     {
         public const string BuiltInFeedId = "feeds-builtin";
+        readonly ChannelVersionRuleTestResult channelVersionRuleTestResult = new ChannelVersionRuleTestResult();
+        readonly List<PackageResource> packages = new List<PackageResource>();
         ReleasePlanBuilder builder;
         ILogger logger;
         IPackageVersionResolver versionResolver;
@@ -37,9 +39,7 @@ namespace Octo.Tests.Commands
         DeploymentProcessResource deploymentProcessResource;
         ReleaseTemplateResource releaseTemplateResource;
         List<ChannelVersionRuleResource> channelVersionRules;
-        readonly ChannelVersionRuleTestResult channelVersionRuleTestResult = new ChannelVersionRuleTestResult();
         FeedResource feedResource;
-        readonly List<PackageResource> packages = new List<PackageResource>();
         string gitReference;
 
         [SetUp]

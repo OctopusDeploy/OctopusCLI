@@ -89,6 +89,7 @@ namespace Octopus.Cli.Commands.Deployment
             commandOutputProvider.Debug($"Showing {deploymentResources.Count} results...");
 
             foreach (var item in deploymentResources.Keys)
+            {
                 LogDeploymentInfo(commandOutputProvider,
                     item,
                     deploymentResources[item].ReleaseResource,
@@ -96,6 +97,7 @@ namespace Octopus.Cli.Commands.Deployment
                     environmentsById,
                     projectsById,
                     tenantsById);
+            }
 
             if (numberOfResults.HasValue && numberOfResults != deploymentResources.Count)
                 commandOutputProvider.Debug($"Please note you asked for {numberOfResults} results, but there were only {deploymentResources.Count} that matched your criteria");

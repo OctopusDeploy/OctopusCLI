@@ -21,13 +21,13 @@ namespace Octopus.Cli.Commands.WorkerPool
         }
 
         readonly HashSet<MachineModelHealthStatus> healthStatuses = new HashSet<MachineModelHealthStatus>();
+        readonly List<MachineResult> commandResults = new List<MachineResult>();
         string poolName;
         bool? isDisabled;
         bool? isCalamariOutdated;
         bool? isTentacleOutdated;
         WorkerPoolResource workerPoolResource;
         IEnumerable<WorkerResource> machines;
-        readonly List<MachineResult> commandResults = new List<MachineResult>();
 
         public CleanWorkerPoolCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
