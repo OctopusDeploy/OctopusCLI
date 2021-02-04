@@ -17,6 +17,12 @@ using System.Diagnostics;
 using Serilog;
 using Serilog.Events;
 
+#if NETFRAMEWORK
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+#endif
+
 namespace Octopus.Cli.Commands
 {
     public abstract class ApiCommand : CommandBase
