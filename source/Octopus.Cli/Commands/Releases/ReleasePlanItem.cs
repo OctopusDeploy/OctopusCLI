@@ -5,7 +5,12 @@ namespace Octopus.Cli.Commands.Releases
 {
     public class ReleasePlanItem
     {
-        public ReleasePlanItem(string actionName, string packageReferenceName, string packageId, string packageFeedId, bool isResolveable, string userSpecifiedVersion)
+        public ReleasePlanItem(string actionName,
+            string packageReferenceName,
+            string packageId,
+            string packageFeedId,
+            bool isResolveable,
+            string userSpecifiedVersion)
         {
             ActionName = actionName;
             PackageReferenceName = packageReferenceName;
@@ -32,6 +37,8 @@ namespace Octopus.Cli.Commands.Releases
 
         public ChannelVersionRuleTestResult ChannelVersionRuleTestResult { get; private set; }
 
+        public bool IsDisabled { get; set; }
+
         public void SetVersionFromLatest(string version)
         {
             Version = version;
@@ -42,7 +49,5 @@ namespace Octopus.Cli.Commands.Releases
         {
             ChannelVersionRuleTestResult = result;
         }
-
-        public bool IsDisabled { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System;
+using FluentAssertions;
 using NUnit.Framework;
 using Octopus.Cli.Diagnostics;
 using Octopus.Cli.Infrastructure;
@@ -13,8 +14,8 @@ namespace Octo.Tests.Diagnostics
         public void ShouldThrowIfUnknownLogLevelIsProvided()
         {
             var result = Assert.Throws<CommandException>(() => LogUtilities.ParseLogLevel("z"));
-            result.Message.ShouldBeEquivalentTo("Unrecognized loglevel 'z'. Valid options are verbose, debug, information, warning, error and fatal. " + 
-                                                "Defaults to 'debug'.");
+            result.Message.ShouldBeEquivalentTo("Unrecognized loglevel 'z'. Valid options are verbose, debug, information, warning, error and fatal. " +
+                "Defaults to 'debug'.");
         }
 
         [TestCase("fatal", LogEventLevel.Fatal)]

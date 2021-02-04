@@ -8,7 +8,6 @@ using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
-using Serilog;
 
 namespace Octopus.Cli.Commands.Deployment
 {
@@ -23,7 +22,7 @@ namespace Octopus.Cli.Commands.Deployment
         string[] environmentsFilter;
         DashboardResource dashboard;
         Dictionary<string, string> tenantsById;
-        private Dictionary<DashboardItemResource, DeploymentRelatedResources> dashboardRelatedResourceses;
+        Dictionary<DashboardItemResource, DeploymentRelatedResources> dashboardRelatedResourceses;
 
         public ListLatestDeploymentsCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
@@ -33,7 +32,7 @@ namespace Octopus.Cli.Commands.Deployment
             options.Add<string>("environment=", "Name of an environment to filter by. Can be specified many times.", v => environments.Add(v), allowsMultiple: true);
         }
 
-        private async Task<IDictionary<string, string>> LoadProjects()
+        async Task<IDictionary<string, string>> LoadProjects()
         {
             commandOutputProvider.Debug("Loading projects...");
             var projectQuery = projects.Any()
@@ -45,14 +44,12 @@ namespace Octopus.Cli.Commands.Deployment
             var missingProjects = projects.Except(projectResources.Select(e => e.Name), StringComparer.OrdinalIgnoreCase).ToArray();
 
             if (missingProjects.Any())
-            {
                 throw new CommandException("Could not find projects: " + string.Join(",", missingProjects));
-            }
 
             return projectResources.ToDictionary(p => p.Id, p => p.Name);
         }
 
-        private async Task<IDictionary<string, string>> LoadEnvironments()
+        async Task<IDictionary<string, string>> LoadEnvironments()
         {
             commandOutputProvider.Debug("Loading environments...");
             var environmentQuery = environments.Any()
@@ -64,15 +61,18 @@ namespace Octopus.Cli.Commands.Deployment
             var missingEnvironments = environments.Except(environmentResources.Select(e => e.Name), StringComparer.OrdinalIgnoreCase).ToArray();
 
             if (missingEnvironments.Any())
-            {
                 throw new CommandException("Could not find environments: " + string.Join(",", missingEnvironments));
-            }
 
             return environmentResources.ToDictionary(p => p.Id, p => p.Name);
         }
 
-        private static void LogDeploymentInfo(ICommandOutputProvider commandOutputProvider, DashboardItemResource dashboardItem, ReleaseResource release, ChannelResource channel,
-            IDictionary<string, string> environmentsById, IDictionary<string, string> projectedById, IDictionary<string, string> tenantsById)
+        static void LogDeploymentInfo(ICommandOutputProvider commandOutputProvider,
+            DashboardItemResource dashboardItem,
+            ReleaseResource release,
+            ChannelResource channel,
+            IDictionary<string, string> environmentsById,
+            IDictionary<string, string> projectedById,
+            IDictionary<string, string> tenantsById)
         {
             var nameOfDeploymentEnvironment = environmentsById[dashboardItem.EnvironmentId];
             var nameOfDeploymentProject = projectedById[dashboardItem.ProjectId];
@@ -85,22 +85,16 @@ namespace Octopus.Cli.Commands.Deployment
                 commandOutputProvider.Information(" - Tenant: {Tenant:l}", nameOfDeploymentTenant);
             }
 
-            if(channel != null)
-            {
+            if (channel != null)
                 commandOutputProvider.Information(" - Channel: {Channel:l}", channel.Name);
-            }
 
             commandOutputProvider.Information("   Date: {$Date:l}", dashboardItem.QueueTime);
             commandOutputProvider.Information("   Duration: {Duration:l}", dashboardItem.Duration);
 
             if (dashboardItem.State == TaskState.Failed)
-            {
                 commandOutputProvider.Error("   State: {$State:l}", dashboardItem.State);
-            }
             else
-            {
                 commandOutputProvider.Information("   State: {$State:l}", dashboardItem.State);
-            }
 
             commandOutputProvider.Information("   Version: {Version:l}", release.Version);
             commandOutputProvider.Information("   Assembled: {$Assembled:l}", release.Assembled);
@@ -108,8 +102,6 @@ namespace Octopus.Cli.Commands.Deployment
             commandOutputProvider.Information("   Release Notes: {ReleaseNotes:l}", GetReleaseNotes(release));
             commandOutputProvider.Information(string.Empty);
         }
-
-        
 
         public async Task Request()
         {
@@ -127,9 +119,9 @@ namespace Octopus.Cli.Commands.Deployment
             dashboardRelatedResourceses = new Dictionary<DashboardItemResource, DeploymentRelatedResources>();
             foreach (var dashboardItem in dashboard.Items)
             {
-                DeploymentRelatedResources drr = new DeploymentRelatedResources();
+                var drr = new DeploymentRelatedResources();
                 drr.ReleaseResource = await Repository.Releases.Get(dashboardItem.ReleaseId).ConfigureAwait(false);
-                
+
                 if (!string.IsNullOrEmpty(dashboardItem.ChannelId))
                     drr.ChannelResource = await Repository.Channels.Get(dashboardItem.ChannelId).ConfigureAwait(false);
 
@@ -140,22 +132,19 @@ namespace Octopus.Cli.Commands.Deployment
         public void PrintDefaultOutput()
         {
             if (!dashboard.Items.Any())
-            {
                 commandOutputProvider.Information("Did not find any releases matching the search criteria.");
-            }
 
             foreach (var dashboardItem in dashboardRelatedResourceses.Keys)
             {
                 LogDeploymentInfo(
-                    commandOutputProvider, 
-                    dashboardItem, 
+                    commandOutputProvider,
+                    dashboardItem,
                     dashboardRelatedResourceses[dashboardItem].ReleaseResource,
-                    dashboardRelatedResourceses[dashboardItem].ChannelResource, 
-                    environmentsById, 
+                    dashboardRelatedResourceses[dashboardItem].ChannelResource,
+                    environmentsById,
                     projectsById,
                     tenantsById);
             }
-            
         }
 
         public void PrintJsonOutput()
@@ -164,7 +153,7 @@ namespace Octopus.Cli.Commands.Deployment
                 {
                     dashboardItem,
                     release = dashboardRelatedResourceses[dashboardItem].ReleaseResource,
-                    channel = dashboardRelatedResourceses[dashboardItem].ChannelResource,
+                    channel = dashboardRelatedResourceses[dashboardItem].ChannelResource
                 })
                 .Select(x => new
                 {
@@ -183,8 +172,8 @@ namespace Octopus.Cli.Commands.Deployment
                     ReleaseNotes = GetReleaseNotes(x.release)
                 }));
         }
-        
-        private static string GetNameOfDeploymentTenant(IDictionary<string,string> tenantsById, string tenantId)
+
+        static string GetNameOfDeploymentTenant(IDictionary<string, string> tenantsById, string tenantId)
         {
             if (string.IsNullOrWhiteSpace(tenantId))
                 return null;

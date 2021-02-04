@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -15,13 +16,13 @@ namespace Octo.Tests.Commands
     {
         CreateAutoDeployOverrideCommand createAutoDeployOverrideCommand;
 
-        private EnvironmentResource environment;
-        private ProjectResource project;
-        private ReleaseResource release;
-        private ReleaseResource release2;
-        private TenantResource octopusTenant;
+        EnvironmentResource environment;
+        ProjectResource project;
+        ReleaseResource release;
+        ReleaseResource release2;
+        TenantResource octopusTenant;
 
-        private ProjectResource savedProject = default(ProjectResource);
+        ProjectResource savedProject = default;
 
         [SetUp]
         public void SetUp()
@@ -39,34 +40,40 @@ namespace Octo.Tests.Commands
                 ProjectEnvironments = { ["Projects-1"] = new ReferenceCollection("Environments-001") }
             };
 
-            Repository.Environments.FindByName("Production").Returns(
-                environment
-            );
+            Repository.Environments.FindByName("Production")
+                .Returns(
+                    environment
+                );
 
-            Repository.Projects.FindByName("OctoFx").Returns(
-                project
-            );
+            Repository.Projects.FindByName("OctoFx")
+                .Returns(
+                    project
+                );
 
-            Repository.Projects.GetReleaseByVersion(Arg.Any<ProjectResource>(), "1.2.0").Returns(
-                release
-            );
-            
-            Repository.Projects.GetReleaseByVersion(Arg.Any<ProjectResource>(), "somedockertag").Returns(
-                release2
-            );
+            Repository.Projects.GetReleaseByVersion(Arg.Any<ProjectResource>(), "1.2.0")
+                .Returns(
+                    release
+                );
 
-            Repository.Tenants.FindByNames(Arg.Any<IEnumerable<string>>()).Returns(
-                new List<TenantResource>
-                {
-                    octopusTenant
-                }
-            );
-            Repository.Tenants.FindAll(null, Arg.Any<string[]>()).Returns(
-                new List<TenantResource>
-                {
-                    octopusTenant
-                }
-            );
+            Repository.Projects.GetReleaseByVersion(Arg.Any<ProjectResource>(), "somedockertag")
+                .Returns(
+                    release2
+                );
+
+            Repository.Tenants.FindByNames(Arg.Any<IEnumerable<string>>())
+                .Returns(
+                    new List<TenantResource>
+                    {
+                        octopusTenant
+                    }
+                );
+            Repository.Tenants.FindAll(null, Arg.Any<string[]>())
+                .Returns(
+                    new List<TenantResource>
+                    {
+                        octopusTenant
+                    }
+                );
 
             Repository.Projects.When(x => x.Modify(Arg.Any<ProjectResource>()))
                 .Do(x => savedProject = x.Args()[0] as ProjectResource);
@@ -89,7 +96,7 @@ namespace Octo.Tests.Commands
             Assert.AreEqual(null, autoDeployOverride.TenantId);
             Assert.AreEqual(environment.Id, autoDeployOverride.EnvironmentId);
         }
-        
+
         [Test]
         public async Task ShouldAddOverrideForEnvironmentAndDockerTagVersionedRelease()
         {
@@ -157,7 +164,7 @@ namespace Octo.Tests.Commands
 
             await createAutoDeployOverrideCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
-            string logoutput = LogOutput.ToString();
+            var logoutput = LogOutput.ToString();
             JsonConvert.DeserializeObject(logoutput);
             logoutput.Should().Contain("Production");
             logoutput.Should().Contain("1.2.0");

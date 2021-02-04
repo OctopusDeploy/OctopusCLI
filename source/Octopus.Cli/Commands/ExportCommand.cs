@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Octopus.Cli.Exporters;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
@@ -13,7 +14,12 @@ namespace Octopus.Cli.Commands
     {
         readonly IExporterLocator exporterLocator;
 
-        public ExportCommand(IExporterLocator exporterLocator, IOctopusFileSystem fileSystem, IOctopusAsyncRepositoryFactory repositoryFactory, ILogger log, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
+        public ExportCommand(IExporterLocator exporterLocator,
+            IOctopusFileSystem fileSystem,
+            IOctopusAsyncRepositoryFactory repositoryFactory,
+            ILogger log,
+            IOctopusClientFactory clientFactory,
+            ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             this.exporterLocator = exporterLocator;
@@ -35,7 +41,7 @@ namespace Octopus.Cli.Commands
         protected override Task Execute()
         {
             commandOutputProvider.Warning($"The {AssemblyExtensions.GetExecutableName()} import/export commands have been deprecated. See https://g.octopushq.com/DataMigration for alternative options.");
-        
+
             if (string.IsNullOrWhiteSpace(Type)) throw new CommandException("Please specify the type to export using the parameter: --type=XYZ");
             if (string.IsNullOrWhiteSpace(FilePath)) throw new CommandException("Please specify the full path and name of the export file using the parameter: --filePath=XYZ");
 

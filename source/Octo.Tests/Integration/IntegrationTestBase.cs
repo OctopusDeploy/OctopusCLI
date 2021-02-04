@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -9,16 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Nancy;
-using Nancy.Extensions;
-using Nancy.IO;
-using Nancy.ModelBinding;
 using Nancy.Owin;
-using Nancy.Responses.Negotiation;
-using Newtonsoft.Json;
 using NUnit.Framework;
 using Octopus.Cli;
-using Octopus.Client.Model;
-using Octopus.Client.Serialization;
 using Serilog;
 
 namespace Octo.Tests.Integration
@@ -26,7 +17,16 @@ namespace Octo.Tests.Integration
     public abstract class IntegrationTestBase : NancyModule
     {
         public static readonly string HostBaseUri = "http://localhost:18362";
-        private static IWebHost _currentHost;
+        static IWebHost _currentHost;
+
+        protected IntegrationTestBase()
+        {
+            TestRootPath = $"/{GetType().Name}";
+
+            Get($"{TestRootPath}/api", p => LoadResponseFile("api"));
+        }
+
+        protected string TestRootPath { get; }
 
         [OneTimeSetUp]
         public static void OneTimeSetup()
@@ -47,7 +47,6 @@ namespace Octo.Tests.Integration
                 {
                     Console.Error.WriteLine(ex);
                 }
-
             });
             var applicationLifetime = (IApplicationLifetime)_currentHost.Services.GetService(typeof(IApplicationLifetime));
             applicationLifetime.ApplicationStarted.WaitHandle.WaitOne();
@@ -79,25 +78,30 @@ namespace Octo.Tests.Integration
             return new ExecuteResult(code, logOutput.ToString());
         }
 
-        protected IntegrationTestBase()
+        protected Response LoadResponseFile(string path)
         {
-            TestRootPath = $"/{GetType().Name}";
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = $"{typeof(IntegrationTestBase).Namespace}.Responses.{path.Replace("/", ".")}.json";
+            string content;
+            using (var s = assembly.GetManifestResourceStream(resourceName))
+            using (var sr = new StreamReader(s))
+            {
+                content = sr.ReadToEnd();
+            }
 
-            Get($"{TestRootPath}/api", p => LoadResponseFile("api"));
+            return Response.AsText(content.Replace("{TestRootPath}", TestRootPath), "application/json");
         }
-
-        protected string TestRootPath { get; }
 
         internal class ExecuteResult
         {
-            public int Code { get; }
-            public string LogOutput { get; }
-
             public ExecuteResult(int code, string logOutput)
             {
                 Code = code;
                 LogOutput = logOutput;
             }
+
+            public int Code { get; }
+            public string LogOutput { get; }
         }
 
         public class Startup
@@ -106,16 +110,6 @@ namespace Octo.Tests.Integration
             {
                 app.UseOwin(x => x.UseNancy());
             }
-        }
-        protected Response LoadResponseFile(string path)
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = $"{typeof(IntegrationTestBase).Namespace}.Responses.{path.Replace("/", ".")}.json";
-            string content;
-            using (var s = assembly.GetManifestResourceStream(resourceName))
-            using (var sr = new StreamReader(s))
-                content = sr.ReadToEnd();
-            return Response.AsText(content.Replace("{TestRootPath}", TestRootPath), "application/json");
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Reflection;
 using Autofac;
@@ -17,12 +18,12 @@ namespace Octopus.Cli.Infrastructure
         {
             var iCommandType = typeof(ICommand).GetTypeInfo();
             return
-            (from t in typeof(CommandLocator).GetTypeInfo().Assembly.GetTypes()
-                where iCommandType.IsAssignableFrom(t)
-                let attribute =
-                (ICommandMetadata) t.GetTypeInfo().GetCustomAttributes(typeof(CommandAttribute), true).FirstOrDefault()
-                where attribute != null
-                select attribute).ToArray();
+                (from t in typeof(CommandLocator).GetTypeInfo().Assembly.GetTypes()
+                    where iCommandType.IsAssignableFrom(t)
+                    let attribute =
+                        (ICommandMetadata)t.GetTypeInfo().GetCustomAttributes(typeof(CommandAttribute), true).FirstOrDefault()
+                    where attribute != null
+                    select attribute).ToArray();
         }
 
         public ICommand Find(string name)
@@ -33,12 +34,12 @@ namespace Octopus.Cli.Infrastructure
             var found = (from t in typeof(CommandLocator).GetTypeInfo().Assembly.GetTypes()
                 where iCommandType.IsAssignableFrom(t)
                 let attribute =
-                (ICommandMetadata) t.GetTypeInfo().GetCustomAttributes(typeof(CommandAttribute), true).FirstOrDefault()
+                    (ICommandMetadata)t.GetTypeInfo().GetCustomAttributes(typeof(CommandAttribute), true).FirstOrDefault()
                 where attribute != null
                 where attribute.Name == name || attribute.Aliases.Any(a => a == name)
                 select t).FirstOrDefault();
 
-            return found == null ? null : (ICommand) lifetimeScope.Resolve(found);
+            return found == null ? null : (ICommand)lifetimeScope.Resolve(found);
         }
     }
 }

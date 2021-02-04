@@ -2,7 +2,7 @@
 
 namespace Octopus.Cli.Exporters
 {
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class ExporterAttribute : Attribute, IExporterMetadata
     {
         public ExporterAttribute(string name, string entityType)

@@ -1,33 +1,34 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Nancy;
 using NUnit.Framework;
-using Octopus.Client.Extensibility;
-using Octopus.Client.Model;
 using Serilog;
 
 namespace Octo.Tests.Integration
 {
     public class PushTests : IntegrationTestBase
     {
-        private static readonly byte[] _fileBytes = {45, 11, 0, 255, 4};
+        static readonly byte[] _fileBytes = { 45, 11, 0, 255, 4 };
 
         public PushTests()
         {
             Get($"{TestRootPath}/api/users/me", p => LoadResponseFile("api/users/me"));
 
-            Post(TestRootPath + "/api/packages/raw", p =>
-            {
-                var file = Request.Files.First();
-                using (var ms = new MemoryStream())
+            Post(TestRootPath + "/api/packages/raw",
+                p =>
                 {
-                    file.Value.CopyTo(ms);
-                    ms.Seek(0, SeekOrigin.Begin);
-                    Log.Information("Package received {bytes}", string.Join(", ", ms.ToArray()));
-                }
-                return HttpStatusCode.OK;
-            });
+                    var file = Request.Files.First();
+                    using (var ms = new MemoryStream())
+                    {
+                        file.Value.CopyTo(ms);
+                        ms.Seek(0, SeekOrigin.Begin);
+                        Log.Information("Package received {bytes}", string.Join(", ", ms.ToArray()));
+                    }
+
+                    return HttpStatusCode.OK;
+                });
         }
 
         [Test]

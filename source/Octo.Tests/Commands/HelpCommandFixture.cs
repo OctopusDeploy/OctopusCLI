@@ -18,8 +18,8 @@ namespace Octo.Tests.Commands
         ICommandLocator commandLocator;
         StringWriter output;
         TextWriter originalOutput;
-        private ICommandOutputProvider commandOutputProvider;
-        private ILogger logger;
+        ICommandOutputProvider commandOutputProvider;
+        ILogger logger;
 
         [SetUp]
         public void SetUp()
@@ -37,11 +37,12 @@ namespace Octo.Tests.Commands
         [Test]
         public void ShouldPrintGeneralHelpWhenNoArgsGiven()
         {
-            commandLocator.List().Returns(new ICommandMetadata[]
-            {
-                new Metadata() { Name = "create-foo"},
-                new Metadata() { Name = "create-bar"}
-            });
+            commandLocator.List()
+                .Returns(new ICommandMetadata[]
+                {
+                    new Metadata { Name = "create-foo" },
+                    new Metadata { Name = "create-bar" }
+                });
 
             helpCommand.Execute();
 
@@ -79,7 +80,7 @@ namespace Octo.Tests.Commands
             Console.SetOut(originalOutput);
         }
 
-        private class Metadata : ICommandMetadata
+        class Metadata : ICommandMetadata
         {
             public string Name { get; set; }
             public string[] Aliases { get; set; }

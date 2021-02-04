@@ -14,13 +14,13 @@ namespace Octo.Tests.Commands
 {
     public class CreateChannelCommandFixture : ApiCommandFixtureBase
     {
+        CreateChannelCommand createChannelCommand;
+
         [SetUp]
         public void SetUp()
         {
             createChannelCommand = new CreateChannelCommand(RepositoryFactory, FileSystem, ClientFactory, CommandOutputProvider);
         }
-
-        CreateChannelCommand createChannelCommand;
 
         [Test]
         public void ShouldThrowBecauseOfMissingParameters()
@@ -32,10 +32,11 @@ namespace Octo.Tests.Commands
         [Test]
         public void ShouldThrowForOlderOctopusServers()
         {
-            Repository.LoadRootDocument().Returns(new RootResource
-            {
-                Links = new LinkCollection()//.Add("Channels", "DOES_NOT_MATTER")
-            });
+            Repository.LoadRootDocument()
+                .Returns(new RootResource
+                {
+                    Links = new LinkCollection() //.Add("Channels", "DOES_NOT_MATTER")
+                });
 
             CommandLineArgs.Add($"--channel={$"Channel-{Guid.NewGuid()}"}");
             CommandLineArgs.Add($"--project={$"Project-{Guid.NewGuid()}"}");
@@ -90,16 +91,17 @@ namespace Octo.Tests.Commands
             logoutput.Should().Contain(channelName);
             logoutput.Should().Contain("Updated");
         }
-        
-        private string SetupExistingChannel()
+
+        string SetupExistingChannel()
         {
-            Repository.LoadRootDocument().Returns(new RootResource
-            {
-                Links = new LinkCollection().Add("Channels", "DOES_NOT_MATTER")
-            });
+            Repository.LoadRootDocument()
+                .Returns(new RootResource
+                {
+                    Links = new LinkCollection().Add("Channels", "DOES_NOT_MATTER")
+                });
 
             var projectName = $"Project-{Guid.NewGuid()}";
-            var project = new ProjectResource()
+            var project = new ProjectResource
             {
                 Links = new LinkCollection()
             };
@@ -108,17 +110,17 @@ namespace Octo.Tests.Commands
 
             var lifecycleName = $"Lifecycle-{Guid.NewGuid()}";
             Repository.Lifecycles.FindOne(Arg.Any<Func<LifecycleResource, bool>>())
-                .Returns(new LifecycleResource {Id = lifecycleName});
+                .Returns(new LifecycleResource { Id = lifecycleName });
 
             var channelName = $"Channel-{Guid.NewGuid()}";
-            var channel = new ChannelResource()
+            var channel = new ChannelResource
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = channelName
             };
 
             Repository.Projects.GetChannels(Arg.Any<ProjectResource>())
-                .Returns(new ResourceCollection<ChannelResource>(new[] {channel}, new LinkCollection()));
+                .Returns(new ResourceCollection<ChannelResource>(new[] { channel }, new LinkCollection()));
 
             CommandLineArgs.Add($"--channel={channelName}");
             CommandLineArgs.Add($"--project={projectName}");
@@ -127,15 +129,16 @@ namespace Octo.Tests.Commands
             return channelName;
         }
 
-        private string SetupNewChannel()
+        string SetupNewChannel()
         {
-            Repository.LoadRootDocument().Returns(new RootResource
-            {
-                Links = new LinkCollection().Add("Channels", "DOES_NOT_MATTER")
-            });
+            Repository.LoadRootDocument()
+                .Returns(new RootResource
+                {
+                    Links = new LinkCollection().Add("Channels", "DOES_NOT_MATTER")
+                });
 
             var projectName = $"Project-{Guid.NewGuid()}";
-            var project = new ProjectResource()
+            var project = new ProjectResource
             {
                 Links = new LinkCollection().Add("Channels", "DOES_NOT_MATTER")
             };

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Octopus.Client.AutomationEnvironments;
@@ -24,15 +25,15 @@ namespace Octopus.Cli.Diagnostics
             // As per: http://confluence.jetbrains.com/display/TCD65/Build+Script+Interaction+with+TeamCity#BuildScriptInteractionwithTeamCity-ServiceMessages
             Escapes = new Dictionary<string, string>
             {
-                {"|", "||"},
-                {"'", "|'"},
-                {"\n", "|n"},
-                {"\r", "|r"},
-                {"\u0085", "|x"},
-                {"\u2028", "|l"},
-                {"\u2029", "|p"},
-                {"[", "|["},
-                {"]", "|]"}
+                { "|", "||" },
+                { "'", "|'" },
+                { "\n", "|n" },
+                { "\r", "|r" },
+                { "\u0085", "|x" },
+                { "\u2028", "|l" },
+                { "\u2029", "|p" },
+                { "[", "|[" },
+                { "]", "|]" }
             };
         }
 
@@ -69,13 +70,9 @@ namespace Octopus.Cli.Diagnostics
                 return;
 
             if (buildEnvironment == AutomationEnvironment.TeamCity)
-            {
                 log.Information("##teamcity[{MessageName:l} {Value:l}]", messageName, EscapeValue(value));
-            }
             else
-            {
                 log.Information("{MessageName:l} {Value:l}", messageName, EscapeValue(value));
-            }
         }
 
         public static void ServiceMessage(this ILogger log, string messageName, IDictionary<string, string> values)
@@ -85,13 +82,9 @@ namespace Octopus.Cli.Diagnostics
 
             var valueSummary = string.Join(" ", values.Select(v => $"{v.Key}='{EscapeValue(v.Value)}'"));
             if (buildEnvironment == AutomationEnvironment.TeamCity)
-            {
                 log.Information("##teamcity[{MessageName:l} {ValueSummary:l}]", messageName, valueSummary);
-            }
             else
-            {
                 log.Information("{MessageName:l} {ValueSummary:l}", messageName, valueSummary);
-            }
         }
 
         public static void ServiceMessage(this ILogger log, string messageName, object values)
@@ -106,7 +99,7 @@ namespace Octopus.Cli.Diagnostics
             else
             {
                 var properties = TypeDescriptor.GetProperties(values).Cast<PropertyDescriptor>();
-                var valueDictionary = properties.ToDictionary(p => p.Name, p => (string) p.GetValue(values));
+                var valueDictionary = properties.ToDictionary(p => p.Name, p => (string)p.GetValue(values));
                 ServiceMessage(log, messageName, valueDictionary);
             }
         }
@@ -117,14 +110,14 @@ namespace Octopus.Cli.Diagnostics
                 return;
             if (buildEnvironment == AutomationEnvironment.AzureDevOps || buildEnvironment == AutomationEnvironment.NoneOrUnknown)
             {
-                var workingDirectory = Environment.GetEnvironmentVariable("SYSTEM_DEFAULTWORKINGDIRECTORY") ?? new System.IO.FileInfo(typeof(LogExtensions).GetTypeInfo().Assembly.Location).DirectoryName;
+                var workingDirectory = Environment.GetEnvironmentVariable("SYSTEM_DEFAULTWORKINGDIRECTORY") ?? new FileInfo(typeof(LogExtensions).GetTypeInfo().Assembly.Location).DirectoryName;
                 var selflink = new Uri(new Uri(serverBaseUrl), release.Links["Web"].AsString());
                 var markdown = $"[Release {release.Version} created for '{project.Name}']({selflink})";
-                var markdownFile = System.IO.Path.Combine(workingDirectory, Guid.NewGuid() + ".md");
+                var markdownFile = Path.Combine(workingDirectory, Guid.NewGuid() + ".md");
 
                 try
                 {
-                    System.IO.File.WriteAllText(markdownFile, markdown);
+                    File.WriteAllText(markdownFile, markdown);
                 }
                 catch (UnauthorizedAccessException uae)
                 {

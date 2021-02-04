@@ -11,7 +11,7 @@ namespace Octopus.Cli.Commands
     [Command("complete", Description = "Supports command line auto completion.")]
     public class CompleteCommand : CommandBase
     {
-        private readonly ICommandLocator commands;
+        readonly ICommandLocator commands;
 
         public CompleteCommand(ICommandLocator commands, ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
@@ -28,13 +28,12 @@ namespace Octopus.Cli.Commands
                     GetHelp(Console.Out, commandLineArguments);
                     return;
                 }
+
                 commandOutputProvider.PrintMessages = true;
                 var completionMap = GetCompletionMap();
                 var suggestions = CommandSuggester.SuggestCommandsFor(commandLineArguments, completionMap);
                 foreach (var s in suggestions)
-                {
                     commandOutputProvider.Information(s);
-                }
             });
         }
 
@@ -55,17 +54,18 @@ namespace Octopus.Cli.Commands
                 writer.WriteLine("Where [<options>] is any of: ");
                 writer.WriteLine();
             }
+
             commandOutputProvider.PrintCommandOptions(Options, writer);
         }
 
-        private IReadOnlyDictionary<string, string[]> GetCompletionMap()
+        IReadOnlyDictionary<string, string[]> GetCompletionMap()
         {
             var commandMetadatas = commands.List();
             return commandMetadatas.ToDictionary(
                 c => c.Name,
                 c =>
                 {
-                    var subCommand = (CommandBase) commands.Find(c.Name);
+                    var subCommand = (CommandBase)commands.Find(c.Name);
                     return subCommand.GetOptionNames().ToArray();
                 });
         }

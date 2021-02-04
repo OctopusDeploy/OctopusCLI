@@ -1,5 +1,5 @@
-﻿using System.Text;
-using Newtonsoft.Json;
+﻿using System;
+using System.Text;
 using Octopus.Cli.Extensions;
 using Octopus.Cli.Util;
 using Octopus.Client.Serialization;

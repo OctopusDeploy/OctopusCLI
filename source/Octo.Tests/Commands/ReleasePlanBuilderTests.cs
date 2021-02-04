@@ -19,29 +19,28 @@ namespace Octo.Tests.Commands
     [TestFixture]
     public class ReleasePlanBuilderTests
     {
-        ReleasePlanBuilder builder;
-        private ILogger logger;
-        private IPackageVersionResolver versionResolver;
-        private IChannelVersionRuleTester versionRuleTester;
-        private IOctopusAsyncRepository repository;
-        private IDeploymentProcessRepository deploymentProcessRepository;
-        private IDeploymentProcessRepositoryBeta deploymentProcessRepositoryBeta;
-        private IReleaseRepository releaseRepository;
-        private IFeedRepository feedRepository;
-        private ICommandOutputProvider commandOutputProvider;
-
-        private ProjectResource projectResource;
-        private ChannelResource channelResource;
-
-        private DeploymentProcessResource deploymentProcessResource;
-        private ReleaseTemplateResource releaseTemplateResource;
-        private List<ChannelVersionRuleResource> channelVersionRules;
-        private ChannelVersionRuleTestResult channelVersionRuleTestResult = new ChannelVersionRuleTestResult();
-        private FeedResource feedResource;
-        private List<PackageResource> packages = new List<PackageResource>();
-        private string gitReference;
-
         public const string BuiltInFeedId = "feeds-builtin";
+        ReleasePlanBuilder builder;
+        ILogger logger;
+        IPackageVersionResolver versionResolver;
+        IChannelVersionRuleTester versionRuleTester;
+        IOctopusAsyncRepository repository;
+        IDeploymentProcessRepository deploymentProcessRepository;
+        IDeploymentProcessRepositoryBeta deploymentProcessRepositoryBeta;
+        IReleaseRepository releaseRepository;
+        IFeedRepository feedRepository;
+        ICommandOutputProvider commandOutputProvider;
+
+        ProjectResource projectResource;
+        ChannelResource channelResource;
+
+        DeploymentProcessResource deploymentProcessResource;
+        ReleaseTemplateResource releaseTemplateResource;
+        List<ChannelVersionRuleResource> channelVersionRules;
+        readonly ChannelVersionRuleTestResult channelVersionRuleTestResult = new ChannelVersionRuleTestResult();
+        FeedResource feedResource;
+        readonly List<PackageResource> packages = new List<PackageResource>();
+        string gitReference;
 
         [SetUp]
         public void Setup()
@@ -77,7 +76,7 @@ namespace Octo.Tests.Commands
             {
                 Id = BuiltInFeedId,
                 Name = "Built in feed",
-                Links = new LinkCollection {{"SearchTemplate", TestHelpers.GetId("searchUri")}}
+                Links = new LinkCollection { { "SearchTemplate", TestHelpers.GetId("searchUri") } }
             };
 
             // setup mocks
@@ -90,8 +89,9 @@ namespace Octo.Tests.Commands
             deploymentProcessRepository.Get(projectResource.DeploymentProcessId)
                 .Returns(Task.FromResult(deploymentProcessResource));
             deploymentProcessRepository
-                .GetTemplate(Arg.Is<DeploymentProcessResource>(deploymentProcessResource),
-                    Arg.Is<ChannelResource>(channelResource)).Returns(Task.FromResult(releaseTemplateResource));
+                .GetTemplate(Arg.Is(deploymentProcessResource),
+                    Arg.Is(channelResource))
+                .Returns(Task.FromResult(releaseTemplateResource));
             versionRuleTester
                 .Test(Arg.Any<IOctopusAsyncRepository>(), Arg.Any<ChannelVersionRuleResource>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(channelVersionRuleTestResult));
@@ -115,7 +115,8 @@ namespace Octo.Tests.Commands
             repository.Releases.Returns(releaseRepository);
             repository.Feeds.Returns(feedRepository);
             repository.Client
-                .Get<List<PackageResource>>(Arg.Any<string>(), Arg.Any<IDictionary<string, object>>()).Returns(packages);
+                .Get<List<PackageResource>>(Arg.Any<string>(), Arg.Any<IDictionary<string, object>>())
+                .Returns(packages);
 
             builder = new ReleasePlanBuilder(logger, versionResolver, versionRuleTester, commandOutputProvider);
             gitReference = null;
@@ -205,7 +206,6 @@ namespace Octo.Tests.Commands
             releaseTemplateResource.Packages.Add(GetReleaseTemplatePackage().WithPackage().WithVersion(version, versionResolver));
             channelVersionRuleTestResult.IsSatisfied();
 
-
             // act
             var plan = ExecuteBuild();
 
@@ -217,7 +217,8 @@ namespace Octo.Tests.Commands
         public void StepWithNoPackageVersion_ShouldNotBeViablePlan()
         {
             // arrange
-            releaseTemplateResource.Packages.Add(GetReleaseTemplatePackage().WithPackage()
+            releaseTemplateResource.Packages.Add(GetReleaseTemplatePackage()
+                .WithPackage()
                 .WithVersion(string.Empty, versionResolver));
 
             // act
@@ -255,7 +256,7 @@ namespace Octo.Tests.Commands
             releaseTemplateResource.Packages.Add(releaseTemplatePackage);
 
             repository.Client.Get<IList<PackageResource>>(Arg.Any<string>(), Arg.Any<IDictionary<string, object>>())
-                .Returns(new List<PackageResource> {new PackageResource {Version = version}});
+                .Returns(new List<PackageResource> { new PackageResource { Version = version } });
 
             // act
             var plan = ExecuteBuild();
@@ -269,7 +270,7 @@ namespace Octo.Tests.Commands
         {
             // arrange
             releaseTemplateResource.Packages.Add(GetReleaseTemplatePackage().WithPackage().IsResolvable());
-            packages.Add(new PackageResource { Version = "1.0.0"});
+            packages.Add(new PackageResource { Version = "1.0.0" });
 
             // act
             var plan = ExecuteBuild();
@@ -298,11 +299,12 @@ namespace Octo.Tests.Commands
 
             packages.Add(new PackageResource { Version = "1.0.1" });
 
-            releaseTemplateResource.Packages.Add(new ReleaseTemplatePackage{ActionName = action.Name, PackageReferenceName = "Acme", IsResolvable = true, FeedId = BuiltInFeedId });
+            releaseTemplateResource.Packages.Add(new ReleaseTemplatePackage { ActionName = action.Name, PackageReferenceName = "Acme", IsResolvable = true, FeedId = BuiltInFeedId });
             channelVersionRuleTestResult.IsSatisfied();
 
             repository.Client
-                .Get<List<PackageResource>>(Arg.Any<string>(), Arg.Is<IDictionary<string, object>>(d => d.ContainsKey("versionRange") && (string)d["versionRange"] == "(,1.0)")).Returns(new List<PackageResource>());
+                .Get<List<PackageResource>>(Arg.Any<string>(), Arg.Is<IDictionary<string, object>>(d => d.ContainsKey("versionRange") && (string)d["versionRange"] == "(,1.0)"))
+                .Returns(new List<PackageResource>());
 
             // act
             var plan = ExecuteBuild();
@@ -340,7 +342,7 @@ namespace Octo.Tests.Commands
             gitReference = "main";
             projectResource.IsVersionControlled = true;
             releaseTemplateResource.Packages.Add(GetReleaseTemplatePackage().WithPackage(ResourceBuilderHelpers.KeyedBy.Name).IsResolvable());
-            packages.Add(new PackageResource { Version = "1.0.0"});
+            packages.Add(new PackageResource { Version = "1.0.0" });
 
             // act
             var plan = ExecuteBuild();
@@ -358,7 +360,7 @@ namespace Octo.Tests.Commands
             ex.Message.Should().Be(ReleasePlanBuilder.GitReferenceSuppliedForDatabaseProjectErrorMessage(gitReference));
         }
 
-        private static ReleaseTemplatePackage GetReleaseTemplatePackage()
+        static ReleaseTemplatePackage GetReleaseTemplatePackage()
         {
             return new ReleaseTemplatePackage
             {
@@ -366,20 +368,30 @@ namespace Octo.Tests.Commands
             };
         }
 
-        private ReleasePlan ExecuteBuild()
+        ReleasePlan ExecuteBuild()
         {
             var task = ExecuteBuildAsync();
             return task.Result;
         }
 
-        private async Task<ReleasePlan> ExecuteBuildAsync()
+        async Task<ReleasePlan> ExecuteBuildAsync()
         {
-            return await builder.Build(repository, projectResource, channelResource, string.Empty, gitReference);
+            return await builder.Build(repository,
+                projectResource,
+                channelResource,
+                string.Empty,
+                gitReference);
         }
     }
 
     public static class ResourceBuilderHelpers
     {
+        public enum KeyedBy
+        {
+            Id,
+            Name
+        }
+
         public static DeploymentActionResource WithPackage(this DeploymentActionResource action)
         {
             action.Properties["Octopus.Action.Package.PackageId"] = TestHelpers.GetId("package");
@@ -397,12 +409,6 @@ namespace Octo.Tests.Commands
             action.Channels.Add(channelId);
             return action;
         }
-
-        public enum KeyedBy
-        {
-            Id,
-            Name
-        };
 
         public static ReleaseTemplatePackage WithPackage(this ReleaseTemplatePackage releaseTemplatePackage, KeyedBy keyedBy = KeyedBy.Id)
         {
@@ -425,7 +431,8 @@ namespace Octo.Tests.Commands
         }
 
         public static ReleaseTemplatePackage WithVersion(this ReleaseTemplatePackage releaseTemplatePackage,
-            string version, IPackageVersionResolver versionResolver)
+            string version,
+            IPackageVersionResolver versionResolver)
         {
             versionResolver.ResolveVersion(releaseTemplatePackage.ActionName, releaseTemplatePackage.PackageId)
                 .Returns(version);
@@ -446,7 +453,7 @@ namespace Octo.Tests.Commands
             return new DeploymentStepResource
             {
                 Id = TestHelpers.GetId("deploymentstep"),
-                Name = TestHelpers.GetId("deploymentstepName"),
+                Name = TestHelpers.GetId("deploymentstepName")
             };
         }
 
@@ -459,7 +466,6 @@ namespace Octo.Tests.Commands
                 Name = TestHelpers.GetId("actionname")
             };
         }
-
     }
 
     public static class TestHelpers
@@ -473,6 +479,5 @@ namespace Octo.Tests.Commands
         {
             return $"{prefix}-{GetId()}";
         }
-
     }
 }

@@ -18,12 +18,8 @@ namespace Octopus.Cli.Commands.Releases
     /// </summary>
     class PackageKey : IEqualityComparer<PackageKey>
     {
-        public string StepNameOrPackageId { get; }
-        public string PackageReferenceName { get; }
-
         public PackageKey()
         {
-
         }
 
         public PackageKey(string stepNameOrPackageId)
@@ -37,9 +33,12 @@ namespace Octopus.Cli.Commands.Releases
             PackageReferenceName = packageReferenceName;
         }
 
+        public string StepNameOrPackageId { get; }
+        public string PackageReferenceName { get; }
+
         public bool Equals(PackageKey x, PackageKey y)
         {
-            return Object.Equals(x, y);
+            return object.Equals(x, y);
         }
 
         public int GetHashCode(PackageKey obj)
@@ -51,8 +50,8 @@ namespace Octopus.Cli.Commands.Releases
         {
             var key = obj as PackageKey;
             return key != null &&
-                   string.Equals(StepNameOrPackageId, key.StepNameOrPackageId, StringComparison.OrdinalIgnoreCase) &&
-                   string.Equals(PackageReferenceName, key.PackageReferenceName, StringComparison.OrdinalIgnoreCase);
+                string.Equals(StepNameOrPackageId, key.StepNameOrPackageId, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(PackageReferenceName, key.PackageReferenceName, StringComparison.OrdinalIgnoreCase);
         }
 
         public override int GetHashCode()
@@ -66,21 +65,22 @@ namespace Octopus.Cli.Commands.Releases
 
     public class PackageVersionResolver : IPackageVersionResolver
     {
-        private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
-
         /// <summary>
         /// Used to indicate a match with any matching step name or package reference name
         /// </summary>
-        private const string WildCard = "*";
+        const string WildCard = "*";
+
+        static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
+
         /// <summary>
         /// The characters we support for breaking up step, package name and version in the supplied strings
         /// </summary>
-        private static readonly char[] Delimiters = new [] {':', '=', '/'};
+        static readonly char[] Delimiters = { ':', '=', '/' };
 
         static readonly string[] SupportedZipFilePatterns = { "*.zip", "*.tgz", "*.tar.gz", "*.tar.Z", "*.tar.bz2", "*.tar.bz", "*.tbz", "*.tar" };
 
         readonly ILogger log;
-        private readonly IOctopusFileSystem fileSystem;
+        readonly IOctopusFileSystem fileSystem;
         readonly IDictionary<PackageKey, string> stepNameToVersion = new Dictionary<PackageKey, string>(new PackageKey());
         string defaultVersion;
 
@@ -98,18 +98,15 @@ namespace Octopus.Cli.Commands.Releases
                 log.Debug("Package file: {File:l}", file);
 
                 if (TryReadPackageIdentity(file, out var packageIdentity))
-                {
                     Add(packageIdentity.Id, null, packageIdentity.Version.ToString());
-                }
             }
+
             foreach (var file in fileSystem.EnumerateFilesRecursively(folderPath, SupportedZipFilePatterns))
             {
                 log.Debug("Package file: {File:l}", file);
 
                 if (TryParseZipIdAndVersion(file, out var packageIdentity))
-                {
                     Add(packageIdentity.Id, null, packageIdentity.Version.ToString());
-                }
             }
         }
 
@@ -124,9 +121,7 @@ namespace Octopus.Cli.Commands.Releases
             var version = split.Length > 2 ? split[2] : split[1];
 
             if (string.IsNullOrWhiteSpace(stepNameOrPackageId) || string.IsNullOrWhiteSpace(version))
-            {
                 throw new CommandException("The package argument '" + stepNameOrPackageIdAndVersion + "' does not use expected format of : {Step Name}:{Version}");
-            }
 
             Add(stepNameOrPackageId, packageReferenceName, version);
         }
@@ -151,9 +146,7 @@ namespace Octopus.Cli.Commands.Releases
                 var newVersion = OctopusVersionParser.Parse(packageVersion);
                 var currentVersion = OctopusVersionParser.Parse(current);
                 if (newVersion.CompareTo(currentVersion) < 0)
-                {
                     return;
-                }
             }
 
             stepNameToVersion[key] = packageVersion;
@@ -169,9 +162,7 @@ namespace Octopus.Cli.Commands.Releases
             catch (Exception)
             {
                 if (packageVersion.Contains(":"))
-                {
                     throw new ArgumentException("Invalid package version format. Use the package parameter if you need to specify the step name and version.");
-                }
                 throw;
             }
         }
@@ -183,7 +174,7 @@ namespace Octopus.Cli.Commands.Releases
 
         public string ResolveVersion(string stepName, string packageId, string packageReferenceName)
         {
-            var identifiers = new[] {stepName, packageId};
+            var identifiers = new[] { stepName, packageId };
 
             // First attempt to get an exact match between step or package id and the package reference name
             return identifiers
@@ -195,7 +186,7 @@ namespace Octopus.Cli.Commands.Releases
                 // and then on an exact step/package id and wildcard package reference name
                 identifiers
                     .SelectMany(id => new[]
-                        {new PackageKey(WildCard, packageReferenceName ?? string.Empty), new PackageKey(id, WildCard)})
+                        { new PackageKey(WildCard, packageReferenceName ?? string.Empty), new PackageKey(id, WildCard) })
                     .Select(key => stepNameToVersion.TryGetValue(key, out var version) ? version : null)
                     .FirstOrDefault(version => version != null)
                 ??
@@ -217,7 +208,7 @@ namespace Octopus.Cli.Commands.Releases
             }
             catch (Exception ex)
             {
-               log.Warning(ex, "Could not read manifest from '{PackageFile:l}'", packageFile);
+                log.Warning(ex, "Could not read manifest from '{PackageFile:l}'", packageFile);
             }
 
             return false;
@@ -240,8 +231,8 @@ namespace Octopus.Cli.Commands.Releases
 
             const string packageIdPattern = @"(?<packageId>(\w+([_.-]\w+)*?))";
             const string semanticVersionPattern = @"(?<semanticVersion>(\d+(\.\d+){0,3}" // Major Minor Patch
-                 + @"(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?)" // Pre-release identifiers
-                 + @"(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?)"; // Build Metadata
+                + @"(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?)" // Pre-release identifiers
+                + @"(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?)"; // Build Metadata
 
             var match = Regex.Match(idAndVersion, $@"^{packageIdPattern}\.{semanticVersionPattern}$");
             var packageIdMatch = match.Groups["packageId"];

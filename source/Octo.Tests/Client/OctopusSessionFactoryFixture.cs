@@ -76,7 +76,7 @@
 //            streamWriter.Close();
 //        }
 //    }
-	
+
 //    class TestableOctopusSessionFactory : OctopusSessionFactory
 //    {
 //        public TestableOctopusSessionFactory(ILogger log, ICommandLineArgsProvider commandLineArgsProvider) : base(log, commandLineArgsProvider)
@@ -101,3 +101,5 @@
 //        }
 //    }
 //}
+
+using System;

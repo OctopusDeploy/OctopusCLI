@@ -10,15 +10,14 @@ using Octopus.Client.Model;
 using Octopus.Client.Model.BuildInformation;
 using Octopus.Client.Model.PackageMetadata;
 
-
 namespace Octopus.Cli.Commands.Package
 {
     [Command("build-information", Description = "Pushes build information to Octopus Server.")]
     public class BuildInformationCommand : ApiCommand, ISupportFormattedOutput
     {
-        private static OverwriteMode DefaultOverwriteMode = OverwriteMode.FailIfExists;
-        private OctopusPackageVersionBuildInformationMappedResource resultResource;
-        private readonly List<OctopusPackageVersionBuildInformationMappedResource> pushedBuildInformation;
+        static readonly OverwriteMode DefaultOverwriteMode = OverwriteMode.FailIfExists;
+        readonly List<OctopusPackageVersionBuildInformationMappedResource> pushedBuildInformation;
+        OctopusPackageVersionBuildInformationMappedResource resultResource;
 
         public BuildInformationCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
@@ -55,7 +54,6 @@ namespace Octopus.Cli.Commands.Package
             var rootDocument = await Repository.LoadRootDocument();
             if (rootDocument.HasLink("BuildInformation"))
             {
-
                 var buildInformation = JsonConvert.DeserializeObject<OctopusBuildInformation>(fileContent);
 
                 foreach (var packageId in PackageIds)

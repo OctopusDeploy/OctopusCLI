@@ -11,7 +11,7 @@ namespace Octopus.Cli.Util
             var codeBase = assembly.CodeBase;
             var uri = new UriBuilder(codeBase);
             var root = Uri.UnescapeDataString(uri.Path);
-            root = root.Replace('/',Path.DirectorySeparatorChar);
+            root = root.Replace('/', Path.DirectorySeparatorChar);
             return root;
         }
 

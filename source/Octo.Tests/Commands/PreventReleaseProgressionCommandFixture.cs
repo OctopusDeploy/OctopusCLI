@@ -18,11 +18,11 @@ namespace Octo.Tests.Commands
     [TestFixture]
     public class PreventReleaseProgressionCommandFixture : ApiCommandFixtureBase
     {
+        const string ReasonToPrevent = "Test Prevention";
         PreventReleaseProgressionCommand preventReleaseProgressionCommand;
         ProjectResource projectResource;
         ReleaseResource releaseResource;
         ReleaseResource releaseResource2;
-        const string ReasonToPrevent = "Test Prevention";
 
         [SetUp]
         public void SetUp()
@@ -48,7 +48,7 @@ namespace Octo.Tests.Commands
 
             var defects = new[] { new DefectResource("Test Defect", DefectStatus.Resolved) };
             Repository.Defects.GetDefects(releaseResource).Returns(new ResourceCollection<DefectResource>(defects, new LinkCollection()));
-            
+
             releaseResource2 = new ReleaseResource
             {
                 Id = "Releases-2",
@@ -57,7 +57,7 @@ namespace Octo.Tests.Commands
                 Version = "latest"
             };
             Repository.Projects.GetReleaseByVersion(projectResource, releaseResource2.Version).Returns(releaseResource2);
-            
+
             var defects2 = new[] { new DefectResource("Test Defect 2", DefectStatus.Resolved) };
             Repository.Defects.GetDefects(releaseResource2).Returns(new ResourceCollection<DefectResource>(defects2, new LinkCollection()));
         }
@@ -126,7 +126,8 @@ namespace Octo.Tests.Commands
                 .WithMessage("Please specify a release version number using the version parameter: --version=1.0.5");
         }
 
-        [TestCase("999999999999999999999999999999999999999999999999999999"), Description("Number larger than an int")]
+        [TestCase("999999999999999999999999999999999999999999999999999999")]
+        [Description("Number larger than an int")]
         public void ShouldValidateReleaseVersionNumberParameterForFormat(string releaseVersionNumber)
         {
             CommandLineArgs.Add($"--project={projectResource.Name}");
@@ -151,7 +152,7 @@ namespace Octo.Tests.Commands
             preventReleaseProgressionCommand.ReleaseVersionNumber.Should().Be(releaseResource.Version);
             await Repository.Projects.Received(1).GetReleaseByVersion(projectResource, preventReleaseProgressionCommand.ReleaseVersionNumber);
         }
-        
+
         [Test]
         public async Task ShouldSupportDockerVersionForRelease()
         {
@@ -179,7 +180,7 @@ namespace Octo.Tests.Commands
             exec.ShouldThrow<OctopusResourceNotFoundException>();
         }
 
-        [Test] 
+        [Test]
         public async Task ShouldPreventReleaseProgressionCorrectly_WhenReleaseProgressionIsNotYetPrevented()
         {
             CommandLineArgs.Add($"--project={projectResource.Name}");

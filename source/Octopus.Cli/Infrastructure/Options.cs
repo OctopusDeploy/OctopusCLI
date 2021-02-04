@@ -146,6 +146,39 @@ namespace Octopus.Cli.Infrastructure
             this.c = c;
         }
 
+        #region IEnumerable
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return values.GetEnumerator();
+        }
+
+        #endregion
+
+        #region IEnumerable<T>
+
+        public IEnumerator<string> GetEnumerator()
+        {
+            return values.GetEnumerator();
+        }
+
+        #endregion
+
+        public List<string> ToList()
+        {
+            return new List<string>(values);
+        }
+
+        public string[] ToArray()
+        {
+            return values.ToArray();
+        }
+
+        public override string ToString()
+        {
+            return string.Join(", ", values.ToArray());
+        }
+
         #region ICollection
 
         void ICollection.CopyTo(Array array, int index)
@@ -192,24 +225,6 @@ namespace Octopus.Cli.Infrastructure
 
         #endregion
 
-        #region IEnumerable
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return values.GetEnumerator();
-        }
-
-        #endregion
-
-        #region IEnumerable<T>
-
-        public IEnumerator<string> GetEnumerator()
-        {
-            return values.GetEnumerator();
-        }
-
-        #endregion
-
         #region IList
 
         int IList.Add(object value)
@@ -246,8 +261,8 @@ namespace Octopus.Cli.Infrastructure
 
         object IList.this[int index]
         {
-            get { return this[index]; }
-            set { (values as IList)[index] = value; }
+            get => this[index];
+            set => (values as IList)[index] = value;
         }
 
         #endregion
@@ -276,7 +291,7 @@ namespace Octopus.Cli.Infrastructure
                 AssertValid(index);
                 return index >= values.Count ? null : values[index];
             }
-            set { values[index] = value; }
+            set => values[index] = value;
         }
 
         void AssertValid(int index)
@@ -291,28 +306,13 @@ namespace Octopus.Cli.Infrastructure
         }
 
         #endregion
-
-        public List<string> ToList()
-        {
-            return new List<string>(values);
-        }
-
-        public string[] ToArray()
-        {
-            return values.ToArray();
-        }
-
-        public override string ToString()
-        {
-            return string.Join(", ", values.ToArray());
-        }
     }
 
     public class OptionContext
     {
         public OptionContext(OptionSet set)
         {
-            this.OptionSet = set;
+            OptionSet = set;
             OptionValues = new OptionValueCollection(this);
         }
 
@@ -331,19 +331,27 @@ namespace Octopus.Cli.Infrastructure
     {
         None,
         Optional,
-        Required,
+        Required
     }
 
     public abstract class Option
     {
-        static readonly char[] NameTerminator = {'=', ':'};
+        static readonly char[] NameTerminator = { '=', ':' };
 
         protected Option(string prototype, string description, bool sensitive = false, bool allowsMultiple = false)
-            : this(prototype, description, 1, sensitive, allowsMultiple)
+            : this(prototype,
+                description,
+                1,
+                sensitive,
+                allowsMultiple)
         {
         }
 
-        protected Option(string prototype, string description, int maxValueCount, bool sensitive = false, bool allowsMultiple = false)
+        protected Option(string prototype,
+            string description,
+            int maxValueCount,
+            bool sensitive = false,
+            bool allowsMultiple = false)
         {
             if (prototype == null)
                 throw new ArgumentNullException(nameof(prototype));
@@ -352,9 +360,9 @@ namespace Octopus.Cli.Infrastructure
             if (maxValueCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxValueCount));
 
-            this.Prototype = prototype;
+            Prototype = prototype;
             Names = prototype.Split('|');
-            this.Description = description;
+            Description = description;
             MaxValueCount = maxValueCount;
             Sensitive = sensitive;
             AllowsMultiple = allowsMultiple;
@@ -370,8 +378,8 @@ namespace Octopus.Cli.Infrastructure
                     string.Format("Cannot provide maxValueCount of {0} for OptionValueType.None.", maxValueCount),
                     nameof(maxValueCount));
             if (Array.IndexOf(Names, "<>") >= 0 &&
-                ((Names.Length == 1 && OptionValueType != OptionValueType.None) ||
-                 (Names.Length > 1 && MaxValueCount > 1)))
+                (Names.Length == 1 && OptionValueType != OptionValueType.None ||
+                    Names.Length > 1 && MaxValueCount > 1))
                 throw new ArgumentException(
                     "The default option handler '<>' cannot require values.",
                     nameof(prototype));
@@ -394,33 +402,34 @@ namespace Octopus.Cli.Infrastructure
 
         public string[] GetNames()
         {
-            return (string[]) Names.Clone();
+            return (string[])Names.Clone();
         }
 
         public string[] GetValueSeparators()
         {
             if (ValueSeparators == null)
                 return new string[0];
-            return (string[]) ValueSeparators.Clone();
+            return (string[])ValueSeparators.Clone();
         }
 
         protected static T Parse<T>(string value, OptionContext c)
         {
-            var conv = TypeDescriptor.GetConverter(typeof (T));
+            var conv = TypeDescriptor.GetConverter(typeof(T));
             var t = default(T);
             try
             {
                 if (value != null)
-                    t = (T) conv.ConvertFromString(value);
+                    t = (T)conv.ConvertFromString(value);
             }
-            catch(FormatException) when(typeof(T).IsEnum)
+            catch (FormatException) when (typeof(T).IsEnum)
             {
                 throw new CommandException($"Could not convert string `{value}' to type {typeof(T).Name} for option `{c.OptionName}'. Valid values are {Enum.GetNames(typeof(T)).ReadableJoin()}.");
             }
-            catch(Exception ex) when(!(ex is CommandException))
+            catch (Exception ex) when (!(ex is CommandException))
             {
                 throw new CommandException($"Could not convert string `{value}' to type {typeof(T).Name} for option `{c.OptionName}'.");
             }
+
             return t;
         }
 
@@ -455,7 +464,7 @@ namespace Octopus.Cli.Infrastructure
             if (MaxValueCount > 1)
             {
                 if (seps.Count == 0)
-                    ValueSeparators = new[] {":", "="};
+                    ValueSeparators = new[] { ":", "=" };
                 else if (seps.Count == 1 && seps[0].Length == 0)
                     ValueSeparators = null;
                 else
@@ -491,6 +500,7 @@ namespace Octopus.Cli.Infrastructure
                         break;
                 }
             }
+
             if (start != -1)
                 throw new ArgumentException(
                     string.Format("Ill-formed name/value separator found in \"{0}\".", name));
@@ -537,12 +547,14 @@ namespace Octopus.Cli.Infrastructure
 
     public class OptionSet : KeyedCollection<string, Option>
     {
+        const int OptionWidth = 29;
+
+        readonly Regex ValueOption = new Regex(
+            @"^(?<flag>--|-|/)(?<name>[^:=]+)((?<sep>[:=])(?<value>.*))?$");
+
         Action<string[]> leftovers;
 
-        public OptionSet()
-        {
-        }
-
+        public bool ShouldWaitForExit { get; }
 
         protected override string GetKeyForItem(Option item)
         {
@@ -582,9 +594,7 @@ namespace Octopus.Cli.Infrastructure
             var p = Items[index];
             // KeyedCollection.RemoveItem() handles the 0th item
             for (var i = 1; i < p.Names.Length; ++i)
-            {
                 Dictionary.Remove(p.Names[i]);
-            }
         }
 
         protected override void SetItem(int index, Option item)
@@ -616,53 +626,10 @@ namespace Octopus.Cli.Infrastructure
             }
         }
 
-        private new OptionSet Add(Option option)
+        new OptionSet Add(Option option)
         {
             base.Add(option);
             return this;
-        }
-
-        sealed class ActionOption : Option
-        {
-            readonly Action<OptionValueCollection> action;
-
-            public ActionOption(string prototype, string description, int count, Action<OptionValueCollection> action)
-                : base(prototype, description, count)
-            {
-                if (action == null)
-                    throw new ArgumentNullException(nameof(action));
-                this.action = action;
-            }
-
-            public override Type Type => typeof(string);
-
-            protected override void OnParseComplete(OptionContext c)
-            {
-                action(c.OptionValues);
-            }
-        }
-
-        sealed class ActionOption<T> : Option
-        {
-            readonly Action<T> action;
-
-            public ActionOption(string prototype, string description, Action<T> action, bool sensitive, bool allowsMultiple)
-                : base(prototype, description, 1, sensitive, allowsMultiple)
-            {
-                if (action == null)
-                    throw new ArgumentNullException(nameof(action));
-                this.action = action;
-            }
-
-            public override Type Type => typeof(T);
-
-            protected override void OnParseComplete(OptionContext c)
-            {
-                if (this.OptionValueType == OptionValueType.None)
-                    action(default(T));
-                else
-                    action(Parse<T>(c.OptionValues[0], c));
-            }
         }
 
         /// <summary>
@@ -678,11 +645,19 @@ namespace Octopus.Cli.Infrastructure
         /// <param name="allowsMultiple">Whether the option can be supplied by the user multiple times</param>
         /// <typeparam name="T">The type of the option.
         /// String provided will automatically be converted to the desired data type.
-        /// Conversion errors will throw a <see cref="CommandException"/>.
+        /// Conversion errors will throw a <see cref="CommandException" />.
         /// </typeparam>
-        public void Add<T>(string prototype, string description, Action<T> action, bool sensitive = false, bool allowsMultiple = false) 
+        public void Add<T>(string prototype,
+            string description,
+            Action<T> action,
+            bool sensitive = false,
+            bool allowsMultiple = false)
         {
-            Add(new ActionOption<T>(prototype, description, action, sensitive, allowsMultiple));
+            Add(new ActionOption<T>(prototype,
+                description,
+                action,
+                sensitive,
+                allowsMultiple));
         }
 
         protected virtual OptionContext CreateOptionContext()
@@ -709,14 +684,12 @@ namespace Octopus.Cli.Infrastructure
             optionContext.Option?.Invoke(optionContext);
 
             if (leftovers != null && r.Count > 0)
-            {
                 leftovers(r.ToArray());
-            }
 
             return r;
         }
 
-        private bool ParseOption(string argument, OptionContext optionContext, Option currentOption, ref bool continueProcessing)
+        bool ParseOption(string argument, OptionContext optionContext, Option currentOption, ref bool continueProcessing)
         {
             if (++optionContext.OptionIndex >= 0 && (continueProcessing || currentOption != null))
             {
@@ -730,6 +703,7 @@ namespace Octopus.Cli.Infrastructure
                             return Unprocessed(null, currentOption, optionContext, argument);
                         return true;
                     }
+
                     return false;
                 }
 
@@ -748,19 +722,18 @@ namespace Octopus.Cli.Infrastructure
                 extra.Add(argument);
                 return false;
             }
+
             c.OptionValues.Add(argument);
             c.Option = def;
             c.Option.Invoke(c);
             return false;
         }
 
-        readonly Regex ValueOption = new Regex(
-            @"^(?<flag>--|-|/)(?<name>[^:=]+)((?<sep>[:=])(?<value>.*))?$");
-
-#pragma warning disable 649
-#pragma warning restore 649
-
-        protected bool GetOptionParts(string argument, out string flag, out string name, out string sep, out string value)
+        protected bool GetOptionParts(string argument,
+            out string flag,
+            out string name,
+            out string sep,
+            out string value)
         {
             if (argument == null)
                 throw new ArgumentNullException(nameof(argument));
@@ -768,9 +741,7 @@ namespace Octopus.Cli.Infrastructure
             flag = name = sep = value = null;
             var m = ValueOption.Match(argument);
             if (!m.Success)
-            {
                 return false;
-            }
             flag = m.Groups["flag"].Value;
             name = m.Groups["name"].Value;
             if (m.Groups["sep"].Success && m.Groups["value"].Success)
@@ -778,6 +749,7 @@ namespace Octopus.Cli.Infrastructure
                 sep = m.Groups["sep"].Value;
                 value = m.Groups["value"].Value;
             }
+
             return true;
         }
 
@@ -790,7 +762,11 @@ namespace Octopus.Cli.Infrastructure
             }
 
             string f, n, s, v;
-            if (!GetOptionParts(argument, out f, out n, out s, out v))
+            if (!GetOptionParts(argument,
+                out f,
+                out n,
+                out s,
+                out v))
                 return false;
 
             var p = this.FirstOrDefault(x => x.Names.Any(y => string.Equals(y, n, StringComparison.OrdinalIgnoreCase)));
@@ -809,8 +785,10 @@ namespace Octopus.Cli.Infrastructure
                         ParseValue(v, c);
                         break;
                 }
+
                 return true;
             }
+
             // no match; is it a bool option?
             if (ParseBool(argument, n, c))
                 return true;
@@ -822,31 +800,25 @@ namespace Octopus.Cli.Infrastructure
             return false;
         }
 
-        public bool ShouldWaitForExit { get; }
-
         void ParseValue(string option, OptionContext c)
         {
             if (option != null)
                 foreach (var o in c.Option.ValueSeparators != null
                     ? option.Split(c.Option.ValueSeparators, StringSplitOptions.None)
-                    : new[] {option})
-                {
+                    : new[] { option })
                     c.OptionValues.Add(o);
-                }
             if (c.OptionValues.Count == c.Option.MaxValueCount ||
                 c.Option.OptionValueType == OptionValueType.Optional)
                 c.Option.Invoke(c);
             else if (c.OptionValues.Count > c.Option.MaxValueCount)
-            {
                 throw new OptionException($"Error: Found {c.OptionValues.Count} option values when expecting {c.Option.MaxValueCount}.", c.OptionName);
-            }
         }
 
         bool ParseBool(string option, string n, OptionContext c)
         {
             string rn;
             if (n.Length >= 1 && (n[n.Length - 1] == '+' || n[n.Length - 1] == '-') &&
-                Contains((rn = n.Substring(0, n.Length - 1))))
+                Contains(rn = n.Substring(0, n.Length - 1)))
             {
                 var p = this[rn];
                 var v = n[n.Length - 1] == '+' ? option : null;
@@ -856,6 +828,7 @@ namespace Octopus.Cli.Infrastructure
                 p.Invoke(c);
                 return true;
             }
+
             return false;
         }
 
@@ -873,6 +846,7 @@ namespace Octopus.Cli.Infrastructure
                         return false;
                     throw new OptionException($"Cannot bundle unregistered option '{opt}'.", opt);
                 }
+
                 var p = this[rn];
                 switch (p.OptionValueType)
                 {
@@ -892,6 +866,7 @@ namespace Octopus.Cli.Infrastructure
                         throw new InvalidOperationException("Unknown OptionValueType: " + p.OptionValueType);
                 }
             }
+
             return true;
         }
 
@@ -903,8 +878,6 @@ namespace Octopus.Cli.Infrastructure
             option.Invoke(c);
         }
 
-        const int OptionWidth = 29;
-
         public void WriteOptionDescriptions(TextWriter o)
         {
             foreach (var p in this)
@@ -914,7 +887,9 @@ namespace Octopus.Cli.Infrastructure
                     continue;
 
                 if (written < OptionWidth)
+                {
                     o.Write(new string(' ', OptionWidth - written));
+                }
                 else
                 {
                     o.WriteLine();
@@ -964,31 +939,24 @@ namespace Octopus.Cli.Infrastructure
                 p.OptionValueType == OptionValueType.Required)
             {
                 if (p.OptionValueType == OptionValueType.Optional)
-                {
                     Write(o, ref written, "[");
-                }
                 Write(o, ref written, "=" + GetArgumentName(0, p.MaxValueCount, p.Description));
                 var sep = p.ValueSeparators != null && p.ValueSeparators.Length > 0
                     ? p.ValueSeparators[0]
                     : " ";
                 for (var c = 1; c < p.MaxValueCount; ++c)
-                {
                     Write(o, ref written, sep + GetArgumentName(c, p.MaxValueCount, p.Description));
-                }
                 if (p.OptionValueType == OptionValueType.Optional)
-                {
                     Write(o, ref written, "]");
-                }
             }
+
             return true;
         }
 
         static int GetNextOptionIndex(string[] names, int i)
         {
             while (i < names.Length && names[i] == "<>")
-            {
                 ++i;
-            }
             return i;
         }
 
@@ -1004,9 +972,9 @@ namespace Octopus.Cli.Infrastructure
                 return maxIndex == 1 ? "VALUE" : "VALUE" + (index + 1);
             string[] nameStart;
             if (maxIndex == 1)
-                nameStart = new[] {"{0:", "{"};
+                nameStart = new[] { "{0:", "{" };
             else
-                nameStart = new[] {"{" + index + ":"};
+                nameStart = new[] { "{" + index + ":" };
             for (var i = 0; i < nameStart.Length; ++i)
             {
                 int start, j = 0;
@@ -1014,6 +982,7 @@ namespace Octopus.Cli.Infrastructure
                 {
                     start = description.IndexOf(nameStart[i], j, StringComparison.Ordinal);
                 } while (start >= 0 && j != 0 && description[j++ - 1] == '{');
+
                 if (start == -1)
                     continue;
                 var end = description.IndexOf("}", start, StringComparison.Ordinal);
@@ -1021,6 +990,7 @@ namespace Octopus.Cli.Infrastructure
                     continue;
                 return description.Substring(start + nameStart[i].Length, end - start - nameStart[i].Length);
             }
+
             return maxIndex == 1 ? "VALUE" : "VALUE" + (index + 1);
         }
 
@@ -1041,12 +1011,15 @@ namespace Octopus.Cli.Infrastructure
                             start = -1;
                         }
                         else if (start < 0)
+                        {
                             start = i + 1;
+                        }
+
                         break;
                     case '}':
                         if (start < 0)
                         {
-                            if ((i + 1) == description.Length || description[i + 1] != '}')
+                            if (i + 1 == description.Length || description[i + 1] != '}')
                                 throw new InvalidOperationException("Invalid option description: " + description);
                             ++i;
                             sb.Append("}");
@@ -1056,6 +1029,7 @@ namespace Octopus.Cli.Infrastructure
                             sb.Append(description.Substring(start, i - start));
                             start = -1;
                         }
+
                         break;
                     case ':':
                         if (start < 0)
@@ -1068,6 +1042,7 @@ namespace Octopus.Cli.Infrastructure
                         break;
                 }
             }
+
             return sb.ToString();
         }
 
@@ -1079,6 +1054,7 @@ namespace Octopus.Cli.Infrastructure
                 lines.Add(string.Empty);
                 return lines;
             }
+
             var length = 80 - OptionWidth - 2;
             int start = 0, end;
             do
@@ -1088,23 +1064,25 @@ namespace Octopus.Cli.Infrastructure
                 if (end < description.Length)
                 {
                     var c = description[end];
-                    if (c == '-' || (char.IsWhiteSpace(c) && c != '\n'))
+                    if (c == '-' || char.IsWhiteSpace(c) && c != '\n')
+                    {
                         ++end;
+                    }
                     else if (c != '\n')
                     {
                         cont = true;
                         --end;
                     }
                 }
+
                 lines.Add(description.Substring(start, end - start));
                 if (cont)
-                {
                     lines[lines.Count - 1] += "-";
-                }
                 start = end;
                 if (start < description.Length && description[start] == '\n')
                     ++start;
             } while (end < description.Length);
+
             return lines;
         }
 
@@ -1129,9 +1107,64 @@ namespace Octopus.Cli.Infrastructure
                         return i;
                 }
             }
+
             if (sep == -1 || end == description.Length)
                 return end;
             return sep;
         }
+
+        sealed class ActionOption : Option
+        {
+            readonly Action<OptionValueCollection> action;
+
+            public ActionOption(string prototype, string description, int count, Action<OptionValueCollection> action)
+                : base(prototype, description, count)
+            {
+                if (action == null)
+                    throw new ArgumentNullException(nameof(action));
+                this.action = action;
+            }
+
+            public override Type Type => typeof(string);
+
+            protected override void OnParseComplete(OptionContext c)
+            {
+                action(c.OptionValues);
+            }
+        }
+
+        sealed class ActionOption<T> : Option
+        {
+            readonly Action<T> action;
+
+            public ActionOption(string prototype,
+                string description,
+                Action<T> action,
+                bool sensitive,
+                bool allowsMultiple)
+                : base(prototype,
+                    description,
+                    1,
+                    sensitive,
+                    allowsMultiple)
+            {
+                if (action == null)
+                    throw new ArgumentNullException(nameof(action));
+                this.action = action;
+            }
+
+            public override Type Type => typeof(T);
+
+            protected override void OnParseComplete(OptionContext c)
+            {
+                if (OptionValueType == OptionValueType.None)
+                    action(default);
+                else
+                    action(Parse<T>(c.OptionValues[0], c));
+            }
+        }
+
+#pragma warning disable 649
+#pragma warning restore 649
     }
 }

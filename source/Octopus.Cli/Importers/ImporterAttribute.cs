@@ -2,7 +2,7 @@
 
 namespace Octopus.Cli.Importers
 {
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class ImporterAttribute : Attribute, IImporterMetadata
     {
         public ImporterAttribute(string name, string entityType)

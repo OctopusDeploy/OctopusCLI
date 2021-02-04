@@ -39,8 +39,9 @@ namespace Octo.Tests.Commands
                         ProjectId = "projectbid",
                         EnvironmentId = "environmentid2",
                         ReleaseId = "Release2"
-                    },
-                }, new LinkCollection());
+                    }
+                },
+                new LinkCollection());
 
             Repository.Tenants.Status()
                 .ReturnsForAnyArgs(new MultiTenancyStatusResource());
@@ -48,7 +49,9 @@ namespace Octo.Tests.Commands
             Repository.Deployments
                 .When(
                     x =>
-                        x.Paginate(Arg.Any<string[]>(), Arg.Any<string[]>(), Arg.Any<string[]>(),
+                        x.Paginate(Arg.Any<string[]>(),
+                            Arg.Any<string[]>(),
+                            Arg.Any<string[]>(),
                             Arg.Any<Func<ResourceCollection<DeploymentResource>, bool>>()))
                 .Do(r => r.Arg<Func<ResourceCollection<DeploymentResource>, bool>>()(deploymentResources));
 
@@ -56,16 +59,16 @@ namespace Octo.Tests.Commands
                 .Returns(Task.FromResult(
                     new List<ProjectResource>
                     {
-                        new ProjectResource {Name = "ProjectA", Id = "projectaid"},
-                        new ProjectResource {Name = "ProjectB", Id = "projectbid"},
+                        new ProjectResource { Name = "ProjectA", Id = "projectaid" },
+                        new ProjectResource { Name = "ProjectB", Id = "projectbid" }
                     }));
 
             Repository.Environments.FindAll()
                 .Returns(Task.FromResult(
                     new List<EnvironmentResource>
                     {
-                        new EnvironmentResource {Name = "EnvA", Id = "environmentid1"},
-                        new EnvironmentResource {Name = "EnvB", Id = "environmentid2"}
+                        new EnvironmentResource { Name = "EnvA", Id = "environmentid1" },
+                        new EnvironmentResource { Name = "EnvB", Id = "environmentid2" }
                     }));
 
             Repository.Tenants.FindAll()

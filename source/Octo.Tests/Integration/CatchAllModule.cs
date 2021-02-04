@@ -1,4 +1,5 @@
-﻿using Nancy;
+﻿using System;
+using Nancy;
 using Serilog;
 
 namespace Octo.Tests.Integration
@@ -7,16 +8,18 @@ namespace Octo.Tests.Integration
     {
         public CatchAllModule()
         {
-            Get(@"/{uri*}", p =>
-            {
-                Log.Error($"Nothing listening at {Request.Url.Path}");
-                return HttpStatusCode.NotFound;
-            });
-            Post(@"/{uri*}", p =>
-            {
-                Log.Error($"Nothing listening at {Request.Url.Path}");
-                return HttpStatusCode.NotFound;
-            });
+            Get(@"/{uri*}",
+                p =>
+                {
+                    Log.Error($"Nothing listening at {Request.Url.Path}");
+                    return HttpStatusCode.NotFound;
+                });
+            Post(@"/{uri*}",
+                p =>
+                {
+                    Log.Error($"Nothing listening at {Request.Url.Path}");
+                    return HttpStatusCode.NotFound;
+                });
         }
     }
 }

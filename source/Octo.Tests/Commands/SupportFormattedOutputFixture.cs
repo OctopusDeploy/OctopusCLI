@@ -15,9 +15,9 @@ namespace Octo.Tests.Commands
         public void FormattedOutput_ShouldAddOutputOption()
         {
             var sw = new StringWriter();
-            var command =  new DummyApiCommandWithFormattedOutputSupport(ClientFactory, RepositoryFactory, FileSystem, CommandOutputProvider);
+            var command = new DummyApiCommandWithFormattedOutputSupport(ClientFactory, RepositoryFactory, FileSystem, CommandOutputProvider);
 
-            command.GetHelp(sw, new []{ "command" });
+            command.GetHelp(sw, new[] { "command" });
 
             sw.ToString().Should().ContainEquivalentOf("--output");
         }
@@ -34,7 +34,7 @@ namespace Octo.Tests.Commands
 
             command.PrintJsonOutputCalled.ShouldBeEquivalentTo(true);
         }
-        
+
         [Test]
         public void FormattedOutput_FormatInvalid()
         {
@@ -66,7 +66,7 @@ namespace Octo.Tests.Commands
             logOutput.Should().Contain("dummy-command");
             logOutput.Should().Contain("this is the command's description");
         }
-        
+
         [Test]
         public async Task PlainTextFormattedOutputHelp_ShouldBeWellFormed()
         {

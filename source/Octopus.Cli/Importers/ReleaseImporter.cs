@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Octopus.Cli.Extensions;
@@ -13,18 +14,13 @@ namespace Octopus.Cli.Importers
     public class ReleaseImporter : BaseImporter
     {
         ValidatedImportSettings validatedImportSettings;
-        public bool ReadyToImport => validatedImportSettings != null && !validatedImportSettings.ErrorList.Any();
 
         public ReleaseImporter(IOctopusAsyncRepository repository, IOctopusFileSystem fileSystem, ILogger log)
             : base(repository, fileSystem, log)
         {
         }
 
-        class ValidatedImportSettings : BaseValidatedImportSettings
-        {
-            public ProjectResource Project { get; set; }
-            public IEnumerable<ReleaseResource> Releases { get; set; }
-        }
+        public bool ReadyToImport => validatedImportSettings != null && !validatedImportSettings.ErrorList.Any();
 
         protected override async Task<bool> Validate(Dictionary<string, string> paramDictionary)
         {
@@ -58,9 +54,7 @@ namespace Octopus.Cli.Importers
             {
                 Log.Error("The following issues were found with the provided input:");
                 foreach (var error in validatedImportSettings.ErrorList)
-                {
                     Log.Error(" {Error:l}", error);
-                }
             }
             else
             {
@@ -83,21 +77,22 @@ namespace Octopus.Cli.Importers
                 // Start with the full list of releases from the import file, and exclude any existing releases
                 var releasesToImport = validatedImportSettings.Releases.ToList();
                 var releases = await Repository.Projects.GetReleases(validatedImportSettings.Project).ConfigureAwait(false);
-                await releases.Paginate(Repository, page =>
-                {
-                    foreach (var existingRelease in page.Items)
-                    {
-                        if (releasesToImport.Any(r => r.Version == existingRelease.Version))
+                await releases.Paginate(Repository,
+                        page =>
                         {
-                            Log.Debug("Release '{Version:l}' already exists for project {Project:l}", existingRelease.Version , validatedImportSettings.Project.Name);
-                            releasesToImport.RemoveWhere(r => r.Version == existingRelease.Version);
-                        }
-                    }
+                            foreach (var existingRelease in page.Items)
+                            {
+                                if (releasesToImport.Any(r => r.Version == existingRelease.Version))
+                                {
+                                    Log.Debug("Release '{Version:l}' already exists for project {Project:l}", existingRelease.Version, validatedImportSettings.Project.Name);
+                                    releasesToImport.RemoveWhere(r => r.Version == existingRelease.Version);
+                                }
+                            }
 
-                    // Stop paginating if there's nothing left to import
-                    return releasesToImport.Any();
-                })
-                .ConfigureAwait(false);
+                            // Stop paginating if there's nothing left to import
+                            return releasesToImport.Any();
+                        })
+                    .ConfigureAwait(false);
 
                 foreach (var release in releasesToImport)
                 {
@@ -115,11 +110,15 @@ namespace Octopus.Cli.Importers
                 {
                     Log.Error("The following issues were found with the provided input:");
                     foreach (var error in validatedImportSettings.ErrorList)
-                    {
                         Log.Error(" {Error:l}", error);
-                    }
                 }
             }
+        }
+
+        class ValidatedImportSettings : BaseValidatedImportSettings
+        {
+            public ProjectResource Project { get; set; }
+            public IEnumerable<ReleaseResource> Releases { get; set; }
         }
     }
 }

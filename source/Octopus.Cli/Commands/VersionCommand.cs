@@ -24,6 +24,5 @@ namespace Octopus.Cli.Commands
                     Console.WriteLine($"{typeof(CliProgram).GetInformationalVersion()}");
             });
         }
-
     }
 }

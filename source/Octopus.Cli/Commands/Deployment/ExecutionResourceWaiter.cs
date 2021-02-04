@@ -38,10 +38,10 @@ namespace Octopus.Cli.Commands.Deployment
     {
         public delegate IExecutionResourceWaiter Factory(IOctopusAsyncRepository repository, string serverBaseUrl);
 
-        private readonly TaskOutputProgressPrinter printer = new TaskOutputProgressPrinter();
-        private readonly ICommandOutputProvider commandOutputProvider;
-        private readonly IOctopusAsyncRepository repository;
-        private readonly string serverBaseUrl;
+        readonly TaskOutputProgressPrinter printer = new TaskOutputProgressPrinter();
+        readonly ICommandOutputProvider commandOutputProvider;
+        readonly IOctopusAsyncRepository repository;
+        readonly string serverBaseUrl;
 
         public ExecutionResourceWaiter(
             ICommandOutputProvider commandOutputProvider,
@@ -65,11 +65,13 @@ namespace Octopus.Cli.Commands.Deployment
             TimeSpan deploymentStatusCheckSleepCycle,
             TimeSpan deploymentTimeout)
         {
-            async Task GuidedFailureWarning (IExecutionResource guidedFailureDeployment)
+            async Task GuidedFailureWarning(IExecutionResource guidedFailureDeployment)
             {
                 var environment = await repository.Environments.Get(((DeploymentResource)guidedFailureDeployment).Link("Environment")).ConfigureAwait(false);
-                commandOutputProvider.Warning("  - {Environment:l}: {Url:l}", environment.Name, GetPortalUrl(
-                    $"/app#/projects/{project.Slug}/releases/{release.Version}/deployments/{guidedFailureDeployment.Id}"));
+                commandOutputProvider.Warning("  - {Environment:l}: {Url:l}",
+                    environment.Name,
+                    GetPortalUrl(
+                        $"/app#/projects/{project.Slug}/releases/{release.Version}/deployments/{guidedFailureDeployment.Id}"));
             }
 
             await WaitForExecutionToComplete(
@@ -82,7 +84,6 @@ namespace Octopus.Cli.Commands.Deployment
                 deploymentTimeout,
                 GuidedFailureWarning,
                 "deployment");
-
         }
 
         public async Task WaitForRunbookRunToComplete(
@@ -95,13 +96,15 @@ namespace Octopus.Cli.Commands.Deployment
             TimeSpan deploymentStatusCheckSleepCycle,
             TimeSpan deploymentTimeout)
         {
-            async Task GuidedFailureWarning (IExecutionResource runExecution)
+            async Task GuidedFailureWarning(IExecutionResource runExecution)
             {
-                var runbookRun = (RunbookRunResource) runExecution;
+                var runbookRun = (RunbookRunResource)runExecution;
                 var environment = await repository.Environments.Get(runbookRun.Link("Environment")).ConfigureAwait(false);
 
-                commandOutputProvider.Warning("  - {Environment:l}: {Url:l}", environment.Name, GetPortalUrl(
-                    $"/app#/projects/{project.Slug}/operations/runbooks/{runbookRun.RunbookId}/snapshots/{runbookRun.RunbookSnapshotId}/runs/{runbookRun.Id}"));
+                commandOutputProvider.Warning("  - {Environment:l}: {Url:l}",
+                    environment.Name,
+                    GetPortalUrl(
+                        $"/app#/projects/{project.Slug}/operations/runbooks/{runbookRun.RunbookId}/snapshots/{runbookRun.RunbookSnapshotId}/runs/{runbookRun.Id}"));
             }
 
             await WaitForExecutionToComplete(
@@ -114,7 +117,7 @@ namespace Octopus.Cli.Commands.Deployment
                 deploymentTimeout,
                 GuidedFailureWarning,
                 "runbook run"
-                );
+            );
         }
 
         async Task WaitForExecutionToComplete(
@@ -127,14 +130,12 @@ namespace Octopus.Cli.Commands.Deployment
             TimeSpan deploymentTimeout,
             Func<IExecutionResource, Task> guidedFailureWarningGenerator,
             string alias
-            )
+        )
         {
-            var getTasks = resources.Select(dep => repository.Tasks.Get((string) dep.TaskId));
+            var getTasks = resources.Select(dep => repository.Tasks.Get(dep.TaskId));
             var deploymentTasks = await Task.WhenAll(getTasks).ConfigureAwait(false);
             if (showProgress && resources.Count > 1)
-            {
                 commandOutputProvider.Information("Only progress of the first task ({Task:l}) will be shown", deploymentTasks.First().Name);
-            }
 
             try
             {
@@ -154,21 +155,15 @@ namespace Octopus.Cli.Commands.Deployment
                         failed = true;
 
                         if (noRawLog)
-                        {
                             continue;
-                        }
 
                         try
                         {
                             var raw = await repository.Tasks.GetRawOutputLog(updated).ConfigureAwait(false);
                             if (!string.IsNullOrEmpty(rawLogFile))
-                            {
                                 File.WriteAllText(rawLogFile, raw);
-                            }
                             else
-                            {
                                 commandOutputProvider.Error(raw);
-                            }
                         }
                         catch (Exception ex)
                         {
@@ -176,10 +171,9 @@ namespace Octopus.Cli.Commands.Deployment
                         }
                     }
                 }
+
                 if (failed)
-                {
                     throw new CommandException($"One or more {alias} tasks failed.");
-                }
 
                 commandOutputProvider.Information("Done!");
             }
@@ -197,10 +191,9 @@ namespace Octopus.Cli.Commands.Deployment
                 {
                     commandOutputProvider.Warning($"One or more {alias} are using guided failure. Use the links below to check if intervention is required:");
                     foreach (var guidedFailureDeployment in guidedFailureDeployments)
-                    {
                         await guidedFailureWarningGenerator(guidedFailureDeployment);
-                    }
                 }
+
                 throw new CommandException(e.Message);
             }
         }
@@ -210,13 +203,14 @@ namespace Octopus.Cli.Commands.Deployment
             if (!cancelOnTimeout)
                 return Task.WhenAll();
 
-            var tasks = deploymentTasks.Select(async task => {
+            var tasks = deploymentTasks.Select(async task =>
+            {
                 commandOutputProvider.Warning($"Cancelling {alias} task '{{Task:l}}'", task.Description);
                 try
                 {
                     await repository.Tasks.Cancel(task).ConfigureAwait(false);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     commandOutputProvider.Error($"Failed to cancel {alias} task '{{Task:l}}': {{ExceptionMessage:l}}", task.Description, ex.Message);
                 }

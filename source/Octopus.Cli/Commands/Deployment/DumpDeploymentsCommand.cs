@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +9,6 @@ using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
-using Serilog;
 
 namespace Octopus.Cli.Commands.Deployment
 {
@@ -27,12 +27,10 @@ namespace Octopus.Cli.Commands.Deployment
         protected override async Task Execute()
         {
             if (string.IsNullOrWhiteSpace(filePath))
-            {
                 throw new CommandException("Please specify the full path and name of the export file using the parameter: --filePath=XYZ");
-            }
             commandOutputProvider.Information("Listing projects, project groups and environments");
             var projectsTask = Repository.Projects.FindAll().ConfigureAwait(false);
-            var projectGroupsTask =  Repository.ProjectGroups.GetAll().ConfigureAwait(false);
+            var projectGroupsTask = Repository.ProjectGroups.GetAll().ConfigureAwait(false);
             var environmentsTask = Repository.Environments.GetAll().ConfigureAwait(false);
 
             var projects = (await projectsTask).ToDictionary(p => p.Id, p => p.Name);
@@ -43,29 +41,30 @@ namespace Octopus.Cli.Commands.Deployment
             commandOutputProvider.Information("Dumping deployments...");
             using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
             {
-                var xmlWriterSettings = new XmlWriterSettings() {Indent = true};
+                var xmlWriterSettings = new XmlWriterSettings { Indent = true };
                 var xml = XmlWriter.Create(new StreamWriter(fileStream), xmlWriterSettings);
                 xml.WriteStartElement("Deployments");
                 var seenBefore = new HashSet<string>();
                 await Repository.Deployments.Paginate(delegate(ResourceCollection<DeploymentResource> page)
-                {
-                    foreach (var current in page.Items)
                     {
-                        if (seenBefore.Contains(current.Id)) continue;
-                        seenBefore.Add(current.Id);
-                        xml.WriteStartElement("Deployment");
-                        xml.WriteElementString("Environment", GetName(current.EnvironmentId, environments));
-                        xml.WriteElementString("Project", GetName(current.ProjectId, projects));
-                        xml.WriteElementString("ProjectGroup", GetName(GetProjectGroupId(current.ProjectId, projectsByGroup), projectGroups));
-                        xml.WriteElementString("Created", current.Created.ToString("s"));
-                        xml.WriteElementString("Name", current.Name);
-                        xml.WriteElementString("Id", current.Id);
-                        xml.WriteEndElement();
-                    }
-                    commandOutputProvider.Information("Wrote {Count:n0} of {Total:n0} deployments...", seenBefore.Count, page.TotalResults);
-                    return true;
-                })
-                .ConfigureAwait(false);
+                        foreach (var current in page.Items)
+                        {
+                            if (seenBefore.Contains(current.Id)) continue;
+                            seenBefore.Add(current.Id);
+                            xml.WriteStartElement("Deployment");
+                            xml.WriteElementString("Environment", GetName(current.EnvironmentId, environments));
+                            xml.WriteElementString("Project", GetName(current.ProjectId, projects));
+                            xml.WriteElementString("ProjectGroup", GetName(GetProjectGroupId(current.ProjectId, projectsByGroup), projectGroups));
+                            xml.WriteElementString("Created", current.Created.ToString("s"));
+                            xml.WriteElementString("Name", current.Name);
+                            xml.WriteElementString("Id", current.Id);
+                            xml.WriteEndElement();
+                        }
+
+                        commandOutputProvider.Information("Wrote {Count:n0} of {Total:n0} deployments...", seenBefore.Count, page.TotalResults);
+                        return true;
+                    })
+                    .ConfigureAwait(false);
                 xml.WriteEndElement();
                 xml.Flush();
             }
@@ -83,6 +82,7 @@ namespace Octopus.Cli.Commands.Deployment
                 string text;
                 result = projectsByGroup.TryGetValue(projectId, out text) ? text : null;
             }
+
             return result;
         }
 
@@ -98,6 +98,7 @@ namespace Octopus.Cli.Commands.Deployment
                 string text;
                 result = dictionary.TryGetValue(id, out text) ? text : null;
             }
+
             return result;
         }
     }

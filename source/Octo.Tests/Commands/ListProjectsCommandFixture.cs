@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Newtonsoft.Json;
@@ -23,11 +24,12 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldGetListOfProjects()
         {
-            Repository.Projects.FindAll().Returns(new List<ProjectResource>
-            {
-                new ProjectResource {Name = "ProjectA", Id = "projectaid"},
-                new ProjectResource {Name = "ProjectB", Id = "projectbid"}
-            });
+            Repository.Projects.FindAll()
+                .Returns(new List<ProjectResource>
+                {
+                    new ProjectResource { Name = "ProjectA", Id = "projectaid" },
+                    new ProjectResource { Name = "ProjectB", Id = "projectbid" }
+                });
 
             await listProjectsCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
@@ -40,11 +42,12 @@ namespace Octo.Tests.Commands
         public async Task JsonFormat_ShouldBeWellFormed()
         {
             CommandLineArgs.Add("--outputFormat=json");
-            Repository.Projects.FindAll().Returns(new List<ProjectResource>
-            {
-                new ProjectResource {Name = "ProjectA", Id = "projectaid"},
-                new ProjectResource {Name = "ProjectB", Id = "projectbid"}
-            });
+            Repository.Projects.FindAll()
+                .Returns(new List<ProjectResource>
+                {
+                    new ProjectResource { Name = "ProjectA", Id = "projectaid" },
+                    new ProjectResource { Name = "ProjectB", Id = "projectbid" }
+                });
 
             await listProjectsCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
@@ -52,7 +55,6 @@ namespace Octo.Tests.Commands
             JsonConvert.DeserializeObject(logoutput);
             logoutput.Should().Contain("projectaid");
             logoutput.Should().Contain("projectbid");
-
         }
     }
 }

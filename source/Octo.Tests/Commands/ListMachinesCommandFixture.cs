@@ -19,13 +19,13 @@ namespace Octo.Tests.Commands
     {
         const string MachineLogFormat = " - {0} {1} (ID: {2}) in {3}";
 
+        ListMachinesCommand listMachinesCommand;
+
         [SetUp]
         public void SetUp()
         {
             listMachinesCommand = new ListMachinesCommand(RepositoryFactory, FileSystem, ClientFactory, CommandOutputProvider);
         }
-
-        ListMachinesCommand listMachinesCommand;
 
         [Test]
         public async Task ShouldGetListOfMachinesWithEnvironmentAndStatusArgs()
@@ -33,42 +33,59 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("-environment=Development");
             CommandLineArgs.Add("-status=Offline");
 
-            Repository.Environments.FindAll().Returns(new List<EnvironmentResource>
-            {
-                new EnvironmentResource {Name = "Development", Id = "Environments-001"}
-            });
+            Repository.Environments.FindAll()
+                .Returns(new List<EnvironmentResource>
+                {
+                    new EnvironmentResource { Name = "Development", Id = "Environments-001" }
+                });
 
-            Repository.Machines.FindMany(Arg.Any<Func<MachineResource, bool>>()).Returns(new List<MachineResource>
-            {
-                new MachineResource
+            Repository.Machines.FindMany(Arg.Any<Func<MachineResource, bool>>())
+                .Returns(new List<MachineResource>
                 {
-                    Name = "PC01234",
-                    Id = "Machines-001",
-                    Status = MachineModelStatus.Online,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource
-                {
-                    Name = "PC01996",
-                    Id = "Machines-003",
-                    Status = MachineModelStatus.Offline,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource
-                {
-                    Name = "PC01466",
-                    Id = "Machines-002",
-                    Status = MachineModelStatus.Offline,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                }
-            });
+                    new MachineResource
+                    {
+                        Name = "PC01234",
+                        Id = "Machines-001",
+                        Status = MachineModelStatus.Online,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01996",
+                        Id = "Machines-003",
+                        Status = MachineModelStatus.Offline,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01466",
+                        Id = "Machines-002",
+                        Status = MachineModelStatus.Offline,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    }
+                });
 
             await listMachinesCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
             LogLines.Should().Contain("Machines: 2");
-            LogLines.Should().Contain(string.Format(MachineLogFormat, "PC01466", MachineModelStatus.Offline.ToString(), "Machines-002", "Development"));
-            LogLines.Should().Contain(string.Format(MachineLogFormat, "PC01996", MachineModelStatus.Offline.ToString(), "Machines-003", "Development"));
-            LogLines.Should().NotContain(string.Format(MachineLogFormat, "PC01234", MachineModelStatus.Online.ToString(), "Machines-001", "Development"));
+            LogLines.Should()
+            .Contain(string.Format(MachineLogFormat,
+                "PC01466",
+                MachineModelStatus.Offline.ToString(),
+                "Machines-002",
+                "Development"));
+            LogLines.Should()
+            .Contain(string.Format(MachineLogFormat,
+                "PC01996",
+                MachineModelStatus.Offline.ToString(),
+                "Machines-003",
+                "Development"));
+            LogLines.Should()
+            .NotContain(string.Format(MachineLogFormat,
+                "PC01234",
+                MachineModelStatus.Online.ToString(),
+                "Machines-001",
+                "Development"));
         }
 
         [Test]
@@ -76,60 +93,91 @@ namespace Octo.Tests.Commands
         {
             CommandLineArgs.Add("-environment=Development");
 
-            Repository.Environments.FindAll().Returns(new List<EnvironmentResource>
-            {
-                new EnvironmentResource {Name = "Development", Id = "Environments-001"}
-            });
-
-            Repository.Machines.FindMany(Arg.Any<Func<MachineResource, bool>>()).Returns(new List<MachineResource>
-            {
-                new MachineResource
+            Repository.Environments.FindAll()
+                .Returns(new List<EnvironmentResource>
                 {
-                    Name = "PC01234",
-                    Id = "Machines-001",
-                    Status = MachineModelStatus.Online,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                }
-            });
+                    new EnvironmentResource { Name = "Development", Id = "Environments-001" }
+                });
+
+            Repository.Machines.FindMany(Arg.Any<Func<MachineResource, bool>>())
+                .Returns(new List<MachineResource>
+                {
+                    new MachineResource
+                    {
+                        Name = "PC01234",
+                        Id = "Machines-001",
+                        Status = MachineModelStatus.Online,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    }
+                });
 
             await listMachinesCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
             LogLines.Should().Contain("Machines: 1");
-            LogLines.Should().Contain(string.Format(MachineLogFormat, "PC01234", MachineModelStatus.Online.ToString(), "Machines-001", "Development"));
-            LogLines.Should().NotContain(string.Format(MachineLogFormat, "PC01466", MachineModelStatus.Online.ToString(), "Machines-002", "Development"));
-            LogLines.Should().NotContain(string.Format(MachineLogFormat, "PC01996", MachineModelStatus.Offline.ToString(), "Machines-003", "Development"));
+            LogLines.Should()
+            .Contain(string.Format(MachineLogFormat,
+                "PC01234",
+                MachineModelStatus.Online.ToString(),
+                "Machines-001",
+                "Development"));
+            LogLines.Should()
+            .NotContain(string.Format(MachineLogFormat,
+                "PC01466",
+                MachineModelStatus.Online.ToString(),
+                "Machines-002",
+                "Development"));
+            LogLines.Should()
+            .NotContain(string.Format(MachineLogFormat,
+                "PC01996",
+                MachineModelStatus.Offline.ToString(),
+                "Machines-003",
+                "Development"));
         }
 
         [Test]
         public async Task ShouldGetListOfMachinesWithNoArgs()
         {
-            Repository.Environments.FindAll().Returns(new List<EnvironmentResource>
-            {
-                new EnvironmentResource {Name = "Development", Id = "Environments-001"}
-            });
+            Repository.Environments.FindAll()
+                .Returns(new List<EnvironmentResource>
+                {
+                    new EnvironmentResource { Name = "Development", Id = "Environments-001" }
+                });
 
-            Repository.Machines.FindAll().Returns(new List<MachineResource>
-            {
-                new MachineResource {
-                    Name = "PC01234",
-                    Id = "Machines-001",
-                    Status = MachineModelStatus.Online,
-                    HealthStatus = MachineModelHealthStatus.Healthy,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource {
-                    Name = "PC01466",
-                    Id = "Machines-002",
-                    Status = MachineModelStatus.Online,
-                    HealthStatus = MachineModelHealthStatus.Healthy,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                }
-            });
+            Repository.Machines.FindAll()
+                .Returns(new List<MachineResource>
+                {
+                    new MachineResource
+                    {
+                        Name = "PC01234",
+                        Id = "Machines-001",
+                        Status = MachineModelStatus.Online,
+                        HealthStatus = MachineModelHealthStatus.Healthy,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01466",
+                        Id = "Machines-002",
+                        Status = MachineModelStatus.Online,
+                        HealthStatus = MachineModelHealthStatus.Healthy,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    }
+                });
 
             await listMachinesCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
             LogLines.Should().Contain("Machines: 2");
-            LogLines.Should().Contain(string.Format(MachineLogFormat, "PC01234", MachineModelStatus.Online.ToString(), "Machines-001", "Development"));
-            LogLines.Should().Contain(string.Format(MachineLogFormat, "PC01466", MachineModelStatus.Online.ToString(), "Machines-002", "Development"));
+            LogLines.Should()
+            .Contain(string.Format(MachineLogFormat,
+                "PC01234",
+                MachineModelStatus.Online.ToString(),
+                "Machines-001",
+                "Development"));
+            LogLines.Should()
+            .Contain(string.Format(MachineLogFormat,
+                "PC01466",
+                MachineModelStatus.Online.ToString(),
+                "Machines-002",
+                "Development"));
         }
 
         [Test]
@@ -137,38 +185,59 @@ namespace Octo.Tests.Commands
         {
             CommandLineArgs.Add("-status=Offline");
 
-            Repository.Environments.FindAll().Returns(new List<EnvironmentResource>
-            {
-                new EnvironmentResource {Name = "Development", Id = "Environments-001"}
-            });
+            Repository.Environments.FindAll()
+                .Returns(new List<EnvironmentResource>
+                {
+                    new EnvironmentResource { Name = "Development", Id = "Environments-001" }
+                });
 
-            Repository.Machines.FindAll().Returns(new List<MachineResource>
-            {
-                new MachineResource {
-                    Name = "PC0123",
-                    Id = "Machines-001",
-                    Status = MachineModelStatus.Online,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource {
-                    Name = "PC01466",
-                    Id = "Machines-002",
-                    Status = MachineModelStatus.Online,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource {
-                    Name = "PC01996",
-                    Id = "Machines-003",
-                    Status = MachineModelStatus.Offline,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")}
-            });
+            Repository.Machines.FindAll()
+                .Returns(new List<MachineResource>
+                {
+                    new MachineResource
+                    {
+                        Name = "PC0123",
+                        Id = "Machines-001",
+                        Status = MachineModelStatus.Online,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01466",
+                        Id = "Machines-002",
+                        Status = MachineModelStatus.Online,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01996",
+                        Id = "Machines-003",
+                        Status = MachineModelStatus.Offline,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    }
+                });
 
             await listMachinesCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
             LogLines.Should().Contain("Machines: 1");
-            LogLines.Should().NotContain(string.Format(MachineLogFormat, "PC01234", MachineModelStatus.Online.ToString(), "Machines-001", "Development"));
-            LogLines.Should().NotContain(string.Format(MachineLogFormat, "PC01466", MachineModelStatus.Online.ToString(), "Machines-002", "Development"));
-            LogLines.Should().Contain(string.Format(MachineLogFormat, "PC01996", MachineModelStatus.Offline.ToString(), "Machines-003", "Development"));
+            LogLines.Should()
+            .NotContain(string.Format(MachineLogFormat,
+                "PC01234",
+                MachineModelStatus.Online.ToString(),
+                "Machines-001",
+                "Development"));
+            LogLines.Should()
+            .NotContain(string.Format(MachineLogFormat,
+                "PC01466",
+                MachineModelStatus.Online.ToString(),
+                "Machines-002",
+                "Development"));
+            LogLines.Should()
+            .Contain(string.Format(MachineLogFormat,
+                "PC01996",
+                MachineModelStatus.Offline.ToString(),
+                "Machines-003",
+                "Development"));
         }
 
         [Test]
@@ -176,39 +245,50 @@ namespace Octo.Tests.Commands
         {
             CommandLineArgs.Add("--health-status=HasWarnings");
             (await Repository.LoadRootDocument()).Version = "3.5.0";
-            Repository.Environments.FindAll().Returns(new List<EnvironmentResource>
-            {
-                new EnvironmentResource {Name = "Development", Id = "Environments-001"}
-            });
+            Repository.Environments.FindAll()
+                .Returns(new List<EnvironmentResource>
+                {
+                    new EnvironmentResource { Name = "Development", Id = "Environments-001" }
+                });
 
-            Repository.Machines.FindAll().Returns(new List<MachineResource>
-            {
-                new MachineResource {
-                    Name = "PC0123",
-                    Id = "Machines-001",
-                    Status = MachineModelStatus.Online,
-                    HealthStatus = MachineModelHealthStatus.Unavailable,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource {
-                    Name = "PC01466",
-                    Id = "Machines-002",
-                    Status = MachineModelStatus.Online,
-                    HealthStatus = MachineModelHealthStatus.HasWarnings,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource {
-                    Name = "PC01996",
-                    Id = "Machines-003",
-                    Status = MachineModelStatus.Offline,
-                    HealthStatus = MachineModelHealthStatus.Healthy,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")}
-            });
+            Repository.Machines.FindAll()
+                .Returns(new List<MachineResource>
+                {
+                    new MachineResource
+                    {
+                        Name = "PC0123",
+                        Id = "Machines-001",
+                        Status = MachineModelStatus.Online,
+                        HealthStatus = MachineModelHealthStatus.Unavailable,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01466",
+                        Id = "Machines-002",
+                        Status = MachineModelStatus.Online,
+                        HealthStatus = MachineModelHealthStatus.HasWarnings,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01996",
+                        Id = "Machines-003",
+                        Status = MachineModelStatus.Offline,
+                        HealthStatus = MachineModelHealthStatus.Healthy,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    }
+                });
 
             await listMachinesCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
             LogLines.Should().Contain("Machines: 1");
-            LogLines.Should().Contain(string.Format(MachineLogFormat, "PC01466", MachineModelHealthStatus.HasWarnings.ToString(), "Machines-002", "Development"));
+            LogLines.Should()
+            .Contain(string.Format(MachineLogFormat,
+                "PC01466",
+                MachineModelHealthStatus.HasWarnings.ToString(),
+                "Machines-002",
+                "Development"));
         }
 
         [Test]
@@ -216,34 +296,40 @@ namespace Octo.Tests.Commands
         {
             CommandLineArgs.Add("--status=Online");
             (await Repository.LoadRootDocument()).Version = "3.4.0";
-            Repository.Environments.FindAll().Returns(new List<EnvironmentResource>
-            {
-                new EnvironmentResource {Name = "Development", Id = "Environments-001"}
-            });
+            Repository.Environments.FindAll()
+                .Returns(new List<EnvironmentResource>
+                {
+                    new EnvironmentResource { Name = "Development", Id = "Environments-001" }
+                });
 
-            Repository.Machines.FindAll().Returns(new List<MachineResource>
-            {
-                new MachineResource {
-                    Name = "PC0123",
-                    Id = "Machines-001",
-                    Status = MachineModelStatus.Online,
-                    HealthStatus = MachineModelHealthStatus.Unavailable,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource {
-                    Name = "PC01466",
-                    Id = "Machines-002",
-                    Status = MachineModelStatus.Online,
-                    HealthStatus = MachineModelHealthStatus.HasWarnings,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource {
-                    Name = "PC01996",
-                    Id = "Machines-003",
-                    Status = MachineModelStatus.Offline,
-                    HealthStatus = MachineModelHealthStatus.Healthy,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")}
-            });
+            Repository.Machines.FindAll()
+                .Returns(new List<MachineResource>
+                {
+                    new MachineResource
+                    {
+                        Name = "PC0123",
+                        Id = "Machines-001",
+                        Status = MachineModelStatus.Online,
+                        HealthStatus = MachineModelHealthStatus.Unavailable,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01466",
+                        Id = "Machines-002",
+                        Status = MachineModelStatus.Online,
+                        HealthStatus = MachineModelHealthStatus.HasWarnings,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01996",
+                        Id = "Machines-003",
+                        Status = MachineModelStatus.Offline,
+                        HealthStatus = MachineModelHealthStatus.Healthy,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    }
+                });
 
             await listMachinesCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
@@ -259,57 +345,70 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--tentacle-outdated=true");
             CommandLineArgs.Add("--disabled=true");
             (await Repository.LoadRootDocument()).Version = "3.4.0";
-            Repository.Environments.FindAll().Returns(new List<EnvironmentResource>
-            {
-                new EnvironmentResource {Name = "Development", Id = "Environments-001"}
-            });
+            Repository.Environments.FindAll()
+                .Returns(new List<EnvironmentResource>
+                {
+                    new EnvironmentResource { Name = "Development", Id = "Environments-001" }
+                });
 
-            Repository.Machines.FindAll().Returns(new List<MachineResource>
-            {
-                new MachineResource {
-                    Name = "PC0123",
-                    Id = "Machines-001",
-                    HealthStatus = MachineModelHealthStatus.Unavailable,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource {
-                    Name = "PC01466",
-                    Id = "Machines-002",
-                    HealthStatus = MachineModelHealthStatus.Healthy,
-                    IsDisabled = true,
-                    HasLatestCalamari = true,
-                    Endpoint = new ListeningTentacleEndpointResource() {TentacleVersionDetails = new TentacleDetailsResource { UpgradeSuggested = true } },
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource {
-                    Name = "PC01467",
-                    Id = "Machines-003",
-                    HealthStatus = MachineModelHealthStatus.Healthy,
-                    IsDisabled = true,
-                    HasLatestCalamari = true,
-                    Endpoint = new ListeningTentacleEndpointResource() {TentacleVersionDetails = new TentacleDetailsResource { UpgradeSuggested = false } },
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource {
-                    Name = "PC01468",
-                    Id = "Machines-004",
-                    HealthStatus = MachineModelHealthStatus.Healthy,
-                    IsDisabled = true,
-                    EnvironmentIds = new ReferenceCollection("Environments-001"),
-                    HasLatestCalamari = false
-                },
-                new MachineResource {
-                    Name = "PC01999",
-                    Id = "Machines-005",
-                    HealthStatus = MachineModelHealthStatus.Healthy,
-                    IsDisabled = false,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")}
-            });
+            Repository.Machines.FindAll()
+                .Returns(new List<MachineResource>
+                {
+                    new MachineResource
+                    {
+                        Name = "PC0123",
+                        Id = "Machines-001",
+                        HealthStatus = MachineModelHealthStatus.Unavailable,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01466",
+                        Id = "Machines-002",
+                        HealthStatus = MachineModelHealthStatus.Healthy,
+                        IsDisabled = true,
+                        HasLatestCalamari = true,
+                        Endpoint = new ListeningTentacleEndpointResource { TentacleVersionDetails = new TentacleDetailsResource { UpgradeSuggested = true } },
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01467",
+                        Id = "Machines-003",
+                        HealthStatus = MachineModelHealthStatus.Healthy,
+                        IsDisabled = true,
+                        HasLatestCalamari = true,
+                        Endpoint = new ListeningTentacleEndpointResource { TentacleVersionDetails = new TentacleDetailsResource { UpgradeSuggested = false } },
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01468",
+                        Id = "Machines-004",
+                        HealthStatus = MachineModelHealthStatus.Healthy,
+                        IsDisabled = true,
+                        EnvironmentIds = new ReferenceCollection("Environments-001"),
+                        HasLatestCalamari = false
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01999",
+                        Id = "Machines-005",
+                        HealthStatus = MachineModelHealthStatus.Healthy,
+                        IsDisabled = false,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    }
+                });
 
             await listMachinesCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
             LogLines.Should().Contain("Machines: 1");
-            LogLines.Should().Contain(string.Format(MachineLogFormat, "PC01466", "Healthy - Disabled", "Machines-002", "Development"));
+            LogLines.Should()
+            .Contain(string.Format(MachineLogFormat,
+                "PC01466",
+                "Healthy - Disabled",
+                "Machines-002",
+                "Development"));
         }
 
         [Test]
@@ -328,38 +427,53 @@ namespace Octo.Tests.Commands
         {
             CommandLineArgs.Add("-status=Online");
 
-            Repository.Environments.FindAll().Returns(new List<EnvironmentResource>
-            {
-                new EnvironmentResource {Name = "Development", Id = "Environments-001"}
-            });
+            Repository.Environments.FindAll()
+                .Returns(new List<EnvironmentResource>
+                {
+                    new EnvironmentResource { Name = "Development", Id = "Environments-001" }
+                });
 
-            Repository.Machines.FindAll().Returns(new List<MachineResource>
-            {
-                new MachineResource {
-                    Name = "PC01234",
-                    Id = "Machines-001",
-                    Status = MachineModelStatus.Online,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource {
-                    Name = "PC01466",
-                    Id = "Machines-002",
-                    Status = MachineModelStatus.Online,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource {
-                    Name = "PC01996",
-                    Id = "Machines-003",
-                    Status = MachineModelStatus.Offline,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                }
-            });
+            Repository.Machines.FindAll()
+                .Returns(new List<MachineResource>
+                {
+                    new MachineResource
+                    {
+                        Name = "PC01234",
+                        Id = "Machines-001",
+                        Status = MachineModelStatus.Online,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01466",
+                        Id = "Machines-002",
+                        Status = MachineModelStatus.Online,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01996",
+                        Id = "Machines-003",
+                        Status = MachineModelStatus.Offline,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    }
+                });
 
             await listMachinesCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
             LogLines.Should().Contain("Machines: 2");
-            LogLines.Should().Contain(string.Format(MachineLogFormat, "PC01234", MachineModelStatus.Online.ToString(), "Machines-001", "Development"));
-            LogLines.Should().Contain(string.Format(MachineLogFormat, "PC01466", MachineModelStatus.Online.ToString(), "Machines-002", "Development"));
+            LogLines.Should()
+            .Contain(string.Format(MachineLogFormat,
+                "PC01234",
+                MachineModelStatus.Online.ToString(),
+                "Machines-001",
+                "Development"));
+            LogLines.Should()
+            .Contain(string.Format(MachineLogFormat,
+                "PC01466",
+                MachineModelStatus.Online.ToString(),
+                "Machines-002",
+                "Development"));
         }
 
         [Test]
@@ -368,32 +482,37 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--outputFormat=json");
             CommandLineArgs.Add("-status=Online");
 
-            Repository.Environments.FindAll().Returns(new List<EnvironmentResource>
-            {
-                new EnvironmentResource {Name = "Development", Id = "Environments-001"}
-            });
+            Repository.Environments.FindAll()
+                .Returns(new List<EnvironmentResource>
+                {
+                    new EnvironmentResource { Name = "Development", Id = "Environments-001" }
+                });
 
-            Repository.Machines.FindAll().Returns(new List<MachineResource>
-            {
-                new MachineResource {
-                    Name = "PC01234",
-                    Id = "Machines-001",
-                    Status = MachineModelStatus.Online,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource {
-                    Name = "PC01466",
-                    Id = "Machines-002",
-                    Status = MachineModelStatus.Online,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                },
-                new MachineResource {
-                    Name = "PC01996",
-                    Id = "Machines-003",
-                    Status = MachineModelStatus.Offline,
-                    EnvironmentIds = new ReferenceCollection("Environments-001")
-                }
-            });
+            Repository.Machines.FindAll()
+                .Returns(new List<MachineResource>
+                {
+                    new MachineResource
+                    {
+                        Name = "PC01234",
+                        Id = "Machines-001",
+                        Status = MachineModelStatus.Online,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01466",
+                        Id = "Machines-002",
+                        Status = MachineModelStatus.Online,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    },
+                    new MachineResource
+                    {
+                        Name = "PC01996",
+                        Id = "Machines-003",
+                        Status = MachineModelStatus.Offline,
+                        EnvironmentIds = new ReferenceCollection("Environments-001")
+                    }
+                });
 
             await listMachinesCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 

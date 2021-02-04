@@ -15,6 +15,8 @@ namespace Octo.Tests.Commands
     [TestFixture]
     public class CleanWorkerPoolCommandFixture : ApiCommandFixtureBase
     {
+        CleanWorkerPoolCommand cleanPoolCommand;
+
         [SetUp]
         public async Task SetUp()
         {
@@ -22,17 +24,16 @@ namespace Octo.Tests.Commands
             (await Repository.LoadRootDocument()).Version = "2018.6.0";
         }
 
-        CleanWorkerPoolCommand cleanPoolCommand;
-
         [Test]
         public void ShouldCleanPool()
         {
             CommandLineArgs.Add("-workerpool=SomePool");
             CommandLineArgs.Add("-health-status=Unhealthy");
 
-            Repository.WorkerPools.FindByName("SomePool").Returns(
-                new WorkerPoolResource {Name = "SomePool", Id = "WorkerPools-001"}
-            );
+            Repository.WorkerPools.FindByName("SomePool")
+                .Returns(
+                    new WorkerPoolResource { Name = "SomePool", Id = "WorkerPools-001" }
+                );
 
             var workerList = MakeWorkerList(2,
                 new List<ReferenceCollection>
@@ -60,9 +61,10 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("-workerpool=SomePool");
             CommandLineArgs.Add("-health-status=Unhealthy");
 
-            Repository.WorkerPools.FindByName("SomePool").Returns(
-                new WorkerPoolResource { Name = "SomePool", Id = "WorkerPools-001"}
-            );
+            Repository.WorkerPools.FindByName("SomePool")
+                .Returns(
+                    new WorkerPoolResource { Name = "SomePool", Id = "WorkerPools-001" }
+                );
 
             var workerList = MakeWorkerList(2,
                 new List<ReferenceCollection>
@@ -114,15 +116,15 @@ namespace Octo.Tests.Commands
                 .WithMessage("Could not find the specified worker pool; either it does not exist or you lack permissions to view it.");
         }
 
-
         [Test]
         public async Task JsonOutput_ShouldBeWellFormed()
         {
-            Repository.WorkerPools.FindByName("SomePool").Returns(
-                new WorkerPoolResource { Name = "SomePool", Id = "WorkerPools-001" });
+            Repository.WorkerPools.FindByName("SomePool")
+                .Returns(
+                    new WorkerPoolResource { Name = "SomePool", Id = "WorkerPools-001" });
 
             CommandLineArgs.Add("--outputFormat=json");
-            CommandLineArgs.Add($"--workerpool=SomePool");
+            CommandLineArgs.Add("--workerpool=SomePool");
             CommandLineArgs.Add("-health-status=Unhealthy");
 
             var workerList = MakeWorkerList(2,
@@ -130,30 +132,31 @@ namespace Octo.Tests.Commands
                 {
                     new ReferenceCollection(new List<string> { "WorkerPools-001", "WorkerPools-002" }),
                     new ReferenceCollection("WorkerPools-001")
-                });    
+                });
 
             Repository.Workers.FindMany(Arg.Any<Func<WorkerResource, bool>>()).Returns(workerList);
 
             await cleanPoolCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
-            string logoutput = LogOutput.ToString();
+            var logoutput = LogOutput.ToString();
             Console.WriteLine(logoutput);
             JsonConvert.DeserializeObject(logoutput);
-            Regex.Matches(logoutput, CleanWorkerPoolCommand.MachineAction.Deleted.ToString()).Count.Should()
+            Regex.Matches(logoutput, CleanWorkerPoolCommand.MachineAction.Deleted.ToString())
+                .Count.Should()
                 .Be(1, "should only have one deleted machine");
-            Regex.Matches(logoutput, CleanWorkerPoolCommand.MachineAction.RemovedFromPool.ToString()).Count.Should()
+            Regex.Matches(logoutput, CleanWorkerPoolCommand.MachineAction.RemovedFromPool.ToString())
+                .Count.Should()
                 .Be(1, "should only have one machine removed from the environment");
             logoutput.Should().Contain(workerList[0].Name);
             logoutput.Should().Contain(workerList[0].Id);
             logoutput.Should().Contain(workerList[1].Name);
             logoutput.Should().Contain(workerList[1].Id);
         }
-     
 
-        private List<WorkerResource> MakeWorkerList(int numWorkers, List<ReferenceCollection> pools)
+        List<WorkerResource> MakeWorkerList(int numWorkers, List<ReferenceCollection> pools)
         {
             var result = new List<WorkerResource>();
-            for (int i = 0; i < numWorkers; i++)
+            for (var i = 0; i < numWorkers; i++)
             {
                 result.Add(
                     new WorkerResource

@@ -15,12 +15,12 @@ namespace Octo.Tests.Commands
     public class CompleteCommandFixture
     {
         CompleteCommand completeCommand;
-        private ICommandOutputProvider commandOutputProvider;
-        private ILogger logger;
+        ICommandOutputProvider commandOutputProvider;
+        ILogger logger;
 
-        private TextWriter originalOutput;
-        private StringWriter output;
-        private ICommandLocator commandLocator;
+        TextWriter originalOutput;
+        StringWriter output;
+        ICommandLocator commandLocator;
 
         [SetUp]
         public void SetUp()
@@ -32,11 +32,12 @@ namespace Octo.Tests.Commands
             commandLocator = Substitute.For<ICommandLocator>();
             logger = new LoggerConfiguration().WriteTo.TextWriter(output).CreateLogger();
             commandOutputProvider = new CommandOutputProvider(logger);
-            commandLocator.List().Returns(new ICommandMetadata[]
-            {
-                new CommandAttribute("test"),
-                new CommandAttribute("help")
-            });
+            commandLocator.List()
+                .Returns(new ICommandMetadata[]
+                {
+                    new CommandAttribute("test"),
+                    new CommandAttribute("help")
+                });
             commandLocator.Find("help").Returns(new HelpCommand(commandLocator, commandOutputProvider));
             commandLocator.Find("test").Returns(new TestCommand(commandOutputProvider));
             completeCommand = new CompleteCommand(commandLocator, commandOutputProvider);
@@ -45,7 +46,7 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldReturnSubCommandSuggestions()
         {
-            await completeCommand.Execute(new[] {"he"});
+            await completeCommand.Execute(new[] { "he" });
 
             output.ToString()
                 .Should()
@@ -56,7 +57,7 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldReturnParameterSuggestions()
         {
-            await completeCommand.Execute(new[] {"test", "--ap"});
+            await completeCommand.Execute(new[] { "test", "--ap" });
             output.ToString()
                 .Should()
                 .Contain("--apiKey");
@@ -65,7 +66,7 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldReturnCommonOptionsWhenSingleEmptyParameter()
         {
-            await completeCommand.Execute(new[] {"--"});
+            await completeCommand.Execute(new[] { "--" });
             output.ToString()
                 .Should()
                 .Contain("--helpOutputFormat");
@@ -74,7 +75,7 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldReturnOptionSuggestions()
         {
-            await completeCommand.Execute(new[] {"--helpOut"});
+            await completeCommand.Execute(new[] { "--helpOut" });
             output.ToString()
                 .Should()
                 .Contain("--helpOutputFormat")
@@ -84,7 +85,7 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldReturnAllSubCommandsWhenEmptyArguments()
         {
-            await completeCommand.Execute(new[] {""});
+            await completeCommand.Execute(new[] { "" });
             output.ToString()
                 .Should()
                 .Contain("help")
@@ -94,7 +95,7 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldStopSubCommandCompletionAfterOptionSuggestion()
         {
-            await completeCommand.Execute(new[] {"test", "--api", "API-KEY", "--u"});
+            await completeCommand.Execute(new[] { "test", "--api", "API-KEY", "--u" });
             output.ToString()
                 .Should()
                 .Contain("--url");
@@ -131,6 +132,7 @@ namespace Octo.Tests.Commands
         public string Url { get; set; }
 
         public string ApiKey { get; set; }
+
         public override Task Execute(string[] commandLineArguments)
         {
             return Task.Run(() => 0);

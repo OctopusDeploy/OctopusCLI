@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using NSubstitute;
-using NUnit.Framework;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Newtonsoft.Json;
+using NSubstitute;
+using NUnit.Framework;
 using Octopus.Cli.Commands.Tenant;
 using Octopus.Cli.Infrastructure;
 using Octopus.Client.Model;
@@ -14,17 +13,18 @@ namespace Octo.Tests.Commands
 {
     public class ListTenantsFixtures : ApiCommandFixtureBase
     {
-        private ListTenantsCommand listTenantsCommand;
+        ListTenantsCommand listTenantsCommand;
 
         [SetUp]
         public void Setup()
         {
             listTenantsCommand = new ListTenantsCommand(RepositoryFactory, FileSystem, ClientFactory, CommandOutputProvider);
-            Repository.Tenants.FindAll().Returns(Task.FromResult(new List<TenantResource>
-            {
-                new TenantResource {Name = "Tenant1", Id = "Tenant-1"},
-                new TenantResource {Name = "Tenant2", Id = "Tenant-2"},
-            }));
+            Repository.Tenants.FindAll()
+                .Returns(Task.FromResult(new List<TenantResource>
+                {
+                    new TenantResource { Name = "Tenant1", Id = "Tenant-1" },
+                    new TenantResource { Name = "Tenant2", Id = "Tenant-2" }
+                }));
 
             Repository.Tenants.Status()
                 .ReturnsForAnyArgs(new MultiTenancyStatusResource { Enabled = true });
@@ -40,7 +40,6 @@ namespace Octo.Tests.Commands
             {
                 await listTenantsCommand.Execute(CommandLineArgs.ToArray());
                 Assert.Fail("Should have thrown CommandException");
-
             }
             catch (CommandException commandException)
             {

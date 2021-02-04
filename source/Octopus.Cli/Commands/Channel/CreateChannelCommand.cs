@@ -6,14 +6,25 @@ using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
-using Serilog;
 
 namespace Octopus.Cli.Commands.Channel
 {
     [Command("create-channel", Description = "Creates a channel for a project.")]
     public class CreateChannelCommand : ApiCommand, ISupportFormattedOutput
     {
-        public CreateChannelCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider) 
+        string channelName;
+        string projectName;
+        string lifecycleName;
+        string channelDescription;
+        bool updateExisting;
+        bool? makeDefaultChannel;
+        bool createdNewChannel;
+        bool channelUpdateRequired;
+        ProjectResource project;
+        LifecycleResource lifecycle;
+        ChannelResource channel;
+
+        public CreateChannelCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Create");
@@ -25,18 +36,6 @@ namespace Octopus.Cli.Commands.Channel
             options.Add<bool>("update-existing", "[Optional, Flag] if specified, updates the matching channel if it already exists, otherwise this command will fail if a matching channel already exists.", _ => updateExisting = true);
         }
 
-        string channelName;
-        string projectName;
-        string lifecycleName;
-        string channelDescription;
-        bool updateExisting;
-        bool? makeDefaultChannel;
-        private bool createdNewChannel = false;
-        bool channelUpdateRequired;
-        ProjectResource project;
-        LifecycleResource lifecycle;
-        ChannelResource channel;
-
         public async Task Request()
         {
             if (!await Repository.SupportsChannels().ConfigureAwait(false)) throw new CommandException("Your Octopus Server does not support channels, which was introduced in Octopus 3.2. Please upgrade your Octopus Server to start using channels.");
@@ -44,7 +43,7 @@ namespace Octopus.Cli.Commands.Channel
             if (string.IsNullOrWhiteSpace(channelName)) throw new CommandException("Please specify a channel name using the parameter: --channel=ChannelXYZ");
 
             commandOutputProvider.Debug("Loading project {Project:l}...", projectName);
-            
+
             project = await Repository.Projects.FindByName(projectName).ConfigureAwait(false);
             if (project == null) throw new CouldNotFindException("project named", projectName);
 
@@ -61,9 +60,10 @@ namespace Octopus.Cli.Commands.Channel
             }
 
             var channels = await Repository.Projects.GetChannels(project).ConfigureAwait(false);
-            
+
             channel = await channels
-                .FindOne(Repository, ch => string.Equals(ch.Name, channelName, StringComparison.OrdinalIgnoreCase)).ConfigureAwait(false);
+                .FindOne(Repository, ch => string.Equals(ch.Name, channelName, StringComparison.OrdinalIgnoreCase))
+                .ConfigureAwait(false);
 
             if (channel == null)
             {
@@ -75,7 +75,7 @@ namespace Octopus.Cli.Commands.Channel
                     IsDefault = makeDefaultChannel ?? false,
                     Description = channelDescription ?? string.Empty,
                     LifecycleId = lifecycle?.Id, // Allow for the default lifeycle by propagating null
-                    Rules = new List<ChannelVersionRuleResource>(),
+                    Rules = new List<ChannelVersionRuleResource>()
                 };
 
                 commandOutputProvider.Debug("Creating channel {Channel:l}", channelName);
@@ -85,11 +85,11 @@ namespace Octopus.Cli.Commands.Channel
             }
 
             if (!updateExisting) throw new CommandException("This channel already exists. If you would like to update it, please use the parameter: --update-existing");
-            
+
             channelUpdateRequired = false;
             if (channel.LifecycleId != lifecycle?.Id)
             {
-                if(lifecycle == null)
+                if (lifecycle == null)
                     commandOutputProvider.Information("Updating this channel to inherit the project lifecycle for promoting releases");
                 else
                     commandOutputProvider.Information("Updating this channel to use lifecycle {Lifecycle:l} for promoting releases", lifecycle.Name);
@@ -123,15 +123,13 @@ namespace Octopus.Cli.Commands.Channel
             commandOutputProvider.Information("Channel {Channel:l} updated", channelName);
         }
 
-       
         public void PrintDefaultOutput()
         {
-            return;
         }
 
         public void PrintJsonOutput()
         {
-            string action = createdNewChannel ? "Created" : channelUpdateRequired ? "Updated" : "None";
+            var action = createdNewChannel ? "Created" : channelUpdateRequired ? "Updated" : "None";
             commandOutputProvider.Json(new
             {
                 Action = action,

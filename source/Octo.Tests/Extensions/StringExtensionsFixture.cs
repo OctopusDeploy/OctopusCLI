@@ -13,7 +13,7 @@ namespace Octo.Tests.Extensions
         [TestCaseSource(nameof(GetTestCases))]
         public void ShouldNormalizeLineEndings(string input, string windowsResult, string nixResult, string platformAgnosticResult)
         {
-            input.NormalizeNewLinesForWindows().Should().Be(windowsResult, $"windows requires carriage return, line feed.");
+            input.NormalizeNewLinesForWindows().Should().Be(windowsResult, "windows requires carriage return, line feed.");
             input.NormalizeNewLinesForNix().Should().Be(nixResult, "*nix requires line feed.");
             input.NormalizeNewLines().Should().Be(platformAgnosticResult, "should use the environments preference.");
         }

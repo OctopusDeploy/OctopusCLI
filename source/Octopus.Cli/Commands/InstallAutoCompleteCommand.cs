@@ -16,17 +16,17 @@ namespace Octopus.Cli.Commands
         Bash,
         Powershell
     }
-    
-    [Command(name: "install-autocomplete", Description = "Install a shell auto-complete script into your shell profile, if they aren't already there. Supports pwsh, zsh, bash & powershell.")]
+
+    [Command("install-autocomplete", Description = "Install a shell auto-complete script into your shell profile, if they aren't already there. Supports pwsh, zsh, bash & powershell.")]
     public class InstallAutoCompleteCommand : CommandBase
     {
-        private readonly IEnumerable<ShellCompletionInstaller> installers;
+        readonly IEnumerable<ShellCompletionInstaller> installers;
 
-        private readonly string supportedShells = 
+        readonly string supportedShells =
             Enum.GetNames(typeof(SupportedShell))
-                .Except(new [] {SupportedShell.Unspecified.ToString()})
+                .Except(new[] { SupportedShell.Unspecified.ToString() })
                 .ReadableJoin();
-        
+
         public InstallAutoCompleteCommand(ICommandOutputProvider commandOutputProvider, IEnumerable<ShellCompletionInstaller> installers) : base(commandOutputProvider)
         {
             this.installers = installers;
@@ -52,7 +52,7 @@ namespace Octopus.Cli.Commands
                 GetHelp(Console.Out, commandLineArguments);
                 return Task.FromResult(0);
             }
-            
+
             var invalidShellSelectionMessage = $"Please specify the type of shell to install auto-completion for: --shell=XYZ. Valid values are {supportedShells}.";
             if (ShellSelection == SupportedShell.Unspecified) throw new CommandException(invalidShellSelectionMessage);
 
@@ -81,31 +81,28 @@ namespace Octopus.Cli.Commands
             });
         }
 
-        private void InstallForBash()
+        void InstallForBash()
         {
             var installer = installers.Single(i => i.GetType() == typeof(BashCompletionInstaller));
             installer.Install(DryRun);
         }
 
-        private void InstallForZsh()
+        void InstallForZsh()
         {
             var installer = installers.Single(i => i.GetType() == typeof(ZshCompletionInstaller));
             installer.Install(DryRun);
         }
 
-        private void InstallForPwsh()
+        void InstallForPwsh()
         {
             var installer = installers.Single(i => i.GetType() == typeof(PwshCompletionInstaller));
             installer.Install(DryRun);
         }
 
-        private void InstallForPowershell()
+        void InstallForPowershell()
         {
-            
             var installer = installers.Single(i => i.GetType() == typeof(PowershellCompletionInstaller));
             installer.Install(DryRun);
-            
-            
         }
     }
 }

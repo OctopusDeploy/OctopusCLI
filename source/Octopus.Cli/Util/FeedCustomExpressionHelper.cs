@@ -12,10 +12,10 @@ namespace Octopus.Cli.Util
 
         public static FeedResource CustomExpressionFeedWithId(string id)
         {
-            var feed = new NuGetFeedResource()
+            var feed = new NuGetFeedResource
             {
                 Id = id,
-                Name = FeedCustomExpressionHelper.CustomExpressionFeedName
+                Name = CustomExpressionFeedName
             };
             return feed;
         }
@@ -25,7 +25,7 @@ namespace Octopus.Cli.Util
         /// 
         /// Feeds may have custom expressions as their Id, which may contain Octostache variable syntax #{MyCustomFeedURL}.
         /// If you pass a custom expression Id like this to the API, it will resolve to /api/feeds/, return all the feeds, then
-        /// attempt to cast that response to a FeedResource object and you'll end up getting an empty FeedResource object instead 
+        /// attempt to cast that response to a FeedResource object and you'll end up getting an empty FeedResource object instead
         /// of null. This method helps you detect valid repository feed objects before running into this confusing API scenario.
         /// </summary>
         /// <param name="id"></param>

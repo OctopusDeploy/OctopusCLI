@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Newtonsoft.Json;
@@ -10,7 +11,7 @@ using Octopus.Client.Model;
 namespace Octo.Tests.Commands
 {
     [TestFixture]
-    public class ListWorkerPoolsCommandFixture: ApiCommandFixtureBase
+    public class ListWorkerPoolsCommandFixture : ApiCommandFixtureBase
     {
         ListWorkerPoolsCommand listWorkerPoolsCommand;
 
@@ -36,7 +37,7 @@ namespace Octo.Tests.Commands
         public async Task JsonFormat_ShouldBeWellFormed()
         {
             SetupPools();
-            
+
             CommandLineArgs.Add("--outputFormat=json");
             await listWorkerPoolsCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
@@ -46,14 +47,14 @@ namespace Octo.Tests.Commands
             logoutput.Should().Contain("windowsid");
         }
 
-        private void SetupPools()
+        void SetupPools()
         {
-            Repository.WorkerPools.FindAll().Returns(new List<WorkerPoolResource>
-            {
-                new WorkerPoolResource() {Name = "default", Id = "defaultid"},
-                new WorkerPoolResource() {Name = "windows", Id = "windowsid"}
-            });
+            Repository.WorkerPools.FindAll()
+                .Returns(new List<WorkerPoolResource>
+                {
+                    new WorkerPoolResource { Name = "default", Id = "defaultid" },
+                    new WorkerPoolResource { Name = "windows", Id = "windowsid" }
+                });
         }
-
     }
 }

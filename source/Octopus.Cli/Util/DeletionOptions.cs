@@ -9,12 +9,12 @@ namespace Octopus.Cli.Util
             SleepBetweenAttemptsMilliseconds = 100;
         }
 
-        public static DeletionOptions TryThreeTimes => new DeletionOptions {RetryAttempts = 3, ThrowOnFailure = true};
+        public static DeletionOptions TryThreeTimes => new DeletionOptions { RetryAttempts = 3, ThrowOnFailure = true };
 
-        public static DeletionOptions TryThreeTimesIgnoreFailure => new DeletionOptions {RetryAttempts = 3, ThrowOnFailure = false};
+        public static DeletionOptions TryThreeTimesIgnoreFailure => new DeletionOptions { RetryAttempts = 3, ThrowOnFailure = false };
 
         public int RetryAttempts { get; private set; }
-        public int SleepBetweenAttemptsMilliseconds { get; private set; }
+        public int SleepBetweenAttemptsMilliseconds { get; }
         public bool ThrowOnFailure { get; private set; }
 
         public bool Equals(DeletionOptions other)
@@ -37,8 +37,8 @@ namespace Octopus.Cli.Util
             unchecked
             {
                 var hashCode = RetryAttempts;
-                hashCode = (hashCode*397) ^ SleepBetweenAttemptsMilliseconds;
-                hashCode = (hashCode*397) ^ ThrowOnFailure.GetHashCode();
+                hashCode = (hashCode * 397) ^ SleepBetweenAttemptsMilliseconds;
+                hashCode = (hashCode * 397) ^ ThrowOnFailure.GetHashCode();
                 return hashCode;
             }
         }

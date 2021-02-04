@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Octopus.Cli.Importers;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
@@ -13,7 +14,12 @@ namespace Octopus.Cli.Commands
     {
         readonly IImporterLocator importerLocator;
 
-        public ImportCommand(IImporterLocator importerLocator, IOctopusFileSystem fileSystem, IOctopusAsyncRepositoryFactory repositoryFactory, ILogger log, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
+        public ImportCommand(IImporterLocator importerLocator,
+            IOctopusFileSystem fileSystem,
+            IOctopusAsyncRepositoryFactory repositoryFactory,
+            ILogger log,
+            IOctopusClientFactory clientFactory,
+            ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             this.importerLocator = importerLocator;

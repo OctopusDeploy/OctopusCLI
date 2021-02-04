@@ -11,13 +11,15 @@ namespace Octo.Tests.Commands
 {
     public class CreateProjectCommandFixture : ApiCommandFixtureBase
     {
-        private CreateProjectCommand createProjectCommand;
-        private string projectName, groupName, lifecycleName, projectId;
+        CreateProjectCommand createProjectCommand;
+        string projectName, groupName, lifecycleName, projectId;
 
         [SetUp]
         public void Setup()
         {
-            createProjectCommand = new CreateProjectCommand(RepositoryFactory, FileSystem, ClientFactory,
+            createProjectCommand = new CreateProjectCommand(RepositoryFactory,
+                FileSystem,
+                ClientFactory,
                 CommandOutputProvider);
 
             projectName = Guid.NewGuid().ToString();
@@ -62,22 +64,24 @@ namespace Octo.Tests.Commands
 
             await createProjectCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
-            string logoutput = LogOutput.ToString();
+            var logoutput = LogOutput.ToString();
             JsonConvert.DeserializeObject(logoutput);
             logoutput.Should().Contain(projectId);
             logoutput.Should().Contain(projectName);
             logoutput.Should().Contain(groupName);
             logoutput
-                .Replace(Environment.NewLine, String.Empty)
+                .Replace(Environment.NewLine, string.Empty)
                 .Replace(" ", string.Empty)
-                .Replace("\"", string.Empty).Should().Contain("NewGroupCreated:true");
+                .Replace("\"", string.Empty)
+                .Should()
+                .Contain("NewGroupCreated:true");
         }
 
         [Test]
         public async Task JsonOutput_ShouldCreateNewProject()
         {
             CommandLineArgs.Add("--outputFormat=json");
-            Repository.ProjectGroups.FindByName(Arg.Any<string>()).Returns(new ProjectGroupResource {Name = groupName});
+            Repository.ProjectGroups.FindByName(Arg.Any<string>()).Returns(new ProjectGroupResource { Name = groupName });
             Repository.Lifecycles.FindOne(Arg.Any<Func<LifecycleResource, bool>>())
                 .Returns(new LifecycleResource { Id = Guid.NewGuid().ToString(), Name = lifecycleName });
             Repository.Projects.Create(Arg.Any<ProjectResource>())
@@ -85,19 +89,17 @@ namespace Octo.Tests.Commands
 
             await createProjectCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
-            string logoutput = LogOutput.ToString();
+            var logoutput = LogOutput.ToString();
             JsonConvert.DeserializeObject(logoutput);
             logoutput.Should().Contain(projectId);
             logoutput.Should().Contain(projectName);
             logoutput.Should().Contain(groupName);
             logoutput
-                .Replace(Environment.NewLine, String.Empty)
+                .Replace(Environment.NewLine, string.Empty)
                 .Replace(" ", string.Empty)
                 .Replace("\"", string.Empty)
-                .Should().Contain("NewGroupCreated:false");
+                .Should()
+                .Contain("NewGroupCreated:false");
         }
-
-
-
     }
 }

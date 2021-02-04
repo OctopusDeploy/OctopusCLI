@@ -11,7 +11,7 @@ namespace Octo.Tests.Util
         public void ShouldAppendSuffixIfThereIsNoOverlap()
         {
             var result = new Uri("http://www.mysite.com").EnsureEndsWith("suffix");
-            
+
             Assert.AreEqual(result.ToString(), "http://www.mysite.com/suffix");
         }
 

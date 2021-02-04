@@ -31,9 +31,7 @@ namespace Octopus.Cli.Util
                 return;
 
             foreach (var item in itemsToAdd)
-            {
                 source.Add(item);
-            }
         }
 
         public static void AddRangeUnique<TElement>(this ICollection<TElement> source, IEnumerable<TElement> itemsToAdd)
@@ -42,9 +40,7 @@ namespace Octopus.Cli.Util
                 return;
 
             foreach (var item in itemsToAdd.Where(item => !source.Contains(item)))
-            {
                 source.Add(item);
-            }
         }
 
         public static IEnumerable<TElement> Apply<TElement>(this IEnumerable<TElement> source, Action<TElement> apply)
@@ -59,6 +55,9 @@ namespace Octopus.Cli.Util
 #if NET45
         public static HashSet<TElement> ToHashSet<TElement>(this IEnumerable<TElement> items) => new HashSet<TElement>(items);
 #endif
-        public static bool None<TElement>(this IEnumerable<TElement> items) => !items.Any();
+        public static bool None<TElement>(this IEnumerable<TElement> items)
+        {
+            return !items.Any();
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Dynamic;
@@ -16,9 +17,7 @@ namespace Octopus.Cli.Extensions
                 var items = new List<object>();
                 var values = value as IEnumerable;
                 foreach (var v in values)
-                {
                     items.Add(GetExpandoObject(v));
-                }
                 expando.Add("Items", items);
                 expando.Add("$Meta", metadata);
             }
@@ -27,6 +26,7 @@ namespace Octopus.Cli.Extensions
                 expando = GetExpandoObject(value);
                 expando.Add("$Meta", metadata);
             }
+
             return expando;
         }
 

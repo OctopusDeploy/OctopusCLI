@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Packaging;
@@ -10,8 +9,6 @@ using Octopus.Cli.Diagnostics;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Model;
 using Octopus.Cli.Util;
-using Serilog;
-using SemanticVersion = Octopus.Client.Model.SemanticVersion;
 
 namespace Octopus.Cli.Commands.Package
 {
@@ -22,7 +19,7 @@ namespace Octopus.Cli.Commands.Package
         const PackageFormat DefaultPackageFormat = PackageFormat.NuPkg;
         const PackageFormat RecommendedPackageFormat = PackageFormat.Zip;
 #pragma warning disable 618 //ignore obsolete member
-        private readonly string supportedPackageFormats= Enum.GetNames(typeof(PackageFormat)).Except(new [] {PackageFormat.Nuget.ToString()}).ReadableJoin();
+        readonly string supportedPackageFormats = Enum.GetNames(typeof(PackageFormat)).Except(new[] { PackageFormat.Nuget.ToString() }).ReadableJoin();
 #pragma warning restore 618
 
         readonly IList<string> authors = new List<string>();
@@ -36,10 +33,10 @@ namespace Octopus.Cli.Commands.Package
         bool verbose;
         string releaseNotes, releaseNotesFile;
         string title;
-        SemanticVersion version;
+        Client.Model.SemanticVersion version;
         IPackageBuilder packageBuilder;
         string allReleaseNotes;
-        private PackageCompressionLevel packageCompressionLevel = DefaultPackageCompressionLevel;
+        PackageCompressionLevel packageCompressionLevel = DefaultPackageCompressionLevel;
 
         public PackCommand(IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
@@ -62,16 +59,28 @@ namespace Octopus.Cli.Commands.Package
             var basic = Options.For("Basic options");
             basic.Add<string>("id=", "The ID of the package; e.g. MyCompany.MyApp.", v => id = v);
             basic.Add<PackageFormat>("format=", $"Package format. Valid values are {supportedPackageFormats}. Default is {DefaultPackageFormat}, though we recommend {RecommendedPackageFormat} going forward.", fmt => packageBuilder = SelectFormat(fmt));
-            basic.Add<string>("version=", "[Optional] The version of the package; must be a valid SemVer; defaults to a timestamp-based version.", v => version = string.IsNullOrWhiteSpace(v) ? null : new SemanticVersion(v));
-            basic.Add<string>("outFolder=", "[Optional] The folder into which the generated NuPkg file will be written; defaults to '.'.", v => { v.CheckForIllegalPathCharacters(nameof(outFolder)); outFolder = v;});
-            basic.Add<string>("basePath=", "[Optional] The root folder containing files and folders to pack; defaults to '.'.", v => { v.CheckForIllegalPathCharacters(nameof(basePath)); basePath = v;});
+            basic.Add<string>("version=", "[Optional] The version of the package; must be a valid SemVer; defaults to a timestamp-based version.", v => version = string.IsNullOrWhiteSpace(v) ? null : new Client.Model.SemanticVersion(v));
+            basic.Add<string>("outFolder=",
+                "[Optional] The folder into which the generated NuPkg file will be written; defaults to '.'.",
+                v =>
+                {
+                    v.CheckForIllegalPathCharacters(nameof(outFolder));
+                    outFolder = v;
+                });
+            basic.Add<string>("basePath=",
+                "[Optional] The root folder containing files and folders to pack; defaults to '.'.",
+                v =>
+                {
+                    v.CheckForIllegalPathCharacters(nameof(basePath));
+                    basePath = v;
+                });
             basic.Add<bool>("verbose", "[Optional] verbose output.", v => verbose = true);
             basic.AddLogLevelOptions();
 
             packageBuilder = SelectFormat(DefaultPackageFormat);
         }
 
-       public override Task Execute(string[] commandLineArguments)
+        public override Task Execute(string[] commandLineArguments)
         {
             return Task.Run(() =>
             {
@@ -79,11 +88,11 @@ namespace Octopus.Cli.Commands.Package
 
                 if (printHelp)
                 {
-                    this.GetHelp(Console.Out, commandLineArguments);
+                    GetHelp(Console.Out, commandLineArguments);
                     return;
                 }
 
-                commandOutputProvider.PrintMessages = this.OutputFormat == OutputFormat.Default || this.verbose;
+                commandOutputProvider.PrintMessages = OutputFormat == OutputFormat.Default || verbose;
 
                 if (string.IsNullOrWhiteSpace(id))
                     throw new CommandException("An ID is required");
@@ -100,7 +109,7 @@ namespace Octopus.Cli.Commands.Package
                 if (version == null)
                 {
                     var now = DateTime.Now;
-                    version = SemanticVersion.Parse($"{now.Year}.{now.Month}.{now.Day}.{now.Hour*10000 + now.Minute*100 + now.Second}");
+                    version = Client.Model.SemanticVersion.Parse($"{now.Year}.{now.Month}.{now.Day}.{now.Hour * 10000 + now.Minute * 100 + now.Second}");
                 }
 
                 if (authors.All(string.IsNullOrWhiteSpace))
@@ -127,9 +136,7 @@ namespace Octopus.Cli.Commands.Package
                 }
 
                 if (string.IsNullOrWhiteSpace(version.OriginalString))
-                {
                     throw new Exception("Somehow we created a SemanticVersion without the OriginalString value being preserved. We want to use the OriginalString so we can preserve the version as intended by the caller.");
-                }
 
                 var metadata = new ManifestMetadata
                 {
@@ -150,16 +157,17 @@ namespace Octopus.Cli.Commands.Package
                     commandOutputProvider.Information("Verbose logging");
                 commandOutputProvider.Information("Packing {id:l} version {Version}...", id, version);
 
-                packageBuilder.BuildPackage(basePath, includes, metadata, outFolder, overwrite, verbose);
+                packageBuilder.BuildPackage(basePath,
+                    includes,
+                    metadata,
+                    outFolder,
+                    overwrite,
+                    verbose);
 
                 if (OutputFormat == OutputFormat.Json)
-                {
                     PrintJsonOutput();
-                }
                 else
-                {
                     PrintDefaultOutput();
-                }
             });
         }
 
@@ -193,13 +201,13 @@ namespace Octopus.Cli.Commands.Package
         {
             commandOutputProvider.Json(new
             {
-                PackageId = this.id,
-                Version = this.version.ToString(),
+                PackageId = id,
+                Version = version.ToString(),
                 ReleaseNotes = allReleaseNotes ?? string.Empty,
-                Description = this.description,
+                Description = description,
                 packageBuilder.PackageFormat,
-                OutputFolder = this.outFolder,
-                Files = packageBuilder.Files.Any() ? packageBuilder.Files : includes,
+                OutputFolder = outFolder,
+                Files = packageBuilder.Files.Any() ? packageBuilder.Files : includes
             });
         }
     }

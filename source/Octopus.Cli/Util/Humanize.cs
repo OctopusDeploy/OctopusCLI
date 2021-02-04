@@ -63,6 +63,7 @@ namespace Octopus.Cli.Util
                     separator = ", ";
                     final = " " + junction + " ";
                 }
+
                 prev = enumerator.Current;
             }
 

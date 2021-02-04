@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Assent;
-using FluentAssertions;
-using Newtonsoft.Json;
 using NSubstitute;
 using NUnit.Framework;
 using Octopus.Cli.Commands.Releases;
@@ -16,8 +14,8 @@ namespace Octo.Tests.Commands
     [TestFixture]
     public class ListReleasesCommandFixture : ApiCommandFixtureBase
     {
-        ListReleasesCommand listReleasesCommand;
         const string VersionControlledProjectId = "Projects-3";
+        ListReleasesCommand listReleasesCommand;
 
         [SetUp]
         public void SetUp()
@@ -28,53 +26,55 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task ShouldGetListOfReleases()
         {
-            Repository.Projects.FindByNames(Arg.Any<IEnumerable<string>>()).Returns(new List<ProjectResource>
-            {
-                new ProjectResource {Name = "ProjectA", Id = "projectaid"},
-                new ProjectResource {Name = "ProjectB", Id = "projectbid"},
-                new ProjectResource {Name = "Version controlled project", Id = VersionControlledProjectId}
-            });
+            Repository.Projects.FindByNames(Arg.Any<IEnumerable<string>>())
+                .Returns(new List<ProjectResource>
+                {
+                    new ProjectResource { Name = "ProjectA", Id = "projectaid" },
+                    new ProjectResource { Name = "ProjectB", Id = "projectbid" },
+                    new ProjectResource { Name = "Version controlled project", Id = VersionControlledProjectId }
+                });
 
-            Repository.Releases.FindMany(Arg.Any<Func<ReleaseResource, bool>>()).Returns(new List<ReleaseResource>
-            {
-                new ReleaseResource
+            Repository.Releases.FindMany(Arg.Any<Func<ReleaseResource, bool>>())
+                .Returns(new List<ReleaseResource>
                 {
-                    ProjectId = "projectaid",
-                    Version = "1.0",
-                    Assembled = DateTimeOffset.MinValue,
-                    SelectedPackages = new List<SelectedPackage>
+                    new ReleaseResource
                     {
-                        new SelectedPackage("Deploy a package", "1.0")
+                        ProjectId = "projectaid",
+                        Version = "1.0",
+                        Assembled = DateTimeOffset.MinValue,
+                        SelectedPackages = new List<SelectedPackage>
+                        {
+                            new SelectedPackage("Deploy a package", "1.0")
+                        },
+                        ReleaseNotes = "Release Notes 1"
                     },
-                    ReleaseNotes = "Release Notes 1"
-                },
-                new ReleaseResource
-                {
-                    ProjectId = "projectaid",
-                    Version = "2.0",
-                    Assembled = DateTimeOffset.MaxValue,
-                    ReleaseNotes = "Release Notes 2"
-                },
-                new ReleaseResource
-                {
-                    ProjectId = "projectaid",
-                    Version = "whateverdockerversion",
-                    Assembled = DateTimeOffset.MaxValue,
-                    ReleaseNotes = "Release Notes 3"
-                },
-                new ReleaseResource
-                {
-                    ProjectId = VersionControlledProjectId,
-                    Version = "1.2.3",
-                    Assembled = DateTimeOffset.MaxValue,
-                    ReleaseNotes = "Version controlled release notes",
-                    VersionControlReference = new VersionControlReferenceResource
+                    new ReleaseResource
                     {
-                        GitCommit = "87a072ad2b4a2e9bf2d7ff84d8636a032786394d",
-                        GitRef = "main"
+                        ProjectId = "projectaid",
+                        Version = "2.0",
+                        Assembled = DateTimeOffset.MaxValue,
+                        ReleaseNotes = "Release Notes 2"
+                    },
+                    new ReleaseResource
+                    {
+                        ProjectId = "projectaid",
+                        Version = "whateverdockerversion",
+                        Assembled = DateTimeOffset.MaxValue,
+                        ReleaseNotes = "Release Notes 3"
+                    },
+                    new ReleaseResource
+                    {
+                        ProjectId = VersionControlledProjectId,
+                        Version = "1.2.3",
+                        Assembled = DateTimeOffset.MaxValue,
+                        ReleaseNotes = "Version controlled release notes",
+                        VersionControlReference = new VersionControlReferenceResource
+                        {
+                            GitCommit = "87a072ad2b4a2e9bf2d7ff84d8636a032786394d",
+                            GitRef = "main"
+                        }
                     }
-                }
-            });
+                });
 
             CommandLineArgs.Add("--project=ProjectA");
 
@@ -86,49 +86,51 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task JsonFormat_ShouldBeWellFormed()
         {
-            Repository.Projects.FindByNames(Arg.Any<IEnumerable<string>>()).Returns(new List<ProjectResource>
-            {
-                new ProjectResource {Name = "ProjectA", Id = "projectaid"},
-                new ProjectResource {Name = "ProjectB", Id = "projectbid"},
-                new ProjectResource {Name = "Version controlled project", Id = VersionControlledProjectId}
-            });
+            Repository.Projects.FindByNames(Arg.Any<IEnumerable<string>>())
+                .Returns(new List<ProjectResource>
+                {
+                    new ProjectResource { Name = "ProjectA", Id = "projectaid" },
+                    new ProjectResource { Name = "ProjectB", Id = "projectbid" },
+                    new ProjectResource { Name = "Version controlled project", Id = VersionControlledProjectId }
+                });
 
-            Repository.Releases.FindMany(Arg.Any<Func<ReleaseResource, bool>>()).Returns(new List<ReleaseResource>
-            {
-                new ReleaseResource
+            Repository.Releases.FindMany(Arg.Any<Func<ReleaseResource, bool>>())
+                .Returns(new List<ReleaseResource>
                 {
-                    ProjectId = "projectaid",
-                    Version = "1.0",
-                    Assembled = DateTimeOffset.MinValue,
-                    ReleaseNotes = "Release Notes 1"
-                },
-                new ReleaseResource
-                {
-                    ProjectId = "projectaid",
-                    Version = "2.0",
-                    Assembled = DateTimeOffset.MaxValue,
-                    ReleaseNotes = "Release Notes 2"
-                },
-                new ReleaseResource
-                {
-                    ProjectId = "projectaid",
-                    Version = "whateverdockerversion",
-                    Assembled = DateTimeOffset.MaxValue,
-                    ReleaseNotes = "Release Notes 3"
-                },
-                new ReleaseResource
-                {
-                    ProjectId = VersionControlledProjectId,
-                    Version = "1.2.3",
-                    Assembled = DateTimeOffset.MaxValue,
-                    ReleaseNotes = "Version controlled release notes",
-                    VersionControlReference = new VersionControlReferenceResource
+                    new ReleaseResource
                     {
-                        GitCommit = "87a072ad2b4a2e9bf2d7ff84d8636a032786394d",
-                        GitRef = "main"
+                        ProjectId = "projectaid",
+                        Version = "1.0",
+                        Assembled = DateTimeOffset.MinValue,
+                        ReleaseNotes = "Release Notes 1"
+                    },
+                    new ReleaseResource
+                    {
+                        ProjectId = "projectaid",
+                        Version = "2.0",
+                        Assembled = DateTimeOffset.MaxValue,
+                        ReleaseNotes = "Release Notes 2"
+                    },
+                    new ReleaseResource
+                    {
+                        ProjectId = "projectaid",
+                        Version = "whateverdockerversion",
+                        Assembled = DateTimeOffset.MaxValue,
+                        ReleaseNotes = "Release Notes 3"
+                    },
+                    new ReleaseResource
+                    {
+                        ProjectId = VersionControlledProjectId,
+                        Version = "1.2.3",
+                        Assembled = DateTimeOffset.MaxValue,
+                        ReleaseNotes = "Version controlled release notes",
+                        VersionControlReference = new VersionControlReferenceResource
+                        {
+                            GitCommit = "87a072ad2b4a2e9bf2d7ff84d8636a032786394d",
+                            GitRef = "main"
+                        }
                     }
-                }
-            });
+                });
 
             CommandLineArgs.Add("--project=ProjectA");
             CommandLineArgs.Add("--outputFormat=json");

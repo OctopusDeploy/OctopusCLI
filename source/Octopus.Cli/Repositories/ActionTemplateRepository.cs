@@ -8,12 +8,11 @@ namespace Octopus.Cli.Repositories
 {
     public class ActionTemplateRepository : IActionTemplateRepository
     {
-        private readonly IOctopusAsyncClient client;
+        readonly IOctopusAsyncClient client;
 
         public ActionTemplateRepository(IOctopusAsyncClient client)
         {
             this.client = client;
-            
         }
 
         public async Task<ActionTemplateResource> Get(string idOrHref)
@@ -40,13 +39,14 @@ namespace Octopus.Cli.Repositories
 
             name = (name ?? string.Empty).Trim();
             var templatesPath = await client.Repository.Link("ActionTemplates").ConfigureAwait(false);
-            await client.Paginate<ActionTemplateResource>(templatesPath, page =>
-            {
-                template = page.Items.FirstOrDefault(t => string.Equals((t.Name ?? string.Empty), name, StringComparison.OrdinalIgnoreCase));
-                // If no matching template was found, then we need to try the next page.
-                return (template == null);
-            })
-            .ConfigureAwait(false);
+            await client.Paginate<ActionTemplateResource>(templatesPath,
+                    page =>
+                    {
+                        template = page.Items.FirstOrDefault(t => string.Equals(t.Name ?? string.Empty, name, StringComparison.OrdinalIgnoreCase));
+                        // If no matching template was found, then we need to try the next page.
+                        return template == null;
+                    })
+                .ConfigureAwait(false);
 
             return template;
         }

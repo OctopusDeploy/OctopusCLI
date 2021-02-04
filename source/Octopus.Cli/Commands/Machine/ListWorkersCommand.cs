@@ -17,12 +17,12 @@ namespace Octopus.Cli.Commands.Machine
         readonly HashSet<string> pools = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         readonly HashSet<MachineModelStatus> statuses = new HashSet<MachineModelStatus>();
         readonly HashSet<MachineModelHealthStatus> healthStatuses = new HashSet<MachineModelHealthStatus>();
-        private HealthStatusProvider provider;
+        HealthStatusProvider provider;
         List<WorkerPoolResource> workerpoolResources;
         IEnumerable<WorkerResource> workerpoolWorkers;
-        private bool? isDisabled;
-        private bool? isCalamariOutdated;
-        private bool? isTentacleOutdated;
+        bool? isDisabled;
+        bool? isCalamariOutdated;
+        bool? isTentacleOutdated;
 
         public ListWorkersCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
@@ -39,7 +39,11 @@ namespace Octopus.Cli.Commands.Machine
         public async Task Request()
         {
             var rootDocument = await Repository.LoadRootDocument().ConfigureAwait(false);
-            provider = new HealthStatusProvider(Repository, statuses, healthStatuses, commandOutputProvider, rootDocument);
+            provider = new HealthStatusProvider(Repository,
+                statuses,
+                healthStatuses,
+                commandOutputProvider,
+                rootDocument);
 
             workerpoolResources = await GetPools().ConfigureAwait(false);
 
@@ -64,53 +68,49 @@ namespace Octopus.Cli.Commands.Machine
             }));
         }
 
-        private void LogFilteredMachines(IEnumerable<WorkerResource> poolMachines, HealthStatusProvider provider, List<WorkerPoolResource> poolResources)
+        void LogFilteredMachines(IEnumerable<WorkerResource> poolMachines, HealthStatusProvider provider, List<WorkerPoolResource> poolResources)
         {
             var orderedMachines = poolMachines.OrderBy(m => m.Name).ToList();
             commandOutputProvider.Information("Workers: {Count}", orderedMachines.Count);
             foreach (var machine in orderedMachines)
             {
-                commandOutputProvider.Information(" - {Machine:l} {Status:l} (ID: {MachineId:l}) in {WorkerPool:l}", machine.Name, provider.GetStatus(machine), machine.Id,
+                commandOutputProvider.Information(" - {Machine:l} {Status:l} (ID: {MachineId:l}) in {WorkerPool:l}",
+                    machine.Name,
+                    provider.GetStatus(machine),
+                    machine.Id,
                     string.Join(" and ", machine.WorkerPoolIds.Select(id => poolResources.First(e => e.Id == id).Name)));
             }
         }
 
-        private Task<List<WorkerPoolResource>> GetPools()
+        Task<List<WorkerPoolResource>> GetPools()
         {
             commandOutputProvider.Debug("Loading pools...");
             return Repository.WorkerPools.FindAll();
         }
 
-        private IEnumerable<WorkerResource> FilterByState(IEnumerable<WorkerResource> poolMachines, HealthStatusProvider provider)
+        IEnumerable<WorkerResource> FilterByState(IEnumerable<WorkerResource> poolMachines, HealthStatusProvider provider)
         {
             poolMachines = provider.Filter(poolMachines);
 
             if (isDisabled.HasValue)
-            {
                 poolMachines = poolMachines.Where(m => m.IsDisabled == isDisabled.Value);
-            }
             if (isCalamariOutdated.HasValue)
-            {
                 poolMachines = poolMachines.Where(m => m.HasLatestCalamari == !isCalamariOutdated.Value);
-            }
             if (isTentacleOutdated.HasValue)
-            {
                 poolMachines =
                     poolMachines.Where(
                         m =>
                             (m.Endpoint as ListeningTentacleEndpointResource)?.TentacleVersionDetails.UpgradeSuggested ==
                             isTentacleOutdated.Value);
-            }
             return poolMachines;
         }
 
-        private  Task<List<WorkerResource>> FilterByWorkerPools(List<WorkerPoolResource> poolResources)
+        Task<List<WorkerResource>> FilterByWorkerPools(List<WorkerPoolResource> poolResources)
         {
             var poolsToInclude = poolResources.Where(e => pools.Contains(e.Name, StringComparer.OrdinalIgnoreCase)).ToList();
             var missingPools = pools.Except(poolsToInclude.Select(e => e.Name), StringComparer.OrdinalIgnoreCase).ToList();
             if (missingPools.Any())
                 throw new CouldNotFindException("pools(s) named", string.Join(", ", missingPools));
-
 
             var poolsFilter = poolsToInclude.Select(p => p.Id).ToList();
 
@@ -122,11 +122,9 @@ namespace Octopus.Cli.Commands.Machine
                     Repository.Workers.FindMany(
                         x => { return x.WorkerPoolIds.Any(poolId => poolsFilter.Contains(poolId)); });
             }
-            else
-            {
-                commandOutputProvider.Debug("Loading workers from all pools...");
-                return  Repository.Workers.FindAll();
-            }
+
+            commandOutputProvider.Debug("Loading workers from all pools...");
+            return Repository.Workers.FindAll();
         }
     }
 }

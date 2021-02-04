@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Octopus.Cli.Commands;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
@@ -10,6 +11,7 @@ namespace Octo.Tests.Commands
     public class DummyApiCommand : ApiCommand
     {
         string pill;
+
         public DummyApiCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
@@ -27,15 +29,14 @@ namespace Octo.Tests.Commands
     [Command("dummy-command", Description = "this is the command's description")]
     public class DummyApiCommandWithFormattedOutputSupport : ApiCommand, ISupportFormattedOutput
     {
-        public bool QueryCalled { get; set; }
-        public bool PrintDefaultOutputCalled { get; set; }
-        public bool PrintJsonOutputCalled { get; set; }
-
         public DummyApiCommandWithFormattedOutputSupport(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
-            
         }
+
+        public bool QueryCalled { get; set; }
+        public bool PrintDefaultOutputCalled { get; set; }
+        public bool PrintJsonOutputCalled { get; set; }
 
         public Task Request()
         {

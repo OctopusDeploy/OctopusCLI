@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 using Octopus.Cli.Infrastructure;
 
@@ -21,12 +22,12 @@ namespace Octopus.Cli.Util
         {
             return Regex.Replace(originalString, @"\r\n|\n\r|\n|\r", "\r\n");
         }
-        
+
         public static string NormalizeNewLinesForNix(this string originalString)
         {
             return Regex.Replace(originalString, @"\r\n|\n\r|\n|\r", "\n");
         }
-        
+
         public static string NormalizeNewLines(this string originalString)
         {
             return Regex.Replace(originalString, @"\r\n|\n\r|\n|\r", Environment.NewLine);
@@ -34,10 +35,8 @@ namespace Octopus.Cli.Util
 
         public static void CheckForIllegalPathCharacters(this string path, string name)
         {
-            if (path.IndexOfAny(System.IO.Path.GetInvalidPathChars()) >= 0)
-            {
+            if (path.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
                 throw new CommandException($"Argument {name} has a value of {path} which contains invalid path characters. If your path has a trailing backslash either remove it or escape it correctly by using \\\\");
-            }
         }
     }
 }

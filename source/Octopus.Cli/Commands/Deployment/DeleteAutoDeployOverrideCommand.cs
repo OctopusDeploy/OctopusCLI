@@ -7,7 +7,6 @@ using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
-using Serilog;
 
 namespace Octopus.Cli.Commands.Deployment
 {
@@ -16,7 +15,7 @@ namespace Octopus.Cli.Commands.Deployment
     {
         IReadOnlyList<TenantResource> tenants;
         ProjectResource project;
-        private List<Tuple<EnvironmentResource, TenantResource, DeletedOutcome>> deletedDeplomentOverrides;
+        readonly List<Tuple<EnvironmentResource, TenantResource, DeletedOutcome>> deletedDeplomentOverrides;
 
         public DeleteAutoDeployOverrideCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory octopusClientFactory, ICommandOutputProvider commandOutputProvider) :
             base(octopusClientFactory, repositoryFactory, fileSystem, commandOutputProvider)
@@ -25,13 +24,16 @@ namespace Octopus.Cli.Commands.Deployment
             options.Add<string>("project=", "Name of the project.", v => ProjectName = v);
             options.Add<string>("environment=",
                 "Name of an environment the override will apply to. Specify this argument multiple times to add multiple environments.",
-                v => EnvironmentNames.Add(v), allowsMultiple: true);
+                v => EnvironmentNames.Add(v),
+                allowsMultiple: true);
             options.Add<string>("tenant=",
                 "[Optional] Name of a tenant the override will apply to. Specify this argument multiple times to add multiple tenants or use `*` wildcard for all tenants.",
-                t => TenantNames.Add(t), allowsMultiple: true);
+                t => TenantNames.Add(t),
+                allowsMultiple: true);
             options.Add<string>("tenantTag=",
                 "[Optional] A tenant tag used to match tenants that the override will apply to. Specify this argument multiple times to add multiple tenant tags",
-                tt => TenantTags.Add(tt), allowsMultiple: true);
+                tt => TenantTags.Add(tt),
+                allowsMultiple: true);
 
             deletedDeplomentOverrides = new List<Tuple<EnvironmentResource, TenantResource, DeletedOutcome>>();
         }
@@ -46,21 +48,17 @@ namespace Octopus.Cli.Commands.Deployment
             await base.ValidateParameters().ConfigureAwait(false);
 
             if (string.IsNullOrEmpty(ProjectName))
-            {
                 throw new CommandException("Please specify a project using the project parameter: --project=MyProject");
-            }
 
             if (!EnvironmentNames.Any())
-            {
                 throw new CommandException(
                     "Please specify an environment using the environment parameter: --environment=MyEnvironment");
-            }
         }
 
         public async Task Request()
         {
-            Task<ProjectResource> projectTask = RepositoryCommonQueries.GetProjectByName(ProjectName);
-            
+            var projectTask = RepositoryCommonQueries.GetProjectByName(ProjectName);
+
             tenants = await RepositoryCommonQueries.FindTenants(TenantNames, TenantTags).ConfigureAwait(false);
             project = await projectTask.ConfigureAwait(false);
 
@@ -69,21 +67,16 @@ namespace Octopus.Cli.Commands.Deployment
                 var environment = await RepositoryCommonQueries.GetEnvironmentByName(environmentName).ConfigureAwait(false);
 
                 if (!tenants.Any())
-                {
                     DeleteOverrideForEnvironment(project, environment);
-                }
                 else
-                {
                     foreach (var tenant in tenants)
-                    {
                         DeleteOverrideForTenant(project, environment, tenant);
-                    }
-                }
             }
+
             await Repository.Projects.Modify(project).ConfigureAwait(false);
         }
 
-        private void DeleteOverrideForEnvironment(ProjectResource project, EnvironmentResource environment)
+        void DeleteOverrideForEnvironment(ProjectResource project, EnvironmentResource environment)
         {
             var autoDeployOverride = project.AutoDeployReleaseOverrides.SingleOrDefault(
                 o => o.EnvironmentId == environment.Id && o.TenantId == null);
@@ -103,7 +96,7 @@ namespace Octopus.Cli.Commands.Deployment
             }
         }
 
-        private void DeleteOverrideForTenant(ProjectResource project, EnvironmentResource environment, TenantResource tenant)
+        void DeleteOverrideForTenant(ProjectResource project, EnvironmentResource environment, TenantResource tenant)
         {
             var autoDeployOverride = project.AutoDeployReleaseOverrides.SingleOrDefault(
                 o => o.EnvironmentId == environment.Id && o.TenantId == tenant.Id);
@@ -131,17 +124,17 @@ namespace Octopus.Cli.Commands.Deployment
         {
             commandOutputProvider.Json(new
             {
-                Project = new {project.Id, project.Name},
+                Project = new { project.Id, project.Name },
                 AutoDeployOverridesRemoved = deletedDeplomentOverrides.Select(x => new
                 {
-                    Environment = new {x.Item1.Id, x.Item1.Name},
-                    Tenant = x.Item2 == null ? null : new {x.Item2.Id, x.Item2.Name},
+                    Environment = new { x.Item1.Id, x.Item1.Name },
+                    Tenant = x.Item2 == null ? null : new { x.Item2.Id, x.Item2.Name },
                     Outcome = x.Item3.ToString()
                 })
             });
         }
 
-        private enum DeletedOutcome
+        enum DeletedOutcome
         {
             Deleted,
             NotFound

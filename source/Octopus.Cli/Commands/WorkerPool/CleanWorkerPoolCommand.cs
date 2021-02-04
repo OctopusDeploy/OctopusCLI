@@ -14,15 +14,20 @@ namespace Octopus.Cli.Commands.WorkerPool
     [Command("clean-workerpool", Description = "Cleans all Offline Workers from a WorkerPool.")]
     public class CleanWorkerPoolCommand : ApiCommand, ISupportFormattedOutput
     {
-        string poolName;
+        public enum MachineAction
+        {
+            RemovedFromPool,
+            Deleted
+        }
+
         readonly HashSet<MachineModelHealthStatus> healthStatuses = new HashSet<MachineModelHealthStatus>();
-        private bool? isDisabled;
-        private bool? isCalamariOutdated;
-        private bool? isTentacleOutdated;
+        string poolName;
+        bool? isDisabled;
+        bool? isCalamariOutdated;
+        bool? isTentacleOutdated;
         WorkerPoolResource workerPoolResource;
         IEnumerable<WorkerResource> machines;
-        List<MachineResult> commandResults = new List<MachineResult>();
-
+        readonly List<MachineResult> commandResults = new List<MachineResult>();
 
         public CleanWorkerPoolCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
@@ -50,25 +55,26 @@ namespace Octopus.Cli.Commands.WorkerPool
             await CleanUpPool(machines.ToList(), workerPoolResource).ConfigureAwait(false);
         }
 
-        private async Task CleanUpPool(List<WorkerResource> filteredMachines, WorkerPoolResource poolResource)
+        async Task CleanUpPool(List<WorkerResource> filteredMachines, WorkerPoolResource poolResource)
         {
             commandOutputProvider.Information("Found {MachineCount} machines in {WorkerPool:l} with the status {Status:l}", filteredMachines.Count, poolResource.Name, GetStateFilterDescription());
 
             if (filteredMachines.Any(m => m.WorkerPoolIds.Count > 1))
-            {
                 commandOutputProvider.Information("Note: Some of these machines belong to multiple pools. Instead of being deleted, these machines will be removed from the {WorkerPool:l} pool.", poolResource.Name);
-            }
 
             foreach (var machine in filteredMachines)
             {
-                MachineResult result = new MachineResult
+                var result = new MachineResult
                 {
                     Machine = machine
                 };
                 // If the machine belongs to more than one pool, we should remove the machine from the pool rather than delete it altogether.
                 if (machine.WorkerPoolIds.Count > 1)
                 {
-                    commandOutputProvider.Information("Removing {Machine:l} {Status} (ID: {Id:l}) from {WorkerPool:l}", machine.Name, machine.Status, machine.Id,
+                    commandOutputProvider.Information("Removing {Machine:l} {Status} (ID: {Id:l}) from {WorkerPool:l}",
+                        machine.Name,
+                        machine.Status,
+                        machine.Id,
                         poolResource.Name);
                     machine.WorkerPoolIds.Remove(poolResource.Id);
                     await Repository.Workers.Modify(machine).ConfigureAwait(false);
@@ -81,92 +87,75 @@ namespace Octopus.Cli.Commands.WorkerPool
                     result.Action = MachineAction.Deleted;
                 }
 
-                this.commandResults.Add(result);
+                commandResults.Add(result);
             }
         }
 
-        private async Task<IEnumerable<WorkerResource>> FilterByState(IEnumerable<WorkerResource> workers)
+        async Task<IEnumerable<WorkerResource>> FilterByState(IEnumerable<WorkerResource> workers)
         {
             var rootDocument = await Repository.LoadRootDocument().ConfigureAwait(false);
-            var provider = new HealthStatusProvider(Repository, new HashSet<MachineModelStatus>(), healthStatuses, commandOutputProvider, rootDocument);
+            var provider = new HealthStatusProvider(Repository,
+                new HashSet<MachineModelStatus>(),
+                healthStatuses,
+                commandOutputProvider,
+                rootDocument);
             workers = provider.Filter(workers);
 
             if (isDisabled.HasValue)
-            {
                 workers = workers.Where(m => m.IsDisabled == isDisabled.Value);
-            }
             if (isCalamariOutdated.HasValue)
-            {
                 workers = workers.Where(m => m.HasLatestCalamari == !isCalamariOutdated.Value);
-            }
             if (isTentacleOutdated.HasValue)
-            {
                 workers = workers.Where(m => (m.Endpoint as ListeningTentacleEndpointResource)?.TentacleVersionDetails.UpgradeSuggested == isTentacleOutdated.Value);
-            }
             return workers;
         }
 
-        private string GetStateFilterDescription()
+        string GetStateFilterDescription()
         {
-            var description =  string.Join(",", healthStatuses);
+            var description = string.Join(",", healthStatuses);
 
             if (isDisabled.HasValue)
-            {
                 description += isDisabled.Value ? "and disabled" : "and not disabled";
-            }
 
             if (isCalamariOutdated.HasValue)
-            {
                 description += $" and its Calamari version {(isCalamariOutdated.Value ? "" : "not")}out of date";
-            }
 
             if (isTentacleOutdated.HasValue)
-            {
                 description += $" and its Tentacle version {(isTentacleOutdated.Value ? "" : "not")}out of date";
-            }
 
             return description;
         }
 
-        private Task<List<WorkerResource>> FilterByWorkerPool(WorkerPoolResource poolResource)
+        Task<List<WorkerResource>> FilterByWorkerPool(WorkerPoolResource poolResource)
         {
             commandOutputProvider.Debug("Loading workers...");
-            return Repository.Workers.FindMany(x =>  x.WorkerPoolIds.Any(poolId => poolId == poolResource.Id));
+            return Repository.Workers.FindMany(x => x.WorkerPoolIds.Any(poolId => poolId == poolResource.Id));
         }
 
-        private async Task<WorkerPoolResource> GetWorkerPool()
+        async Task<WorkerPoolResource> GetWorkerPool()
         {
             commandOutputProvider.Debug("Loading worker pools...");
             var poolResource = await Repository.WorkerPools.FindByName(poolName).ConfigureAwait(false);
             if (poolResource == null)
-            {
                 throw new CouldNotFindException("the specified worker pool");
-            }
             return poolResource;
         }
 
         public void PrintDefaultOutput()
         {
-
         }
 
         public void PrintJsonOutput()
         {
-            commandOutputProvider.Json(commandResults.Select(x =>new
+            commandOutputProvider.Json(commandResults.Select(x => new
             {
-                Machine = new { x.Machine.Id,x.Machine.Name, x.Machine.Status },
+                Machine = new { x.Machine.Id, x.Machine.Name, x.Machine.Status },
                 Environment = x.Action == MachineAction.RemovedFromPool ? new { workerPoolResource.Id, workerPoolResource.Name } : null,
                 Action = x.Action.ToString()
             }));
         }
 
-        public enum MachineAction
-        {
-            RemovedFromPool,
-            Deleted
-        }
-
-        private class MachineResult
+        class MachineResult
         {
             public MachineBasedResource Machine { get; set; }
             public MachineAction Action { get; set; }

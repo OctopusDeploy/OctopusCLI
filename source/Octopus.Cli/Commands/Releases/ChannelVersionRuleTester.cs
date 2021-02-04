@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Octopus.Cli.Model;
 using Octopus.Cli.Util;
 using Octopus.Client;
@@ -11,10 +12,8 @@ namespace Octopus.Cli.Commands.Releases
         public async Task<ChannelVersionRuleTestResult> Test(IOctopusAsyncRepository repository, ChannelVersionRuleResource rule, string packageVersion, string feedId)
         {
             if (rule == null)
-            {
                 // Anything goes if there is no rule defined for this step
                 return ChannelVersionRuleTestResult.Null();
-            }
 
             var link = await repository.Link("VersionRuleTest").ConfigureAwait(false);
 
@@ -23,7 +22,7 @@ namespace Octopus.Cli.Commands.Releases
                 version = packageVersion,
                 versionRange = rule.VersionRange,
                 preReleaseTag = rule.Tag,
-                feedId = feedId
+                feedId
             };
 
             var response = (await repository.LoadRootDocument().ConfigureAwait(false)).UsePostForChannelVersionRuleTest()

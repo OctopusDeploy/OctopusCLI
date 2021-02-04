@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
@@ -29,9 +30,7 @@ namespace Octopus.Cli.Commands.WorkerPool
             commandOutputProvider.Information("WorkerPools: {Count}", pools.Count);
 
             foreach (var pool in pools)
-            {
                 commandOutputProvider.Information(" - {WorkerPools:l} (ID: {Id:l})", pool.Name, pool.Id);
-            }
         }
 
         public void PrintJsonOutput()

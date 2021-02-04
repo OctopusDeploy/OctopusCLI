@@ -13,9 +13,9 @@ namespace Octopus.Cli.Commands.Package
     [Command("push-metadata", Description = "Pushes package metadata to Octopus Server.  Deprecated. Please use the build-information command for Octopus Server 2019.10.0 and above.")]
     public class PushMetadataCommand : ApiCommand, ISupportFormattedOutput
     {
-        private static OverwriteMode DefaultOverwriteMode = OverwriteMode.FailIfExists;
+        static readonly OverwriteMode DefaultOverwriteMode = OverwriteMode.FailIfExists;
 
-        private OctopusPackageMetadataMappedResource resultResource;
+        OctopusPackageMetadataMappedResource resultResource;
 
         public PushMetadataCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)

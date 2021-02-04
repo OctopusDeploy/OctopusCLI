@@ -9,7 +9,7 @@ namespace Octopus.Cli.Util
 {
     public static class ResourceCollectionExtensions
     {
-        private const string PageNext = "Page.Next";
+        const string PageNext = "Page.Next";
 
         public static bool HasNextPage<TResource>(this ResourceCollection<TResource> source)
         {
@@ -30,6 +30,7 @@ namespace Octopus.Cli.Util
                 source = await repository.Client.List<TResource>(source.NextPageLink()).ConfigureAwait(false);
                 items.AddRange(source.Items);
             }
+
             return items;
         }
 
@@ -42,23 +43,26 @@ namespace Octopus.Cli.Util
         public static async Task<TResource> FindOne<TResource>(this ResourceCollection<TResource> source, IOctopusAsyncRepository repository, Func<TResource, bool> search)
         {
             var resource = default(TResource);
-            await source.Paginate(repository, page =>
-            {
-                resource = page.Items.FirstOrDefault(search);
-                return resource == null;
-            })
-            .ConfigureAwait(false);
+            await source.Paginate(repository,
+                    page =>
+                    {
+                        resource = page.Items.FirstOrDefault(search);
+                        return resource == null;
+                    })
+                .ConfigureAwait(false);
             return resource;
         }
 
         public static async Task<List<TResource>> FindMany<TResource>(this ResourceCollection<TResource> source, IOctopusAsyncRepository repository, Func<TResource, bool> search)
         {
             var resources = new List<TResource>();
-            await  source.Paginate(repository, page =>
-            {
-                resources.AddRange(page.Items.Where(search));
-                return true;
-            }).ConfigureAwait(false);
+            await source.Paginate(repository,
+                    page =>
+                    {
+                        resources.AddRange(page.Items.Where(search));
+                        return true;
+                    })
+                .ConfigureAwait(false);
             return resources;
         }
     }

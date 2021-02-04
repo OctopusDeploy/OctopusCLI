@@ -44,9 +44,7 @@ namespace Octo.Tests.Integration
                 };
 
                 if (!string.IsNullOrWhiteSpace(version))
-                {
                     args.Add($"--version={version}");
-                }
 
                 var now = DateTime.Now;
                 var result = new CliProgram().Run(args.ToArray());
@@ -134,8 +132,12 @@ namespace Octo.Tests.Integration
     public static class SilentProcessRunner
     {
         // ReSharper disable once InconsistentNaming
-        private const int CP_OEMCP = 1;
-        private static readonly Encoding oemEncoding;
+        const int CP_OEMCP = 1;
+
+        const int MAX_DEFAULTCHAR = 2;
+        const int MAX_LEADBYTES = 12;
+        const int MAX_PATH = 260;
+        static readonly Encoding oemEncoding;
 
         static SilentProcessRunner()
         {
@@ -143,13 +145,9 @@ namespace Octo.Tests.Integration
             {
                 CPINFOEX info;
                 if (GetCPInfoEx(CP_OEMCP, 0, out info))
-                {
                     oemEncoding = Encoding.GetEncoding(info.CodePage);
-                }
                 else
-                {
                     oemEncoding = Encoding.GetEncoding(850);
-                }
             }
             catch (Exception)
             {
@@ -158,8 +156,11 @@ namespace Octo.Tests.Integration
             }
         }
 
-        public static int ExecuteCommand(string executable, string arguments, string workingDirectory,
-            Action<string> output, Action<string> error)
+        public static int ExecuteCommand(string executable,
+            string arguments,
+            string workingDirectory,
+            Action<string> output,
+            Action<string> error)
         {
             try
             {
@@ -181,25 +182,17 @@ namespace Octo.Tests.Integration
                         process.OutputDataReceived += (sender, e) =>
                         {
                             if (e.Data == null)
-                            {
                                 outputWaitHandle.Set();
-                            }
                             else
-                            {
                                 output(e.Data);
-                            }
                         };
 
                         process.ErrorDataReceived += (sender, e) =>
                         {
                             if (e.Data == null)
-                            {
                                 errorWaitHandle.Set();
-                            }
                             else
-                            {
                                 error(e.Data);
-                            }
                         };
 
                         process.Start();
@@ -224,27 +217,31 @@ namespace Octo.Tests.Integration
         }
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool GetCPInfoEx([MarshalAs(UnmanagedType.U4)] int CodePage,
-            [MarshalAs(UnmanagedType.U4)] int dwFlags, out CPINFOEX lpCPInfoEx);
-
-        private const int MAX_DEFAULTCHAR = 2;
-        private const int MAX_LEADBYTES = 12;
-        private const int MAX_PATH = 260;
+        static extern bool GetCPInfoEx([MarshalAs(UnmanagedType.U4)]
+            int CodePage,
+            [MarshalAs(UnmanagedType.U4)]
+            int dwFlags,
+            out CPINFOEX lpCPInfoEx);
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct CPINFOEX
+        struct CPINFOEX
         {
-            [MarshalAs(UnmanagedType.U4)] public int MaxCharSize;
+            [MarshalAs(UnmanagedType.U4)]
+            public readonly int MaxCharSize;
 
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = MAX_DEFAULTCHAR)] public byte[] DefaultChar;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = MAX_DEFAULTCHAR)]
+            public readonly byte[] DefaultChar;
 
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = MAX_LEADBYTES)] public byte[] LeadBytes;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = MAX_LEADBYTES)]
+            public readonly byte[] LeadBytes;
 
-            public char UnicodeDefaultChar;
+            public readonly char UnicodeDefaultChar;
 
-            [MarshalAs(UnmanagedType.U4)] public int CodePage;
+            [MarshalAs(UnmanagedType.U4)]
+            public readonly int CodePage;
 
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = MAX_PATH)] public string CodePageName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = MAX_PATH)]
+            public readonly string CodePageName;
         }
     }
 }

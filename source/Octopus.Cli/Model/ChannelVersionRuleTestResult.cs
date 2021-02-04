@@ -1,18 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Octopus.Client.Model;
 
 namespace Octopus.Cli.Model
 {
     public class ChannelVersionRuleTestResult : Resource
     {
+        const string Pass = "PASS";
+        const string Fail = "FAIL";
         public IEnumerable<string> Errors { get; set; }
         public bool SatisfiesVersionRange { get; set; }
         public bool SatisfiesPreReleaseTag { get; set; }
         public bool IsSatisfied => SatisfiesVersionRange && SatisfiesPreReleaseTag;
         public bool IsNull { get; private set; }
-
-        const string Pass = "PASS";
-        const string Fail = "FAIL";
 
         public string ToSummaryString()
         {
@@ -25,7 +25,7 @@ namespace Octopus.Cli.Model
             {
                 IsNull = true,
                 SatisfiesVersionRange = true,
-                SatisfiesPreReleaseTag = true,
+                SatisfiesPreReleaseTag = true
             };
         }
     }

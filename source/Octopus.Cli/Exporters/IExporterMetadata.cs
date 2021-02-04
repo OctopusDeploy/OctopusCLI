@@ -1,4 +1,6 @@
-﻿namespace Octopus.Cli.Exporters
+﻿using System;
+
+namespace Octopus.Cli.Exporters
 {
     public interface IExporterMetadata
     {

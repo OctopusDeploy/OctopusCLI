@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
 using Serilog;
@@ -62,9 +61,7 @@ namespace Octopus.Cli.Util
                     if (File.Exists(path))
                     {
                         if (firstAttemptFailed)
-                        {
                             File.SetAttributes(path, FileAttributes.Normal);
-                        }
                         File.Delete(path);
                         return;
                     }
@@ -76,9 +73,7 @@ namespace Octopus.Cli.Util
                     if (i == options.RetryAttempts - 1)
                     {
                         if (options.ThrowOnFailure)
-                        {
                             throw;
-                        }
 
                         break;
                     }
@@ -117,9 +112,7 @@ namespace Octopus.Cli.Util
                     if (i == options.RetryAttempts - 1)
                     {
                         if (options.ThrowOnFailure)
-                        {
                             throw;
-                        }
                         break;
                     }
                 }
@@ -194,11 +187,9 @@ namespace Octopus.Cli.Util
             {
                 var fileInfo = new FileInfo(path);
                 if (fileInfo.Exists && (fileInfo.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
-                {
                     // Throw a more helpful message than .NET's
                     // System.UnauthorizedAccessException: Access to the path ... is denied.
                     throw new IOException(path + " is a directory not a file");
-                }
                 throw;
             }
         }
@@ -219,9 +210,7 @@ namespace Octopus.Cli.Util
             path = Path.Combine(path, Assembly.GetEntryAssembly() != null ? Assembly.GetEntryAssembly().GetName().Name : "Octopus");
             path = Path.Combine(path, "Temp");
             if (!Directory.Exists(path))
-            {
                 Directory.CreateDirectory(path);
-            }
             return path;
         }
 
@@ -266,12 +255,8 @@ namespace Octopus.Cli.Util
         public void EnsureDirectoryExists(string directoryPath)
         {
             if (!DirectoryExists(directoryPath))
-            {
                 Directory.CreateDirectory(directoryPath);
-            }
-        }
-
-        // ReSharper disable AssignNullToNotNullAttribute
+        } // ReSharper disable AssignNullToNotNullAttribute
 
         public void CopyDirectory(string sourceDirectory, string targetDirectory, int overwriteFileRetryAttempts = 3)
         {
@@ -284,9 +269,7 @@ namespace Octopus.Cli.Util
                 return;
 
             if (!DirectoryExists(targetDirectory))
-            {
                 Directory.CreateDirectory(targetDirectory);
-            }
 
             var files = Directory.GetFiles(sourceDirectory, "*");
             foreach (var sourceFile in files)
@@ -312,39 +295,35 @@ namespace Octopus.Cli.Util
             {
                 try
                 {
-                    FileInfo fi = new FileInfo(targetFile);
+                    var fi = new FileInfo(targetFile);
                     if (fi.Exists)
                     {
                         if ((fi.Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
-                        {
                             fi.Attributes = fi.Attributes & ~FileAttributes.ReadOnly;
-                        }
                     }
                     else
                     {
                         result = ReplaceStatus.Created;
                     }
+
                     File.Copy(sourceFile, targetFile, true);
                     return result;
                 }
                 catch
                 {
                     if (i == overwriteFileRetryAttempts - 1)
-                    {
                         throw;
-                    }
-                    Thread.Sleep(1000 + (2000 * i));
+                    Thread.Sleep(1000 + 2000 * i);
                 }
             }
+
             throw new Exception("Internal error, cannot get here");
         }
 
         public string GetFullPath(string relativeOrAbsoluteFilePath)
         {
             if (!Path.IsPathRooted(relativeOrAbsoluteFilePath))
-            {
                 relativeOrAbsoluteFilePath = Path.GetFullPath(relativeOrAbsoluteFilePath);
-            }
 
             relativeOrAbsoluteFilePath = Path.GetFullPath(relativeOrAbsoluteFilePath);
             return relativeOrAbsoluteFilePath;
@@ -365,9 +344,7 @@ namespace Octopus.Cli.Util
                 {
                     var oldDirectory = Path.GetDirectoryName(oldFilePath);
                     if (!DirectoryExists(Path.GetDirectoryName(oldFilePath)))
-                    {
                         Directory.CreateDirectory(oldDirectory);
-                    }
 
                     var fi = new FileInfo(oldFilePath);
                     if (!fi.Exists)
@@ -378,20 +355,17 @@ namespace Octopus.Cli.Util
                             newStream.CopyTo(fileStream);
                             fileStream.Flush();
                         }
+
                         return ReplaceStatus.Created;
                     }
 
                     if ((fi.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
-                    {
                         // Throw a more helpful message than .NET's
                         // System.UnauthorizedAccessException: Access to the path ... is denied.
                         throw new IOException("Cannot overwrite a directory with a file " + oldFilePath);
-                    }
 
                     if ((fi.Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
-                    {
                         fi.Attributes = fi.Attributes & ~FileAttributes.ReadOnly;
-                    }
 
                     bool equal;
                     using (var oldStream = File.OpenRead(oldFilePath))
@@ -400,26 +374,24 @@ namespace Octopus.Cli.Util
                     }
 
                     if (equal)
-                    {
                         return ReplaceStatus.Unchanged;
-                    }
                     newStream.Seek(0, SeekOrigin.Begin);
                     using (var oldStream = File.Create(oldFilePath))
                     {
                         newStream.CopyTo(oldStream);
                         newStream.Flush();
                     }
+
                     return ReplaceStatus.Updated;
                 }
                 catch
                 {
                     if (i == overwriteFileRetryAttempts - 1)
-                    {
                         throw;
-                    }
-                    Thread.Sleep(1000 + (2000*i));
+                    Thread.Sleep(1000 + 2000 * i);
                 }
             }
+
             throw new Exception("Internal error, cannot get here");
         }
 
@@ -441,6 +413,7 @@ namespace Octopus.Cli.Util
                 if (firstHash[i] != secondHash[i])
                     return false;
             }
+
             return true;
         }
     }

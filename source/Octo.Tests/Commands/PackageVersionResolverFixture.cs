@@ -5,7 +5,6 @@ using FluentAssertions;
 using NUnit.Framework;
 using Octo.Tests.Util;
 using Octopus.Cli.Commands.Releases;
-using Octopus.Cli.Infrastructure;
 using Serilog;
 
 namespace Octo.Tests.Commands
@@ -132,7 +131,6 @@ namespace Octo.Tests.Commands
             Assert.That(resolver.ResolveVersion("StepName", "PackageId", string.Empty), Is.EqualTo("1.1.0"));
         }
 
-
         [Test]
         public void ShouldPreferPackageIdToDefault()
         {
@@ -144,7 +142,6 @@ namespace Octo.Tests.Commands
             Assert.That(resolver.ResolveVersion("StepName", "PackageId", null), Is.EqualTo("1.2.0"));
             Assert.That(resolver.ResolveVersion("StepName", "PackageId", string.Empty), Is.EqualTo("1.2.0"));
         }
-
 
         public static IEnumerable<TestCaseData> CanParseIdAndVersionData()
         {
@@ -179,7 +176,7 @@ namespace Octo.Tests.Commands
             yield return new TestCaseData("acme.web-1.0.0.zip", false, "acme.web", null).SetName("acme.web-1.0.0.zip");
         }
 
-        private static TestCaseData CreateCanParseIdAndVersionCase(string packageId, string version, string ext)
+        static TestCaseData CreateCanParseIdAndVersionCase(string packageId, string version, string ext)
         {
             var filename = $"{packageId}.{version}{ext}";
             return new TestCaseData(filename, true, packageId, version)

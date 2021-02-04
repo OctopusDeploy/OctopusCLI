@@ -12,7 +12,7 @@ namespace Octopus.Cli.Repositories
 {
     public class OctopusRepositoryCommonQueries
     {
-        private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
+        static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
         readonly IOctopusAsyncRepository repository;
         readonly ICommandOutputProvider commandOutputProvider;
 
@@ -58,24 +58,21 @@ namespace Octopus.Cli.Repositories
                     .ConfigureAwait(false);
 
                 if (channel == null)
-                {
                     releaseToPromote = releases
                         .Items // We only need the first page
                         .OrderByDescending(r => OctopusVersionParser.Parse(r.Version))
                         .FirstOrDefault();
-                }
                 else
-                {
-                    await releases.Paginate(repository, page =>
-                    {
-                        releaseToPromote = Enumerable.OrderByDescending<ReleaseResource, OctopusVersion>(page.Items, r => OctopusVersionParser.Parse(r.Version))
-                            .FirstOrDefault(r => r.ChannelId == channel.Id);
+                    await releases.Paginate(repository,
+                            page =>
+                            {
+                                releaseToPromote = page.Items.OrderByDescending(r => OctopusVersionParser.Parse(r.Version))
+                                    .FirstOrDefault(r => r.ChannelId == channel.Id);
 
-                       // If we haven't found one yet, keep paginating
-                       return releaseToPromote == null;
-                    })
-                    .ConfigureAwait(false);
-                }
+                                // If we haven't found one yet, keep paginating
+                                return releaseToPromote == null;
+                            })
+                        .ConfigureAwait(false);
             }
             else
             {
@@ -85,24 +82,18 @@ namespace Octopus.Cli.Repositories
             }
 
             if (releaseToPromote == null)
-            {
                 throw new CouldNotFindException($"the {message}", project.Name);
-            }
             return releaseToPromote;
         }
 
         public async Task<IReadOnlyList<TenantResource>> FindTenants(IReadOnlyList<string> tenantNames, IReadOnlyList<string> tenantTags)
         {
             if (!tenantNames.Any() && !tenantTags.Any())
-            {
                 return new List<TenantResource>(0);
-            }
 
             if (!await repository.SupportsTenants().ConfigureAwait(false))
-            {
                 throw new CommandException(
                     "Your Octopus Server does not support tenants, which was introduced in Octopus 3.4. Please upgrade your Octopus Server, enable the multi-tenancy feature or remove the --tenant and --tenantTag arguments.");
-            }
 
             var tenantsByName = FindTenantsByName(tenantNames).ConfigureAwait(false);
             var tenantsByTags = FindTenantsByTags(tenantTags).ConfigureAwait(false);
@@ -116,17 +107,13 @@ namespace Octopus.Cli.Repositories
             return distinctTenants;
         }
 
-        private async Task<IEnumerable<TenantResource>> FindTenantsByName(IReadOnlyList<string> tenantNames)
+        async Task<IEnumerable<TenantResource>> FindTenantsByName(IReadOnlyList<string> tenantNames)
         {
             if (!tenantNames.Any())
-            {
                 return Enumerable.Empty<TenantResource>();
-            }
 
             if (tenantNames.Contains("*"))
-            {
                 return await repository.Tenants.FindAll().ConfigureAwait(false);
-            }
 
             var tenantsByName = await repository.Tenants.FindByNames(tenantNames).ConfigureAwait(false);
             var missing = tenantsByName == null || !tenantsByName.Any()
@@ -140,36 +127,26 @@ namespace Octopus.Cli.Repositories
                 : missing.Except(tenantsById.Select(e => e.Id), StringComparer.OrdinalIgnoreCase).ToArray();
 
             if (missing.Any())
-            {
                 throw new ArgumentException($"Could not find the {"tenant" + (missing.Length == 1 ? "" : "s")} {string.Join(", ", missing)} on the Octopus Server.");
-            }
 
             var allTenants = Enumerable.Empty<TenantResource>();
             if (tenantsById != null)
-            {
                 allTenants = allTenants.Concat(tenantsById);
-            }
             if (tenantsByName != null)
-            {
                 allTenants = allTenants.Concat(tenantsByName);
-            }
 
             return allTenants;
         }
 
-        private async Task<IEnumerable<TenantResource>> FindTenantsByTags(IReadOnlyList<string> tenantTags)
+        async Task<IEnumerable<TenantResource>> FindTenantsByTags(IReadOnlyList<string> tenantTags)
         {
             if (!tenantTags.Any())
-            {
                 return Enumerable.Empty<TenantResource>();
-            }
 
             var tenantsByTag = await repository.Tenants.FindAll(null, tenantTags.ToArray()).ConfigureAwait(false);
 
             if (!tenantsByTag.Any())
-            {
                 throw new ArgumentException($"Could not find any tenants matching the tags {string.Join(", ", tenantTags)}");
-            }
 
             return tenantsByTag;
         }

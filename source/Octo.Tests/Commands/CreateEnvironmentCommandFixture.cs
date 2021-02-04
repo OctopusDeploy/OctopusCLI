@@ -11,7 +11,7 @@ namespace Octo.Tests.Commands
 {
     public class CreateEnvironmentCommandFixture : ApiCommandFixtureBase
     {
-        private CreateEnvironmentCommand createEnvironmentCommand;
+        CreateEnvironmentCommand createEnvironmentCommand;
 
         [SetUp]
         public void Setup()
@@ -44,7 +44,7 @@ namespace Octo.Tests.Commands
 
             Repository.Environments.FindByName(Arg.Any<string>()).Returns((EnvironmentResource)null);
             Repository.Environments.Create(Arg.Any<EnvironmentResource>())
-                .Returns(new EnvironmentResource {Id = Guid.NewGuid().ToString(), Name = newEnv});
+                .Returns(new EnvironmentResource { Id = Guid.NewGuid().ToString(), Name = newEnv });
 
             await createEnvironmentCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
@@ -53,6 +53,5 @@ namespace Octo.Tests.Commands
             JsonConvert.DeserializeObject(logoutput);
             logoutput.Should().Contain(newEnv);
         }
-
     }
 }

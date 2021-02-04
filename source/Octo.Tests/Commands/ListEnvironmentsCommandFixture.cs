@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Newtonsoft.Json;
@@ -10,7 +11,7 @@ using Octopus.Client.Model;
 namespace Octo.Tests.Commands
 {
     [TestFixture]
-    public class ListEnvironmentsCommandFixture: ApiCommandFixtureBase
+    public class ListEnvironmentsCommandFixture : ApiCommandFixtureBase
     {
         ListEnvironmentsCommand listEnvironmentsCommand;
 
@@ -36,7 +37,7 @@ namespace Octo.Tests.Commands
         public async Task JsonFormat_ShouldBeWellFormed()
         {
             SetupEnvironments();
-            
+
             CommandLineArgs.Add("--outputFormat=json");
             await listEnvironmentsCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
@@ -46,14 +47,14 @@ namespace Octo.Tests.Commands
             logoutput.Should().Contain("prodenvid");
         }
 
-        private void SetupEnvironments()
+        void SetupEnvironments()
         {
-            Repository.Environments.FindAll().Returns(new List<EnvironmentResource>
-            {
-                new EnvironmentResource() {Name = "Dev", Id = "devenvid"},
-                new EnvironmentResource() {Name = "Prod", Id = "prodenvid"}
-            });
+            Repository.Environments.FindAll()
+                .Returns(new List<EnvironmentResource>
+                {
+                    new EnvironmentResource { Name = "Dev", Id = "devenvid" },
+                    new EnvironmentResource { Name = "Prod", Id = "prodenvid" }
+                });
         }
-
     }
 }

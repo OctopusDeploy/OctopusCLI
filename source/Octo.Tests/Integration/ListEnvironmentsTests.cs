@@ -1,11 +1,12 @@
-﻿using FluentAssertions;
+﻿using System;
+using FluentAssertions;
 using NUnit.Framework;
 
 namespace Octo.Tests.Integration
 {
     public class ListEnvironmentsTests : IntegrationTestBase
     {
-        private const string EnvironmentName = "Foo Environment";
+        const string EnvironmentName = "Foo Environment";
 
         public ListEnvironmentsTests()
         {

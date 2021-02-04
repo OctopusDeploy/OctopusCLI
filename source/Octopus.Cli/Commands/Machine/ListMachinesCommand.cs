@@ -8,7 +8,6 @@ using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
 using Octopus.Client.Model.Endpoints;
-using Serilog;
 
 namespace Octopus.Cli.Commands.Machine
 {
@@ -18,12 +17,12 @@ namespace Octopus.Cli.Commands.Machine
         readonly HashSet<string> environments = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         readonly HashSet<MachineModelStatus> statuses = new HashSet<MachineModelStatus>();
         readonly HashSet<MachineModelHealthStatus> healthStatuses = new HashSet<MachineModelHealthStatus>();
-        private HealthStatusProvider provider;
+        HealthStatusProvider provider;
         List<EnvironmentResource> environmentResources;
         IEnumerable<MachineResource> environmentMachines;
-        private bool? isDisabled;
-        private bool? isCalamariOutdated;
-        private bool? isTentacleOutdated;
+        bool? isDisabled;
+        bool? isCalamariOutdated;
+        bool? isTentacleOutdated;
 
         public ListMachinesCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
@@ -40,7 +39,11 @@ namespace Octopus.Cli.Commands.Machine
         public async Task Request()
         {
             var rootDocument = await Repository.LoadRootDocument().ConfigureAwait(false);
-            provider = new HealthStatusProvider(Repository, statuses, healthStatuses, commandOutputProvider, rootDocument);
+            provider = new HealthStatusProvider(Repository,
+                statuses,
+                healthStatuses,
+                commandOutputProvider,
+                rootDocument);
 
             environmentResources = await GetEnvironments().ConfigureAwait(false);
 
@@ -65,53 +68,49 @@ namespace Octopus.Cli.Commands.Machine
             }));
         }
 
-        private void LogFilteredMachines(IEnumerable<MachineResource> environmentMachines, HealthStatusProvider provider, List<EnvironmentResource> environmentResources)
+        void LogFilteredMachines(IEnumerable<MachineResource> environmentMachines, HealthStatusProvider provider, List<EnvironmentResource> environmentResources)
         {
             var orderedMachines = environmentMachines.OrderBy(m => m.Name).ToList();
             commandOutputProvider.Information("Machines: {Count}", orderedMachines.Count);
             foreach (var machine in orderedMachines)
             {
-                commandOutputProvider.Information(" - {Machine:l} {Status:l} (ID: {MachineId:l}) in {Environments:l}", machine.Name, provider.GetStatus(machine), machine.Id,
+                commandOutputProvider.Information(" - {Machine:l} {Status:l} (ID: {MachineId:l}) in {Environments:l}",
+                    machine.Name,
+                    provider.GetStatus(machine),
+                    machine.Id,
                     string.Join(" and ", machine.EnvironmentIds.Select(id => environmentResources.First(e => e.Id == id).Name)));
             }
         }
 
-        private Task<List<EnvironmentResource>> GetEnvironments()
+        Task<List<EnvironmentResource>> GetEnvironments()
         {
             commandOutputProvider.Debug("Loading environments...");
             return Repository.Environments.FindAll();
         }
 
-        private IEnumerable<MachineResource> FilterByState(IEnumerable<MachineResource> environmentMachines, HealthStatusProvider provider)
+        IEnumerable<MachineResource> FilterByState(IEnumerable<MachineResource> environmentMachines, HealthStatusProvider provider)
         {
             environmentMachines = provider.Filter(environmentMachines);
 
             if (isDisabled.HasValue)
-            {
                 environmentMachines = environmentMachines.Where(m => m.IsDisabled == isDisabled.Value);
-            }
             if (isCalamariOutdated.HasValue)
-            {
                 environmentMachines = environmentMachines.Where(m => m.HasLatestCalamari == !isCalamariOutdated.Value);
-            }
             if (isTentacleOutdated.HasValue)
-            {
                 environmentMachines =
                     environmentMachines.Where(
                         m =>
                             (m.Endpoint as ListeningTentacleEndpointResource)?.TentacleVersionDetails.UpgradeSuggested ==
                             isTentacleOutdated.Value);
-            }
             return environmentMachines;
         }
 
-        private  Task<List<MachineResource>> FilterByEnvironments(List<EnvironmentResource> environmentResources)
+        Task<List<MachineResource>> FilterByEnvironments(List<EnvironmentResource> environmentResources)
         {
             var environmentsToInclude = environmentResources.Where(e => environments.Contains(e.Name, StringComparer.OrdinalIgnoreCase)).ToList();
             var missingEnvironments = environments.Except(environmentsToInclude.Select(e => e.Name), StringComparer.OrdinalIgnoreCase).ToList();
             if (missingEnvironments.Any())
                 throw new CouldNotFindException("environment(s) named", string.Join(", ", missingEnvironments));
-
 
             var environmentFilter = environmentsToInclude.Select(p => p.Id).ToList();
 
@@ -120,14 +119,12 @@ namespace Octopus.Cli.Commands.Machine
             {
                 commandOutputProvider.Debug("Loading machines from {Environments:l}...", string.Join(", ", environmentsToInclude.Select(e => e.Name)));
                 return
-                     Repository.Machines.FindMany(
+                    Repository.Machines.FindMany(
                         x => { return x.EnvironmentIds.Any(environmentId => environmentFilter.Contains(environmentId)); });
             }
-            else
-            {
-                commandOutputProvider.Debug("Loading machines from all environments...");
-                return  Repository.Machines.FindAll();
-            }
+
+            commandOutputProvider.Debug("Loading machines from all environments...");
+            return Repository.Machines.FindAll();
         }
     }
 }

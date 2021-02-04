@@ -16,9 +16,8 @@ namespace Octo.Tests.Commands
         VersionCommand versionCommand;
         StringWriter output;
         TextWriter originalOutput;
-        private ICommandOutputProvider commandOutputProvider;
-        private ILogger logger;
-
+        ICommandOutputProvider commandOutputProvider;
+        ILogger logger;
 
         [SetUp]
         public void SetUp()
@@ -44,23 +43,22 @@ namespace Octo.Tests.Commands
                 .Should()
                 .Contain(version);
         }
-        
-        private static string AssemblyPath()
+
+        static string AssemblyPath()
         {
             var codeBase = Assembly.GetExecutingAssembly().CodeBase;
             var uri = new UriBuilder(codeBase);
             var root = Uri.UnescapeDataString(uri.Path);
-            root = root.Replace('/',Path.DirectorySeparatorChar);
+            root = root.Replace('/', Path.DirectorySeparatorChar);
             return root;
         }
 
-        private string GetVersionFromFile(string versionFilePath)
+        string GetVersionFromFile(string versionFilePath)
         {
             using (var reader = new StreamReader(File.OpenRead(versionFilePath)))
             {
                 return reader.ReadLine();
             }
         }
-
     }
 }

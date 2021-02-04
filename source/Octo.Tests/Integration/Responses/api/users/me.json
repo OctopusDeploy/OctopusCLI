@@ -1,13 +1,13 @@
 {
-  "Username": null,
-  "DisplayName": null,
-  "IsActive": false,
-  "IsService": false,
-  "EmailAddress": null,
-  "CanPasswordBeEdited": false,
-  "IsRequestor": false,
-  "Identities": [],
-  "Links": {
-    "Spaces": "/{TestRootPath}/api/users/users-1/spaces"
-  }
+    "Username": null,
+    "DisplayName": null,
+    "IsActive": false,
+    "IsService": false,
+    "EmailAddress": null,
+    "CanPasswordBeEdited": false,
+    "IsRequestor": false,
+    "Identities": [],
+    "Links": {
+        "Spaces": "/{TestRootPath}/api/users/users-1/spaces"
+    }
 }

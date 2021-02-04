@@ -14,7 +14,7 @@ namespace Octopus.Cli.Commands.Releases
     [Command("delete-releases", Description = "Deletes a range of releases.")]
     public class DeleteReleasesCommand : ApiCommand, ISupportFormattedOutput
     {
-        private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
+        static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
         ProjectResource project;
         HashSet<string> channels;
         ResourceCollection<ReleaseResource> releases;
@@ -48,7 +48,6 @@ namespace Octopus.Cli.Commands.Releases
             var min = OctopusVersionParser.Parse(MinVersion);
             var max = OctopusVersionParser.Parse(MaxVersion);
 
-
             project = await GetProject().ConfigureAwait(false);
             var channelsTask = GetChannelIds(project);
             releases = await Repository.Projects.GetReleases(project).ConfigureAwait(false);
@@ -59,44 +58,43 @@ namespace Octopus.Cli.Commands.Releases
 
             toDelete = new List<ReleaseResource>();
             wouldDelete = new List<ReleaseResource>();
-            await releases.Paginate(Repository, page =>
-            {
-                foreach (var release in page.Items)
-                {
-                    if (channels.Any() && !channels.Contains(release.ChannelId))
-                        continue;
-
-                    var version = OctopusVersionParser.Parse(release.Version);
-                    if (min.CompareTo(version) > 0 || version.CompareTo(max) > 0)
-                        continue;
-
-                    if (WhatIf)
+            await releases.Paginate(Repository,
+                    page =>
                     {
-                        commandOutputProvider.Information("[WhatIf] Version {Version:l} would have been deleted", version);
-                        wouldDelete.Add(release);
-                    }
-                    else
-                    {
-                        toDelete.Add(release);
-                        commandOutputProvider.Information("Deleting version {Version:l}", version);
-                    }
-                }
+                        foreach (var release in page.Items)
+                        {
+                            if (channels.Any() && !channels.Contains(release.ChannelId))
+                                continue;
 
-                // We need to consider all releases
-                return true;
-            })
-            .ConfigureAwait(false);
+                            var version = OctopusVersionParser.Parse(release.Version);
+                            if (min.CompareTo(version) > 0 || version.CompareTo(max) > 0)
+                                continue;
+
+                            if (WhatIf)
+                            {
+                                commandOutputProvider.Information("[WhatIf] Version {Version:l} would have been deleted", version);
+                                wouldDelete.Add(release);
+                            }
+                            else
+                            {
+                                toDelete.Add(release);
+                                commandOutputProvider.Information("Deleting version {Version:l}", version);
+                            }
+                        }
+
+                        // We need to consider all releases
+                        return true;
+                    })
+                .ConfigureAwait(false);
 
             // Don't do anything else for WhatIf
             if (WhatIf) return;
 
             foreach (var release in toDelete)
-            {
                 await Repository.Client.Delete(release.Link("Self")).ConfigureAwait(false);
-            }
         }
 
-        private async Task<HashSet<string>> GetChannelIds(ProjectResource project)
+        async Task<HashSet<string>> GetChannelIds(ProjectResource project)
         {
             if (ChannelNames.None())
                 return new HashSet<string>();
@@ -115,7 +113,7 @@ namespace Octopus.Cli.Commands.Releases
             return new HashSet<string>(channels.Select(c => c.Id));
         }
 
-        private async Task<ProjectResource> GetProject()
+        async Task<ProjectResource> GetProject()
         {
             commandOutputProvider.Debug("Finding project: {Project:l}", ProjectName);
             var project = await Repository.Projects.FindByName(ProjectName).ConfigureAwait(false);
@@ -126,19 +124,18 @@ namespace Octopus.Cli.Commands.Releases
 
         public void PrintDefaultOutput()
         {
-
         }
 
         public void PrintJsonOutput()
         {
-            List<ReleaseResource> affectedReleases = WhatIf ? wouldDelete : toDelete;
+            var affectedReleases = WhatIf ? wouldDelete : toDelete;
             commandOutputProvider.Json(new
             {
                 Project = new { project.Id, project.Name },
                 Releases = affectedReleases.Select(r => new
                     {
                         r.Version,
-                        Deleted = toDelete.Any(x=>x.Version == r.Version)
+                        Deleted = toDelete.Any(x => x.Version == r.Version)
                     }
                 )
             });

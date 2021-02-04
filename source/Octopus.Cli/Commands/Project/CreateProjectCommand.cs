@@ -5,7 +5,6 @@ using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
-using Serilog;
 
 namespace Octopus.Cli.Commands.Project
 {
@@ -14,7 +13,7 @@ namespace Octopus.Cli.Commands.Project
     {
         ProjectResource project;
         ProjectGroupResource projectGroup;
-        private bool projectGroupCreated = false;
+        bool projectGroupCreated;
 
         public CreateProjectCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
@@ -22,7 +21,7 @@ namespace Octopus.Cli.Commands.Project
             var options = Options.For("Project creation");
             options.Add<string>("name=", "The name of the project.", v => ProjectName = v);
             options.Add<string>("projectGroup=", "The name of the project group to add this project to. If the group doesn't exist, it will be created.", v => ProjectGroupName = v);
-            options.Add<string>("lifecycle=", "The name of the lifecycle that the project will use.", v=> LifecycleName = v);
+            options.Add<string>("lifecycle=", "The name of the lifecycle that the project will use.", v => LifecycleName = v);
             options.Add<bool>("ignoreIfExists", "If the project already exists, an error will be returned. Set this flag to ignore the error.", v => IgnoreIfExists = true);
         }
 
@@ -30,7 +29,7 @@ namespace Octopus.Cli.Commands.Project
         public string ProjectGroupName { get; set; }
         public bool IgnoreIfExists { get; set; }
         public string LifecycleName { get; set; }
-        
+
         public async Task Request()
         {
             if (string.IsNullOrWhiteSpace(ProjectGroupName)) throw new CommandException("Please specify a project group name using the parameter: --projectGroup=XYZ");
@@ -52,7 +51,6 @@ namespace Octopus.Cli.Commands.Project
             if (lifecycle == null)
                 throw new CommandException($"The lifecycle {LifecycleName} does not exist.");
 
-            
             project = await Repository.Projects.FindByName(ProjectName).ConfigureAwait(false);
             if (project != null)
             {

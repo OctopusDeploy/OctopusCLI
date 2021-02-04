@@ -1,10 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
-using Serilog;
 
 namespace Octopus.Cli.Commands.Environment
 {
@@ -27,7 +27,7 @@ namespace Octopus.Cli.Commands.Environment
         public async Task Request()
         {
             if (string.IsNullOrWhiteSpace(EnvironmentName)) throw new CommandException("Please specify an environment name using the parameter: --name=XYZ");
-            
+
             env = await Repository.Environments.FindByName(EnvironmentName).ConfigureAwait(false);
             if (env != null)
             {
@@ -41,9 +41,9 @@ namespace Octopus.Cli.Commands.Environment
             }
 
             commandOutputProvider.Information("Creating environment: {Environment:l}", EnvironmentName);
-            env = await Repository.Environments.Create(new EnvironmentResource {Name = EnvironmentName}).ConfigureAwait(false);
+            env = await Repository.Environments.Create(new EnvironmentResource { Name = EnvironmentName }).ConfigureAwait(false);
         }
-        
+
         public void PrintDefaultOutput()
         {
             commandOutputProvider.Information("Environment created. ID: {Id:l}", env.Id);
@@ -54,7 +54,7 @@ namespace Octopus.Cli.Commands.Environment
             commandOutputProvider.Json(new
             {
                 env.Id,
-                env.Name,
+                env.Name
             });
         }
     }

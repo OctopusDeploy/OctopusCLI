@@ -15,8 +15,8 @@ namespace Octopus.Cli.Exporters
     [Exporter("release", "List", Description = "Exports either a single release, or multiple releases.")]
     public class ReleaseExporter : BaseExporter
     {
-        private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
-        
+        static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
+
         public ReleaseExporter(IOctopusAsyncRepository repository, IOctopusFileSystem fileSystem, ILogger log) :
             base(repository, fileSystem, log)
         {
@@ -48,7 +48,7 @@ namespace Octopus.Cli.Exporters
             }
             else if (releaseVersion.IndexOf("-", StringComparison.Ordinal) > 0)
             {
-                var releaseVersions = releaseVersion.Split(new[] {'-'}, StringSplitOptions.RemoveEmptyEntries);
+                var releaseVersions = releaseVersion.Split(new[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
                 if (releaseVersions.Count() > 2)
                     throw new CommandException("Incorrect format for exporting multiple releases, please specify the release versions as --releaseVersion=1.0.0-1.0.3");
 
@@ -68,34 +68,33 @@ namespace Octopus.Cli.Exporters
             Log.Debug("Finding releases for project...");
             var releasesToExport = new List<ReleaseResource>();
             var releases = await Repository.Projects.GetReleases(project).ConfigureAwait(false);
-            await releases.Paginate(Repository, page =>
-            {
-                foreach (var release in page.Items)
-                {
-                    var version = OctopusVersionParser.Parse(release.Version);
-                    if (minVersionToExport.CompareTo(version) <= 0 && version.CompareTo(maxVersionToExport) <= 0)
+            await releases.Paginate(Repository,
+                    page =>
                     {
-                        Log.Debug("Found release {Version:l}", version);
-                        releasesToExport.Add(release);
-
-                        if (minVersionToExport == maxVersionToExport)
+                        foreach (var release in page.Items)
                         {
-                            break;
-                        }
-                    }
-                }
+                            var version = OctopusVersionParser.Parse(release.Version);
+                            if (minVersionToExport.CompareTo(version) <= 0 && version.CompareTo(maxVersionToExport) <= 0)
+                            {
+                                Log.Debug("Found release {Version:l}", version);
+                                releasesToExport.Add(release);
 
-                // Stop paging if the range is a single version, or if there is only a single release worth exporting after this page
-                return (minVersionToExport != maxVersionToExport) || releasesToExport.Count != 1;
-            })
-            .ConfigureAwait(false);
+                                if (minVersionToExport == maxVersionToExport)
+                                    break;
+                            }
+                        }
+
+                        // Stop paging if the range is a single version, or if there is only a single release worth exporting after this page
+                        return minVersionToExport != maxVersionToExport || releasesToExport.Count != 1;
+                    })
+                .ConfigureAwait(false);
 
             var metadata = new ExportMetadata
             {
                 ExportedAt = DateTime.Now,
                 OctopusVersion = (await Repository.LoadRootDocument().ConfigureAwait(false)).Version,
-                Type = typeof (ReleaseExporter).GetAttributeValue((ExporterAttribute ea) => ea.Name),
-                ContainerType = typeof (ReleaseExporter).GetAttributeValue((ExporterAttribute ea) => ea.EntityType)
+                Type = typeof(ReleaseExporter).GetAttributeValue((ExporterAttribute ea) => ea.Name),
+                ContainerType = typeof(ReleaseExporter).GetAttributeValue((ExporterAttribute ea) => ea.EntityType)
             };
             FileSystemExporter.Export(FilePath, metadata, releasesToExport);
         }

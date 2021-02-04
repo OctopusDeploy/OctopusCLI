@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -52,14 +53,14 @@ namespace Octo.Tests.Commands
                 .Returns(Task.FromResult(
                     new List<ProjectResource>
                     {
-                        new ProjectResource {Name = "ProjectA", Id = "projectaid"}
+                        new ProjectResource { Name = "ProjectA", Id = "projectaid" }
                     }));
 
             Repository.Environments.FindAll()
                 .Returns(Task.FromResult(
                     new List<EnvironmentResource>
                     {
-                        new EnvironmentResource {Name = "EnvA", Id = "environmentid1"}
+                        new EnvironmentResource { Name = "EnvA", Id = "environmentid1" }
                     }));
 
             Repository.Releases.Get(Arg.Is("Release1")).Returns(new ReleaseResource { Version = "0.0.1" });

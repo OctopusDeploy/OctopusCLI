@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
@@ -13,7 +14,7 @@ namespace Octopus.Cli.Commands.Releases
     [Command("allow-releaseprogression", Description = "Allows a release to progress to the next phase.")]
     public class AllowReleaseProgressionCommand : ApiCommand, ISupportFormattedOutput
     {
-        private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
+        static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
         ProjectResource project;
         ReleaseResource release;
 

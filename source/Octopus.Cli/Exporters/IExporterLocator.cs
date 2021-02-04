@@ -1,6 +1,6 @@
-﻿using Octopus.Cli.Util;
+﻿using System;
+using Octopus.Cli.Util;
 using Octopus.Client;
-using Serilog;
 
 namespace Octopus.Cli.Exporters
 {

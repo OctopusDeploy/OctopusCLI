@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -7,7 +6,6 @@ using NSubstitute;
 using NUnit.Framework;
 using Octopus.Cli.Commands;
 using Octopus.Cli.Infrastructure;
-using Octopus.Cli.Repositories;
 using Octopus.Cli.Tests.Helpers;
 using Octopus.Client;
 using Octopus.Client.Model;
@@ -29,7 +27,7 @@ namespace Octo.Tests.Commands
         public void ShouldThrowIfNoServerSpecified()
         {
             Environment.SetEnvironmentVariable(ApiCommand.ServerUrlEnvVar, "");
-            Assert.Throws<CommandException>(() => apiCommand.Execute("--apiKey=ABCDEF123456789"));    
+            Assert.Throws<CommandException>(() => apiCommand.Execute("--apiKey=ABCDEF123456789"));
         }
 
         [Test]
@@ -38,14 +36,14 @@ namespace Octo.Tests.Commands
             Environment.SetEnvironmentVariable(ApiCommand.ApiKeyEnvVar, "");
             Assert.Throws<CommandException>(() => apiCommand.Execute("--server=http://the-server"));
         }
-        
+
         [Test]
         public void ShouldNotThrowIfApiKeySetInEnvVar()
         {
             Environment.SetEnvironmentVariable(ApiCommand.ApiKeyEnvVar, "whatever");
             apiCommand.Execute("--server=http://the-server");
         }
-        
+
         [Test]
         public void ShouldNotThrowIfServerSetInEnvVar()
         {
@@ -69,14 +67,14 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--timeout=" + input);
             TestCommandExtensions.Execute(apiCommand, CommandLineArgs.ToArray());
         }
-        
+
         [Test]
         public void ShouldThrowNiceExceptionForInvalidTimeout()
         {
             CommandLineArgs.Add("--timeout=fred");
             Assert.Throws<CommandException>(() => TestCommandExtensions.Execute(apiCommand, CommandLineArgs.ToArray()));
         }
-        
+
         [Test]
         public void ShouldSupportValidIntForKeepAlive()
         {
@@ -85,14 +83,14 @@ namespace Octo.Tests.Commands
             TestCommandExtensions.Execute(apiCommand, CommandLineArgs.ToArray());
 #endif
         }
-        
+
         [Test]
         public void ShouldThrowNiceExceptionForInvalidKeepalive()
         {
             CommandLineArgs.Add("--keepalive=fred");
             Assert.Throws<CommandException>(() => TestCommandExtensions.Execute(apiCommand, CommandLineArgs.ToArray()));
         }
-        
+
         [Test]
         public Task ShouldNotThrowIfCustomOptionsAreAddedByCommand()
         {
@@ -112,11 +110,11 @@ namespace Octo.Tests.Commands
             var client = Substitute.For<IOctopusAsyncClient>();
             ClientFactory.CreateAsyncClient(null).ReturnsForAnyArgs(client);
 
-            Repository.Spaces.FindByName(Arg.Any<string>()).Returns(new SpaceResource {Id = "Spaces-2"});
+            Repository.Spaces.FindByName(Arg.Any<string>()).Returns(new SpaceResource { Id = "Spaces-2" });
             client.ForSystem().Returns(Repository);
 
             apiCommand = new DummyApiCommand(RepositoryFactory, FileSystem, ClientFactory, CommandOutputProvider);
-            var argsWithSpaceName = CommandLineArgs.Concat(new []{"--space=abc"});
+            var argsWithSpaceName = CommandLineArgs.Concat(new[] { "--space=abc" });
             return apiCommand.Execute(argsWithSpaceName.ToArray());
         }
 
@@ -131,19 +129,21 @@ namespace Octo.Tests.Commands
 
             apiCommand = new DummyApiCommand(RepositoryFactory, FileSystem, ClientFactory, CommandOutputProvider);
             var argsWithSpaceName = CommandLineArgs.Concat(new[] { "--space=test" });
-            bool isInRightSpaceContext = false;
-            RepositoryFactory.CreateRepository(client, Arg.Do<RepositoryScope>(x =>
-            {
-                x.Apply(space =>
+            var isInRightSpaceContext = false;
+            RepositoryFactory.CreateRepository(client,
+                Arg.Do<RepositoryScope>(x =>
                 {
-                    space.Id.Should().Be("Spaces-2");
-                    isInRightSpaceContext = true;
-                }, () => { }, () => { });
-            }));
+                    x.Apply(space =>
+                        {
+                            space.Id.Should().Be("Spaces-2");
+                            isInRightSpaceContext = true;
+                        },
+                        () => { },
+                        () => { });
+                }));
 
             await apiCommand.Execute(argsWithSpaceName.ToArray()).ConfigureAwait(false);
             Assert.IsTrue(isInRightSpaceContext);
-            
         }
 
         [Test]

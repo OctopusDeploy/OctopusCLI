@@ -12,8 +12,8 @@ namespace Octopus.Cli.Commands
     public abstract class CommandBase : ICommand
     {
         protected readonly ICommandOutputProvider commandOutputProvider;
-        protected bool printHelp;
         protected readonly ISupportFormattedOutput formattedOutputInstance;
+        protected bool printHelp;
 
         protected CommandBase(ICommandOutputProvider commandOutputProvider)
         {
@@ -24,13 +24,9 @@ namespace Octopus.Cli.Commands
             options.Add<OutputFormat>("helpOutputFormat=", $"[Optional] Output format for help, valid options are {Enum.GetNames(typeof(OutputFormat)).ReadableJoin("or")}", s => HelpOutputFormat = s);
             formattedOutputInstance = this as ISupportFormattedOutput;
             if (formattedOutputInstance != null)
-            {
                 options.Add<OutputFormat>("outputFormat=", $"[Optional] Output format, valid options are {Enum.GetNames(typeof(OutputFormat)).ReadableJoin("or")}", s => OutputFormat = s);
-            }
             else
-            {
                 commandOutputProvider.PrintMessages = true;
-            }
         }
 
         protected internal Options Options { get; } = new Options();
@@ -43,7 +39,7 @@ namespace Octopus.Cli.Commands
 
         public virtual void GetHelp(TextWriter writer, string[] args)
         {
-            var typeInfo = this.GetType().GetTypeInfo();
+            var typeInfo = GetType().GetTypeInfo();
 
             var executable = AssemblyExtensions.GetExecutableName();
             var commandAttribute = typeInfo.GetCustomAttribute<CommandAttribute>();
@@ -60,14 +56,10 @@ namespace Octopus.Cli.Commands
             }
 
             commandOutputProvider.PrintMessages = HelpOutputFormat == OutputFormat.Default;
-            if (HelpOutputFormat  == OutputFormat.Json)
-            {
+            if (HelpOutputFormat == OutputFormat.Json)
                 PrintJsonHelpOutput(writer, commandName, description);
-            }
             else
-            {
                 PrintDefaultHelpOutput(writer, executable, commandName, description);
-            }
         }
 
         protected virtual void PrintDefaultHelpOutput(TextWriter writer, string executable, string commandName, string description)
@@ -76,27 +68,29 @@ namespace Octopus.Cli.Commands
             commandOutputProvider.PrintCommandOptions(Options, writer);
         }
 
-        private void PrintJsonHelpOutput(TextWriter writer, string commandName, string description)
+        void PrintJsonHelpOutput(TextWriter writer, string commandName, string description)
         {
             commandOutputProvider.Json(new
-            {
-                Command = commandName,
-                Description = description,
-                Options = Options.OptionSets.OrderByDescending(x => x.Key).Select(g => new
                 {
-                    @Group = g.Key,
-                    Parameters = g.Value.Select(p => new
-                    {
-                        Name = p.Names.First(),
-                        Usage = $"{(p.Prototype.Length == 1 ? "-" : "--")}{p.Prototype}{(p.Prototype.EndsWith("=") ? "VALUE" : string.Empty)}",
-                        p.Description,
-                        Type = p.Type.Name,
-                        Sensitive = p.Sensitive ? (bool?)true : null,
-                        AllowsMultiple = p.AllowsMultiple ? (bool?)true : null, //allows tools (such as nuke.build) to auto-generate better code
-                        Values = p.Type.IsEnum ? Enum.GetNames(p.Type).Where(x => p.Type.GetField(x).GetCustomAttribute<ObsoleteAttribute>() == null) : null
-                    })
-                })
-            }, writer);
+                    Command = commandName,
+                    Description = description,
+                    Options = Options.OptionSets.OrderByDescending(x => x.Key)
+                        .Select(g => new
+                        {
+                            Group = g.Key,
+                            Parameters = g.Value.Select(p => new
+                            {
+                                Name = p.Names.First(),
+                                Usage = $"{(p.Prototype.Length == 1 ? "-" : "--")}{p.Prototype}{(p.Prototype.EndsWith("=") ? "VALUE" : string.Empty)}",
+                                p.Description,
+                                Type = p.Type.Name,
+                                Sensitive = p.Sensitive ? (bool?)true : null,
+                                AllowsMultiple = p.AllowsMultiple ? (bool?)true : null, //allows tools (such as nuke.build) to auto-generate better code
+                                Values = p.Type.IsEnum ? Enum.GetNames(p.Type).Where(x => p.Type.GetField(x).GetCustomAttribute<ObsoleteAttribute>() == null) : null
+                            })
+                        })
+                },
+                writer);
         }
     }
 }

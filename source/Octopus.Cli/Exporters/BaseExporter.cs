@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Octopus.Cli.Util;
 using Octopus.Client;
@@ -10,8 +11,8 @@ namespace Octopus.Cli.Exporters
     {
         protected BaseExporter(IOctopusAsyncRepository repository, IOctopusFileSystem fileSystem, ILogger log)
         {
-            this.Log = log;
-            this.Repository = repository;
+            Log = log;
+            Repository = repository;
             FileSystemExporter = new FileSystemExporter(fileSystem, log);
         }
 
@@ -41,9 +42,10 @@ namespace Octopus.Cli.Exporters
             var paramDictionary = new Dictionary<string, string>();
             foreach (var parameter in parameters)
             {
-                var values = parameter.Split(new[] {'='});
+                var values = parameter.Split('=');
                 paramDictionary.Add(values[0], values[1]);
             }
+
             return paramDictionary;
         }
     }

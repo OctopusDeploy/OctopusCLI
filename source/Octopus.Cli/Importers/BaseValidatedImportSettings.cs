@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Octopus.Cli.Importers
 {
-    internal abstract class BaseValidatedImportSettings
+    abstract class BaseValidatedImportSettings
     {
         protected BaseValidatedImportSettings()
         {

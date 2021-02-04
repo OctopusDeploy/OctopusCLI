@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿using System;
 using NUnit.Framework;
 using Octopus.Cli.Commands.Package;
 using Octopus.Cli.Infrastructure;
@@ -23,7 +23,7 @@ namespace Octo.Tests.Commands
             optionSet.Add<string>("apiKey=", "API key", v => apiKey = v);
             optionSet.Add<string>("foo=", "Foo", v => foo = v);
 
-            optionSet.Parse(new[] {parameter1, parameter2});
+            optionSet.Parse(new[] { parameter1, parameter2 });
 
             Assert.That(apiKey, Is.EqualTo("abc123"));
             Assert.That(foo, Is.EqualTo("bar"));
@@ -35,7 +35,7 @@ namespace Octo.Tests.Commands
             var optionSet = new OptionSet();
             optionSet.Add<PackageFormat>("packageFormat=", "Package Format", v => { });
 
-            var ex = Assert.Throws<CommandException>(() => optionSet.Parse(new[] {"--packageFormat", "invalidvalue"}));
+            var ex = Assert.Throws<CommandException>(() => optionSet.Parse(new[] { "--packageFormat", "invalidvalue" }));
             Assert.That(ex.Message, Is.EqualTo("Could not convert string `invalidvalue' to type PackageFormat for option `--packageFormat'. Valid values are Zip, NuPkg and Nuget."));
         }
     }

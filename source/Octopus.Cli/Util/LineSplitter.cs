@@ -49,14 +49,10 @@ namespace Octopus.Cli.Util
                 }
 
                 if (currentLine.Length >= MaxLineLength - additional)
-                {
                     pop(true);
-                }
 
                 if (char.IsWhiteSpace(c) && lastWasWhitespace)
-                {
                     continue;
-                }
 
                 currentLine.Append(c);
 

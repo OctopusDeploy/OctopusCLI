@@ -17,7 +17,28 @@ namespace Octo.Tests.Commands
     public abstract class ApiCommandFixtureBase
     {
         protected const string ValidEnvironment = "Test Environment";
-        private static string _previousCurrentDirectory;
+        static string _previousCurrentDirectory;
+
+        public StringBuilder LogOutput { get; set; }
+        public string[] LogLines => LogOutput.ToString().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+        public IOctopusClientFactory ClientFactory { get; set; }
+
+        public ILogger Log { get; set; }
+
+        public ILogger FormattedOutputLogger { get; set; }
+
+        public IOctopusAsyncRepositoryFactory RepositoryFactory { get; set; }
+
+        public IOctopusAsyncRepository Repository { get; set; }
+
+        public IOctopusFileSystem FileSystem { get; set; }
+
+        public ICommandOutputProvider CommandOutputProvider { get; set; }
+
+        public ExecutionResourceWaiter.Factory ExecutionResourceWaiterFactory => (repository, serverBaseUrl) => new ExecutionResourceWaiter(Substitute.For<ICommandOutputProvider>(), repository, serverBaseUrl);
+
+        public List<string> CommandLineArgs { get; set; }
 
         [OneTimeSetUp]
         public static void OneTimeSetUp()
@@ -28,7 +49,6 @@ namespace Octo.Tests.Commands
 #else
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
 #endif
-
         }
 
         [OneTimeTearDown]
@@ -66,7 +86,7 @@ namespace Octo.Tests.Commands
                 .Returns(new List<MachineResource>());
 
             Repository.Environments.FindByName(ValidEnvironment)
-                .Returns(new EnvironmentResource() {Name = ValidEnvironment});
+                .Returns(new EnvironmentResource { Name = ValidEnvironment });
 
             ClientFactory = Substitute.For<IOctopusClientFactory>();
 
@@ -84,30 +104,10 @@ namespace Octo.Tests.Commands
             };
         }
 
-        public StringBuilder LogOutput { get; set; }
-        public string[] LogLines => LogOutput.ToString().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-        public IOctopusClientFactory ClientFactory { get; set; }
-
-        public ILogger Log { get; set; }
-
-        public ILogger FormattedOutputLogger { get; set; }
-
-        public IOctopusAsyncRepositoryFactory RepositoryFactory { get; set; }
-
-        public IOctopusAsyncRepository Repository { get; set; }
-
-        public IOctopusFileSystem FileSystem { get; set; }
-
-        public ICommandOutputProvider CommandOutputProvider { get; set; }
-
-        public ExecutionResourceWaiter.Factory ExecutionResourceWaiterFactory => (repository, serverBaseUrl) => new ExecutionResourceWaiter(Substitute.For<ICommandOutputProvider>(), repository, serverBaseUrl);
-
-        public List<string> CommandLineArgs { get; set; }
-
         class StringFormatter : IFormatProvider
         {
             readonly IFormatProvider basedOn;
+
             public StringFormatter(IFormatProvider basedOn)
             {
                 this.basedOn = basedOn;
@@ -116,10 +116,8 @@ namespace Octo.Tests.Commands
             public object GetFormat(Type formatType)
             {
                 if (formatType == typeof(string))
-                {
                     return "s";
-                }
-                return this.basedOn;
+                return basedOn;
             }
         }
     }

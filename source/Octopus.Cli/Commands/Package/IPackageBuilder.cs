@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using ManifestMetadata = NuGet.Packaging.ManifestMetadata;
+using NuGet.Packaging;
 
 namespace Octopus.Cli.Commands.Package
 {
@@ -8,24 +8,30 @@ namespace Octopus.Cli.Commands.Package
     {
         None,
         Fast,
-        Optimal,
+        Optimal
     }
-    
+
     public enum PackageFormat
     {
         Zip,
         NuPkg,
+
         [Obsolete("This is just here for backwards compat")]
-        Nuget,
+        Nuget
     }
-    
+
     public interface IPackageBuilder
     {
         string[] Files { get; }
 
         string PackageFormat { get; }
 
-        void BuildPackage(string basePath, IList<string> includes, ManifestMetadata metadata, string outFolder, bool overwrite, bool verboseInfo);
+        void BuildPackage(string basePath,
+            IList<string> includes,
+            ManifestMetadata metadata,
+            string outFolder,
+            bool overwrite,
+            bool verboseInfo);
 
         void SetCompression(PackageCompressionLevel level);
     }

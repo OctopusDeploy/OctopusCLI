@@ -1,3 +1,5 @@
+using System;
+
 namespace Octopus.Cli.Infrastructure
 {
     public interface ICommandLocator

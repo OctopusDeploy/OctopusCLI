@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Dynamic;
-using Newtonsoft.Json;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
 using Octopus.Client.Serialization;
@@ -33,16 +33,12 @@ namespace Octopus.Cli.Importers
             if (importedObject == null ||
                 !importedObject.ContainsKey("$Meta") ||
                 (importedObject["$Meta"] as dynamic).ContainerType != entityType)
-            {
                 throw new CommandException("The data is not a valid " + entityType);
-            }
             importedObject.Remove("$Meta");
 
             object exportedObject = null;
             if (importedObject.ContainsKey("Items"))
-            {
                 exportedObject = importedObject["Items"];
-            }
 
             var serializedObject = Serializer.Serialize(exportedObject ?? importedObject);
             return (T)Serializer.Deserialize<T>(serializedObject);

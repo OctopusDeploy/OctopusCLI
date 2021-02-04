@@ -16,8 +16,10 @@ namespace Octo.Tests.Commands
         [TestCaseSource(nameof(Commands))]
         public void AllCommandsShouldBeDecoratedWithTheCommandAttribute(Type commaType)
         {
-            commaType.GetCustomAttribute<CommandAttribute>().Should().NotBeNull($"The following type '{commaType.Name}' implements {nameof(ICommand)} " +
-                                                                                $"but is not decorated with a {nameof(CommandAttribute)}, which is required for the program to detect it as an available command.");
+            commaType.GetCustomAttribute<CommandAttribute>()
+                .Should()
+                .NotBeNull($"The following type '{commaType.Name}' implements {nameof(ICommand)} " +
+                    $"but is not decorated with a {nameof(CommandAttribute)}, which is required for the program to detect it as an available command.");
         }
 
         [TestCaseSource(nameof(SubclassesOfApiCommand))]
@@ -28,36 +30,37 @@ namespace Octo.Tests.Commands
             const string methodName = "Execute";
             var isMethodOverridenCorrectly = commandType.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
                 .Any(m => m.Name == methodName &&
-                          m.GetBaseDefinition()?.IsVirtual == true &&
-                          m.GetBaseDefinition()?.IsFamily == true &&
-                          m.IsFamily &&
-                          m.GetBaseDefinition()?.DeclaringType != m.DeclaringType);
+                    m.GetBaseDefinition()?.IsVirtual == true &&
+                    m.GetBaseDefinition()?.IsFamily == true &&
+                    m.IsFamily &&
+                    m.GetBaseDefinition()?.DeclaringType != m.DeclaringType);
 
             var isImplementedWrongly = !isImplementedWithCorrectInterface && !isMethodOverridenCorrectly ||
-                                          isImplementedWithCorrectInterface && isMethodOverridenCorrectly;
+                isImplementedWithCorrectInterface && isMethodOverridenCorrectly;
 
             isImplementedWrongly.Should().BeFalse($"The following type '{commandType.Name}' is a subclass of '{nameof(ApiCommand)}', it must only either overrides virtual '{methodName}' method Or implements {nameof(ISupportFormattedOutput)} interface.");
         }
 
-        private static IEnumerable<TestCaseData> Commands()
+        static IEnumerable<TestCaseData> Commands()
         {
             return CommandTypes()
                 .Select(t => new TestCaseData(t).SetName(t.Name));
         }
 
-        private static IEnumerable<TestCaseData> SubclassesOfApiCommand()
+        static IEnumerable<TestCaseData> SubclassesOfApiCommand()
         {
             return CommandTypes()
                 .Where(t => t.IsSubclassOf(typeof(ApiCommand)))
                 .Select(t => new TestCaseData(t).SetName(t.Name));
         }
 
-        private static IEnumerable<Type> CommandTypes()
+        static IEnumerable<Type> CommandTypes()
         {
-            return Assembly.GetAssembly(typeof(ICommand)).GetTypes()
+            return Assembly.GetAssembly(typeof(ICommand))
+                .GetTypes()
                 .Where(t => t.IsAssignableTo<ICommand>() &&
-                            !t.IsAbstract &&
-                            !t.IsInterface);
+                    !t.IsAbstract &&
+                    !t.IsInterface);
         }
     }
 }

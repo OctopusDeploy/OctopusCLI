@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
@@ -15,28 +13,32 @@ namespace Octo.Tests.Commands
     [TestFixture]
     public class RunRunbookCommandTestFixture : ApiCommandFixtureBase
     {
-        RunRunbookCommand runRunbookCommand;
         const string ProjectName = "TestProject";
         const string RunbookName = "Runbook";
         const string EnvironmentName = "Dev";
+        RunRunbookCommand runRunbookCommand;
         TaskResource taskResource;
 
         [SetUp]
         public void SetUp()
         {
-            runRunbookCommand = new RunRunbookCommand(RepositoryFactory, FileSystem, ClientFactory, CommandOutputProvider, ExecutionResourceWaiterFactory);
+            runRunbookCommand = new RunRunbookCommand(RepositoryFactory,
+                FileSystem,
+                ClientFactory,
+                CommandOutputProvider,
+                ExecutionResourceWaiterFactory);
 
-            var links = new LinkCollection {{"CreateRunbookRun", "test"}};
+            var links = new LinkCollection { { "CreateRunbookRun", "test" } };
             var project = new ProjectResource();
-            var runbook = new RunbookResource() { Links = links};
-            var runbookRun = new RunbookRunResource() { TaskId = "Task-1" };
+            var runbook = new RunbookResource { Links = links };
+            var runbookRun = new RunbookRunResource { TaskId = "Task-1" };
 
-            taskResource = new TaskResource() { Id = "Task-1" };
+            taskResource = new TaskResource { Id = "Task-1" };
 
             Repository.Projects.FindByName(ProjectName).Returns(project);
             Repository.Runbooks.FindByName(project, RunbookName).Returns(runbook);
 
-            Repository.Runbooks.Run(runbook, Arg.Any<RunbookRunParameters>()).Returns(Task.FromResult(new [] { runbookRun }));
+            Repository.Runbooks.Run(runbook, Arg.Any<RunbookRunParameters>()).Returns(Task.FromResult(new[] { runbookRun }));
             Repository.Tasks.Get(runbookRun.TaskId).Returns(taskResource);
 
             Repository.Tasks
@@ -44,7 +46,7 @@ namespace Octo.Tests.Commands
                 .Do(x => throw new TimeoutException());
         }
 
-        private void AddRequiredArgs()
+        void AddRequiredArgs()
         {
             CommandLineArgs.Add("--project=" + ProjectName);
             CommandLineArgs.Add("--runbook=" + RunbookName);
@@ -85,9 +87,7 @@ namespace Octo.Tests.Commands
         public void WhenARequiredParameterIsNotSupplied_ShouldThrowException(params string[] arguments)
         {
             foreach (var arg in arguments)
-            {
                 CommandLineArgs.Add(arg);
-            }
 
             Func<Task> exec = () => runRunbookCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>();

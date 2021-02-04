@@ -11,7 +11,7 @@ namespace Octo.Tests.Commands
 {
     public class CreateWorkerPoolCommandFixture : ApiCommandFixtureBase
     {
-        private CreateWorkerPoolCommand createWorkerPoolCommand;
+        CreateWorkerPoolCommand createWorkerPoolCommand;
 
         [SetUp]
         public void Setup()
@@ -43,7 +43,7 @@ namespace Octo.Tests.Commands
 
             Repository.WorkerPools.FindByName(Arg.Any<string>()).Returns((WorkerPoolResource)null);
             Repository.WorkerPools.Create(Arg.Any<WorkerPoolResource>())
-                .Returns(new WorkerPoolResource { Id = Guid.NewGuid().ToString(), Name = newPool});
+                .Returns(new WorkerPoolResource { Id = Guid.NewGuid().ToString(), Name = newPool });
 
             await createWorkerPoolCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
@@ -52,6 +52,5 @@ namespace Octo.Tests.Commands
             JsonConvert.DeserializeObject(logoutput);
             logoutput.Should().Contain(newPool);
         }
-
     }
 }

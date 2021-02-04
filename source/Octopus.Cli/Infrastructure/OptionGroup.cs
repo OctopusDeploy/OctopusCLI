@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Octopus.Cli.Util;
 
 namespace Octopus.Cli.Infrastructure
@@ -12,6 +10,8 @@ namespace Octopus.Cli.Infrastructure
         {
             OptionSets = new Dictionary<string, OptionSet>();
         }
+
+        public Dictionary<string, OptionSet> OptionSets { get; }
 
         public OptionSet For(string groupName)
         {
@@ -29,13 +29,9 @@ namespace Octopus.Cli.Infrastructure
         {
             var combined = new OptionSet();
             foreach (var group in OptionSets.Keys)
-            {
-                combined.AddRange(OptionSets[group]);
-            }
+                combined.AddRange(OptionSets[@group]);
 
             return combined.Parse(arguments);
         }
-
-        public Dictionary<string, OptionSet> OptionSets { get; private set; }
     }
 }

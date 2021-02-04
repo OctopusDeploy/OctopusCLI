@@ -15,12 +15,16 @@ namespace Octopus.Cli.Commands.Deployment
 {
     public abstract class DeploymentCommandBase : ApiCommand
     {
-        private readonly ExecutionResourceWaiter.Factory executionResourceWaiterFactory;
-        private const char Separator = '/';
+        const char Separator = '/';
+        readonly ExecutionResourceWaiter.Factory executionResourceWaiterFactory;
         readonly VariableDictionary variables = new VariableDictionary();
         protected IReadOnlyList<DeploymentResource> deployments;
         protected List<DeploymentPromotionTarget> promotionTargets;
         protected List<TenantResource> deploymentTenants;
+
+        bool noRawLog;
+        bool showProgress;
+        string rawLogFile;
 
         protected DeploymentCommandBase(
             IOctopusAsyncRepositoryFactory repositoryFactory,
@@ -40,7 +44,14 @@ namespace Octopus.Cli.Commands.Deployment
             promotionTargets = new List<DeploymentPromotionTarget>();
 
             var options = Options.For("Deployment");
-            options.Add<bool>("progress", "[Optional] Show progress of the deployment.", v => { showProgress = true; WaitForDeployment = true; noRawLog = true; });
+            options.Add<bool>("progress",
+                "[Optional] Show progress of the deployment.",
+                v =>
+                {
+                    showProgress = true;
+                    WaitForDeployment = true;
+                    noRawLog = true;
+                });
             options.Add<bool>("forcePackageDownload", "[Optional] Whether to force downloading of already installed packages (flag, default false).", v => ForcePackageDownload = true);
             options.Add<bool>("waitForDeployment", "[Optional] Whether to wait synchronously for deployment to finish.", v => WaitForDeployment = true);
             options.Add<TimeSpan>("deploymentTimeout=", "[Optional] Specifies maximum time (timespan format) that the console session will wait for the deployment to finish(default 00:10:00). This will not stop the deployment. Requires --waitForDeployment parameter set.", v => DeploymentTimeout = v);
@@ -77,11 +88,7 @@ namespace Octopus.Cli.Commands.Deployment
         public List<string> Tenants { get; set; }
         public List<string> TenantTags { get; set; }
 
-        private bool IsTenantedDeployment => (Tenants.Any() || TenantTags.Any());
-
-        bool noRawLog;
-        bool showProgress;
-        string rawLogFile;
+        bool IsTenantedDeployment => Tenants.Any() || TenantTags.Any();
 
         protected override async Task ValidateParameters()
         {
@@ -112,31 +119,23 @@ namespace Octopus.Cli.Commands.Deployment
                 // Verify the format of the tag
                 var parts = tenantTag.Split(Separator);
                 if (parts.Length != 2 || string.IsNullOrEmpty(parts[0]) || string.IsNullOrEmpty(parts[1]))
-                {
                     throw new CommandException(
                         $"Canonical Tag Name expected in the format of `TagSetName{Separator}TagName`");
-                }
 
                 // Query the api if the results were not previously found
                 if (!tagSetResources.ContainsKey(parts[0]))
-                {
                     tagSetResources.Add(parts[0], await Repository.TagSets.FindByName(parts[0]).ConfigureAwait(false));
-                }
 
                 // Verify the presence of the tag
                 if (tagSetResources[parts[0]]?.Tags?.All(tag => parts[1] != tag.Name) ?? true)
-                {
                     throw new CommandException(
                         $"Unable to find matching tag from canonical tag name '{tenantTag}'.");
-                }
             }
 
             // Make sure the tenants are valid
             var tenantNamesOrIds = Tenants.Where(tn => tn != "*").ToArray();
             if (tenantNamesOrIds.Any())
-            {
                 await Repository.Tenants.FindByNamesOrIdsOrFail(tenantNamesOrIds).ConfigureAwait(false);
-            }
 
             // Make sure environment is valid
             await Repository.Environments.FindByNamesOrIdsOrFail(DeployToEnvironmentNamesOrIds).ConfigureAwait(false);
@@ -147,7 +146,7 @@ namespace Octopus.Cli.Commands.Deployment
             await base.ValidateParameters();
         }
 
-        private DateTimeOffset ParseDateTimeOffset(string v)
+        DateTimeOffset ParseDateTimeOffset(string v)
         {
             try
             {
@@ -159,7 +158,7 @@ namespace Octopus.Cli.Commands.Deployment
             }
         }
 
-        private async Task<IReadOnlyList<DeploymentResource>> DeployTenantedRelease(ProjectResource project, ReleaseResource release)
+        async Task<IReadOnlyList<DeploymentResource>> DeployTenantedRelease(ProjectResource project, ReleaseResource release)
         {
             if (DeployToEnvironmentNamesOrIds.Count != 1)
                 return new List<DeploymentResource>();
@@ -181,13 +180,18 @@ namespace Octopus.Cli.Commands.Deployment
                         .PromoteTo
                         .First(tt => tt.Name.Equals(environment.Name, StringComparison.OrdinalIgnoreCase));
                 promotionTargets.Add(promotion);
-                return CreateDeploymentTask(project, release, promotion, specificMachineIds, excludedMachineIds, tenant);
+                return CreateDeploymentTask(project,
+                    release,
+                    promotion,
+                    specificMachineIds,
+                    excludedMachineIds,
+                    tenant);
             });
 
             return await Task.WhenAll(createTasks).ConfigureAwait(false);
         }
 
-        private void LogScheduledDeployment()
+        void LogScheduledDeployment()
         {
             if (DeployAt != null)
             {
@@ -196,7 +200,7 @@ namespace Octopus.Cli.Commands.Deployment
             }
         }
 
-        private async Task<ReferenceCollection> GetSpecificMachines()
+        async Task<ReferenceCollection> GetSpecificMachines()
         {
             var specificMachineIds = new ReferenceCollection();
             if (SpecificMachineNames.Any())
@@ -205,57 +209,55 @@ namespace Octopus.Cli.Commands.Deployment
                 var missing =
                     SpecificMachineNames.Except(machines.Select(m => m.Name), StringComparer.OrdinalIgnoreCase).ToList();
                 if (missing.Any())
-                {
                     throw new CouldNotFindException("machine", missing);
-                }
 
                 specificMachineIds.AddRange(machines.Select(m => m.Id));
             }
+
             return specificMachineIds;
         }
 
-        private async Task<ReferenceCollection> GetExcludedMachines()
+        async Task<ReferenceCollection> GetExcludedMachines()
         {
             var excludedMachineIds = new ReferenceCollection();
             if (ExcludedMachineNames.Any())
             {
                 var machines = await Repository.Machines.FindByNames(ExcludedMachineNames).ConfigureAwait(false);
                 var missing = ExcludedMachineNames
-                    .Except(machines.Select(m => m.Name), StringComparer.OrdinalIgnoreCase).ToList();
+                    .Except(machines.Select(m => m.Name), StringComparer.OrdinalIgnoreCase)
+                    .ToList();
                 if (missing.Any())
-                {
                     commandOutputProvider.Debug($"The following excluded machines could not be found: {missing.ReadableJoin()}");
-                }
 
                 excludedMachineIds.AddRange(machines.Select(m => m.Id));
             }
+
             return excludedMachineIds;
         }
 
         protected async Task DeployRelease(ProjectResource project, ReleaseResource release)
         {
-            var deploymentsTask = IsTenantedDeployment ?
-                DeployTenantedRelease(project, release) :
-                DeployToEnvironments(project, release);
+            var deploymentsTask = IsTenantedDeployment ? DeployTenantedRelease(project, release) : DeployToEnvironments(project, release);
 
             deployments = await deploymentsTask.ConfigureAwait(false);
             if (deployments.Any() && WaitForDeployment)
             {
                 var waiter = executionResourceWaiterFactory(Repository, ServerBaseUrl);
                 await waiter.WaitForDeploymentToComplete(
-                    deployments,
-                    project,
-                    release,
-                    showProgress,
-                    noRawLog,
-                    rawLogFile,
-                    CancelOnTimeout,
-                    DeploymentStatusCheckSleepCycle,
-                    DeploymentTimeout).ConfigureAwait(false);
+                        deployments,
+                        project,
+                        release,
+                        showProgress,
+                        noRawLog,
+                        rawLogFile,
+                        CancelOnTimeout,
+                        DeploymentStatusCheckSleepCycle,
+                        DeploymentTimeout)
+                    .ConfigureAwait(false);
             }
         }
 
-        private async Task<IReadOnlyList<DeploymentResource>> DeployToEnvironments(ProjectResource project, ReleaseResource release)
+        async Task<IReadOnlyList<DeploymentResource>> DeployToEnvironments(ProjectResource project, ReleaseResource release)
         {
             if (DeployToEnvironmentNamesOrIds.Count == 0)
                 return new List<DeploymentResource>();
@@ -266,15 +268,15 @@ namespace Octopus.Cli.Commands.Deployment
                 .FindByNamesOrIdsOrFail(DeployToEnvironmentNamesOrIds.Distinct(StringComparer.OrdinalIgnoreCase))
                 .ConfigureAwait(false);
             var promotingEnvironments = deployToEnvironments.Select(environment => new
-            {
-                environment.Name,
-                Promotion = releaseTemplate.PromoteTo
-                    .FirstOrDefault(p => string.Equals(p.Name, environment.Name, StringComparison.OrdinalIgnoreCase))
-            }).ToList();
+                {
+                    environment.Name,
+                    Promotion = releaseTemplate.PromoteTo
+                        .FirstOrDefault(p => string.Equals(p.Name, environment.Name, StringComparison.OrdinalIgnoreCase))
+                })
+                .ToList();
 
             var unknownEnvironments = promotingEnvironments.Where(p => p.Promotion == null).ToList();
             if (unknownEnvironments.Count > 0)
-            {
                 throw new CommandException(
                     string.Format(
                         "Release '{0}' of project '{1}' cannot be deployed to {2} not in the list of environments that this release can be deployed to. This may be because a) the environment does not exist or is misspelled, b) The lifecycle has not reached this phase, possibly due to previous deployment failure, c) you don't have permission to deploy to this environment, or d) the environment is not in the list of environments defined by the lifecycle.",
@@ -283,38 +285,47 @@ namespace Octopus.Cli.Commands.Deployment
                         unknownEnvironments.Count == 1
                             ? "environment '" + unknownEnvironments[0].Name + "' because the environment is"
                             : "environments " + string.Join(", ", unknownEnvironments.Select(e => "'" + e.Name + "'")) +
-                              " because the environments are"
-                        ));
-            }
+                            " because the environments are"
+                    ));
 
             LogScheduledDeployment();
             var specificMachineIds = await GetSpecificMachines().ConfigureAwait(false);
             var excludedMachineIds = await GetExcludedMachines().ConfigureAwait(false);
 
-            var createTasks = promotingEnvironments.Select(promotion => CreateDeploymentTask(project, release, promotion.Promotion, specificMachineIds, excludedMachineIds));
+            var createTasks = promotingEnvironments.Select(promotion => CreateDeploymentTask(project,
+                release,
+                promotion.Promotion,
+                specificMachineIds,
+                excludedMachineIds));
             return await Task.WhenAll(createTasks).ConfigureAwait(false);
         }
 
-        private async Task<List<TenantResource>> GetTenants(ProjectResource project, string environmentName, ReleaseResource release,
+        async Task<List<TenantResource>> GetTenants(ProjectResource project,
+            string environmentName,
+            ReleaseResource release,
             DeploymentTemplateResource releaseTemplate)
         {
             if (!Tenants.Any() && !TenantTags.Any())
-            {
                 return new List<TenantResource>();
-            }
 
             var deployableTenants = new List<TenantResource>();
 
             if (Tenants.Contains("*"))
             {
                 var tenantPromotions = releaseTemplate.TenantPromotions.Where(
-                    tp => tp.PromoteTo.Any(
-                        promo => promo.Name.Equals(environmentName, StringComparison.OrdinalIgnoreCase))).Select(tp => tp.Id).ToArray();
+                        tp => tp.PromoteTo.Any(
+                            promo => promo.Name.Equals(environmentName, StringComparison.OrdinalIgnoreCase)))
+                    .Select(tp => tp.Id)
+                    .ToArray();
 
                 var tentats = await Repository.Tenants.Get(tenantPromotions).ConfigureAwait(false);
                 deployableTenants.AddRange(tentats);
 
-                commandOutputProvider.Information("Found {NumberOfTenants} Tenants who can deploy {Project:l} {Version:l} to {Environment:l}", deployableTenants.Count, project.Name,release.Version, environmentName);
+                commandOutputProvider.Information("Found {NumberOfTenants} Tenants who can deploy {Project:l} {Version:l} to {Environment:l}",
+                    deployableTenants.Count,
+                    project.Name,
+                    release.Version,
+                    environmentName);
             }
             else
             {
@@ -339,14 +350,15 @@ namespace Octopus.Cli.Commands.Deployment
                                 unDeployableTenants.Count == 1 ? "it" : "them"));
 
                     unDeployableTenants = deployableTenants.Where(dt =>
-                    {
-                        var tenantPromo = releaseTemplate.TenantPromotions.FirstOrDefault(tp => tp.Id == dt.Id);
-                        return tenantPromo == null ||
-                               !tenantPromo.PromoteTo.Any(
-                                   tdt => tdt.Name.Equals(environmentName, StringComparison.OrdinalIgnoreCase));
-                    }).Select(dt => $"'{dt.Name}'").ToList();
+                        {
+                            var tenantPromo = releaseTemplate.TenantPromotions.FirstOrDefault(tp => tp.Id == dt.Id);
+                            return tenantPromo == null ||
+                                !tenantPromo.PromoteTo.Any(
+                                    tdt => tdt.Name.Equals(environmentName, StringComparison.OrdinalIgnoreCase));
+                        })
+                        .Select(dt => $"'{dt.Name}'")
+                        .ToList();
                     if (unDeployableTenants.Any())
-                    {
                         throw new CommandException(
                             string.Format(
                                 "Release '{0}' of project '{1}' cannot be deployed for tenant{2} {3} to environment '{4}'. This may be because a) the tenant{2} {5} not connected to this environment, a) the environment does not exist or is misspelled, b) The lifecycle has not reached this phase, possibly due to previous deployment failure,  c) you don't have permission to deploy to this environment, d) the environment is not in the list of environments defined by the lifecycle, or e) {6} unable to deploy to this channel.",
@@ -357,18 +369,17 @@ namespace Octopus.Cli.Commands.Deployment
                                 environmentName,
                                 unDeployableTenants.Count == 1 ? "is" : "are",
                                 unDeployableTenants.Count == 1 ? "it is" : "they are"));
-                    }
                 }
 
                 if (TenantTags.Any())
                 {
-
                     var tenantsByTag = await Repository.Tenants.FindAll(null, TenantTags.ToArray()).ConfigureAwait(false);
                     var deployableByTag = tenantsByTag.Where(dt =>
-                    {
-                        var tenantPromo = releaseTemplate.TenantPromotions.FirstOrDefault(tp => tp.Id == dt.Id);
-                        return tenantPromo != null && tenantPromo.PromoteTo.Any(tdt => tdt.Name.Equals(environmentName, StringComparison.OrdinalIgnoreCase));
-                    }).Where(tenant => !deployableTenants.Any(deployable => deployable.Id == tenant.Id));
+                        {
+                            var tenantPromo = releaseTemplate.TenantPromotions.FirstOrDefault(tp => tp.Id == dt.Id);
+                            return tenantPromo != null && tenantPromo.PromoteTo.Any(tdt => tdt.Name.Equals(environmentName, StringComparison.OrdinalIgnoreCase));
+                        })
+                        .Where(tenant => !deployableTenants.Any(deployable => deployable.Id == tenant.Id));
                     deployableTenants.AddRange(deployableByTag);
                 }
             }
@@ -377,13 +388,19 @@ namespace Octopus.Cli.Commands.Deployment
                 throw new CommandException(
                     string.Format(
                         "No tenants are available to be deployed for release '{0}' of project '{1}' to environment '{2}'.  This may be because a) No tenants matched the tags provided b) The tenants that do match are not connected to this project or environment, c) The tenants that do match are not yet able to release to this lifecycle phase, or d) you do not have the appropriate deployment permissions.",
-                        release.Version, project.Name, environmentName));
-
+                        release.Version,
+                        project.Name,
+                        environmentName));
 
             return deployableTenants;
         }
 
-        private async Task<DeploymentResource> CreateDeploymentTask(ProjectResource project, ReleaseResource release, DeploymentPromotionTarget promotionTarget, ReferenceCollection specificMachineIds, ReferenceCollection excludedMachineIds, TenantResource tenant = null)
+        async Task<DeploymentResource> CreateDeploymentTask(ProjectResource project,
+            ReleaseResource release,
+            DeploymentPromotionTarget promotionTarget,
+            ReferenceCollection specificMachineIds,
+            ReferenceCollection excludedMachineIds,
+            TenantResource tenant = null)
         {
             var preview = await Repository.Releases.GetPreview(promotionTarget).ConfigureAwait(false);
 
@@ -406,54 +423,49 @@ namespace Octopus.Cli.Commands.Deployment
 
             // Validate form values supplied
             if (preview.Form != null && preview.Form.Elements != null && preview.Form.Values != null)
-            {
                 foreach (var element in preview.Form.Elements)
                 {
                     var variableInput = element.Control as VariableValue;
                     if (variableInput == null)
-                    {
                         continue;
-                    }
 
                     var value = variables.Get(variableInput.Label) ?? variables.Get(variableInput.Name);
 
                     if (string.IsNullOrWhiteSpace(value) && element.IsValueRequired)
-                    {
                         throw new ArgumentException("Please provide a variable for the prompted value " + variableInput.Label);
-                    }
 
                     preview.Form.Values[element.Name] = value;
                 }
-            }
 
             // Log step with no machines
             foreach (var previewStep in preview.StepsToExecute)
             {
                 if (previewStep.HasNoApplicableMachines)
-                {
                     commandOutputProvider.Warning("Warning: there are no applicable machines roles used by step {Step:l}", previewStep.ActionName);
-                }
             }
 
             promotionTargets.Add(promotionTarget);
             var deployment = await Repository.Deployments.Create(new DeploymentResource
-            {
-                TenantId = tenant?.Id,
-                EnvironmentId = promotionTarget.Id,
-                SkipActions = skip,
-                ReleaseId = release.Id,
-                ForcePackageDownload = ForcePackageDownload,
-                UseGuidedFailure = UseGuidedFailure.GetValueOrDefault(preview.UseGuidedFailureModeByDefault),
-                SpecificMachineIds = specificMachineIds,
-                ExcludedMachineIds = excludedMachineIds,
-                ForcePackageRedeployment = ForcePackageRedeployment,
-                FormValues = (preview.Form ?? new Form()).Values,
-                QueueTime = DeployAt,
-                QueueTimeExpiry = NoDeployAfter
-            })
-            .ConfigureAwait(false);
+                {
+                    TenantId = tenant?.Id,
+                    EnvironmentId = promotionTarget.Id,
+                    SkipActions = skip,
+                    ReleaseId = release.Id,
+                    ForcePackageDownload = ForcePackageDownload,
+                    UseGuidedFailure = UseGuidedFailure.GetValueOrDefault(preview.UseGuidedFailureModeByDefault),
+                    SpecificMachineIds = specificMachineIds,
+                    ExcludedMachineIds = excludedMachineIds,
+                    ForcePackageRedeployment = ForcePackageRedeployment,
+                    FormValues = (preview.Form ?? new Form()).Values,
+                    QueueTime = DeployAt,
+                    QueueTimeExpiry = NoDeployAfter
+                })
+                .ConfigureAwait(false);
 
-            commandOutputProvider.Information("Deploying {Project:l} {Release:} to: {PromotionTarget:l} {Tenant:l}(Guided Failure: {GuidedFailure:l})", project.Name, release.Version, promotionTarget.Name,
+            commandOutputProvider.Information("Deploying {Project:l} {Release:} to: {PromotionTarget:l} {Tenant:l}(Guided Failure: {GuidedFailure:l})",
+                project.Name,
+                release.Version,
+                promotionTarget.Name,
                 tenant == null ? string.Empty : $"for {tenant.Name} ",
                 deployment.UseGuidedFailure ? "Enabled" : "Not Enabled");
 
@@ -467,7 +479,7 @@ namespace Octopus.Cli.Commands.Deployment
                 return;
 
             var key = variable.Substring(0, index);
-            var value = (index >= variable.Length - 1) ? string.Empty : variable.Substring(index + 1);
+            var value = index >= variable.Length - 1 ? string.Empty : variable.Substring(index + 1);
 
             variables.Set(key, value);
         }

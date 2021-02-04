@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Octopus.Cli.Commands;
 using Octopus.Cli.Extensions;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Model;
@@ -18,35 +17,18 @@ namespace Octopus.Cli.Importers
     [Importer("project", "ProjectWithDependencies", Description = "Imports a project from an export file.")]
     public class ProjectImporter : BaseImporter
     {
-        readonly protected ActionTemplateRepository actionTemplateRepository;
+        protected readonly ActionTemplateRepository actionTemplateRepository;
         ValidatedImportSettings validatedImportSettings;
-
-        public bool ReadyToImport => validatedImportSettings != null && !validatedImportSettings.ErrorList.Any();
-        public IEnumerable<string> ErrorList => validatedImportSettings.ErrorList;
-        public bool KeepExistingProjectChannels { get; set; }
-
-        class ValidatedImportSettings : BaseValidatedImportSettings
-        {
-            public ProjectResource Project { get; set; }
-            public IDictionary<ScopeField, List<ReferenceDataItem>> ScopeValuesUsed { get; set; }
-            public string ProjectGroupId { get; set; }
-            public IDictionary<string, LibraryVariableSetResource> LibraryVariableSets { get; set; }
-            public DeploymentProcessResource DeploymentProcess { get; set; }
-            public IDictionary<string, EnvironmentResource> Environments { get; set; }
-            public IDictionary<string, WorkerPoolResource> WorkerPools { get; set; }
-            public IDictionary<string, MachineResource> Machines { get; set; }
-            public IDictionary<string, FeedResource> Feeds { get; set; }
-            public IDictionary<string, ActionTemplateResource> Templates { get; set; }
-            public VariableSetResource VariableSet { get; set; }
-            public IEnumerable<ChannelResource> Channels { get; set; }
-            public IDictionary<string, LifecycleResource> ChannelLifecycles { get; set; }
-        }
 
         public ProjectImporter(IOctopusAsyncRepository repository, IOctopusFileSystem fileSystem, ILogger log)
             : base(repository, fileSystem, log)
         {
             actionTemplateRepository = new ActionTemplateRepository(repository.Client);
         }
+
+        public bool ReadyToImport => validatedImportSettings != null && !validatedImportSettings.ErrorList.Any();
+        public IEnumerable<string> ErrorList => validatedImportSettings.ErrorList;
+        public bool KeepExistingProjectChannels { get; set; }
 
         protected override async Task<bool> Validate(Dictionary<string, string> paramDictionary)
         {
@@ -58,9 +40,7 @@ namespace Octopus.Cli.Importers
             {
                 var existingLifecycle = await CheckProjectLifecycle(importedObject.Lifecycle).ConfigureAwait(false);
                 if (existingLifecycle == null)
-                {
                     throw new CommandException("Unable to find a lifecycle to assign to this project.");
-                }
 
                 Log.Debug("Found lifecycle '{Lifecycle:l}'", existingLifecycle.Name);
                 project.LifecycleId = existingLifecycle.Id;
@@ -107,7 +87,7 @@ namespace Octopus.Cli.Importers
                     .Concat(libraryVariableSetChecks.MissingDependencyErrors)
                     .Concat(projectGroupChecks.MissingDependencyErrors)
                     .Concat(channelLifecycleChecks.MissingDependencyErrors)
-                );
+            );
 
             validatedImportSettings = new ValidatedImportSettings
             {
@@ -133,10 +113,8 @@ namespace Octopus.Cli.Importers
                 var errorMessage = string.Format($"The following issues were found with the provided import file: {Environment.NewLine}{errorMessagesCsvString}");
                 throw new CommandException(errorMessage);
             }
-            else
-            {
-                Log.Information("No validation errors found. Project is ready to import.");
-            }
+
+            Log.Information("No validation errors found. Project is ready to import.");
 
             return !validatedImportSettings.HasErrors;
         }
@@ -151,17 +129,29 @@ namespace Octopus.Cli.Importers
 
                 var oldActionChannels = validatedImportSettings.DeploymentProcess.Steps.SelectMany(s => s.Actions).ToDictionary(x => x.Id, x => x.Channels.Clone());
 
-                var importeDeploymentProcess = await ImportDeploymentProcess(validatedImportSettings.DeploymentProcess, importedProject, validatedImportSettings.Environments, validatedImportSettings.WorkerPools, validatedImportSettings.Feeds, validatedImportSettings.Templates).ConfigureAwait(false);
+                var importeDeploymentProcess = await ImportDeploymentProcess(validatedImportSettings.DeploymentProcess,
+                        importedProject,
+                        validatedImportSettings.Environments,
+                        validatedImportSettings.WorkerPools,
+                        validatedImportSettings.Feeds,
+                        validatedImportSettings.Templates)
+                    .ConfigureAwait(false);
 
                 var importedChannels =
                     (await ImportProjectChannels(validatedImportSettings.Channels.ToList(), importedProject, validatedImportSettings.ChannelLifecycles).ConfigureAwait(false))
-                        .ToDictionary(k => k.Key, v => v.Value);
+                    .ToDictionary(k => k.Key, v => v.Value);
 
                 await MapReleaseCreationStrategyChannel(importedProject, importedChannels).ConfigureAwait(false);
 
                 await MapChannelsToAction(importeDeploymentProcess, importedChannels, oldActionChannels).ConfigureAwait(false);
 
-                await ImportVariableSets(validatedImportSettings.VariableSet, importedProject, validatedImportSettings.Environments, validatedImportSettings.Machines, importedChannels, validatedImportSettings.ScopeValuesUsed).ConfigureAwait(false);
+                await ImportVariableSets(validatedImportSettings.VariableSet,
+                        importedProject,
+                        validatedImportSettings.Environments,
+                        validatedImportSettings.Machines,
+                        importedChannels,
+                        validatedImportSettings.ScopeValuesUsed)
+                    .ConfigureAwait(false);
 
                 Log.Debug("Successfully imported project '{Project:l}'", validatedImportSettings.Project.Name);
             }
@@ -172,9 +162,7 @@ namespace Octopus.Cli.Importers
                 {
                     Log.Error("The following issues were found with the provided import file:");
                     foreach (var error in validatedImportSettings.ErrorList)
-                    {
                         Log.Error(" {Error:l}", error);
-                    }
                 }
             }
         }
@@ -186,9 +174,10 @@ namespace Octopus.Cli.Importers
                 foreach (var action in step.Actions)
                 {
                     Log.Debug("Setting action channels");
-                    action.Channels.AddRange(oldActionChannels[action.Id].Select(oldChannelId =>  importedChannels[oldChannelId].Id));
+                    action.Channels.AddRange(oldActionChannels[action.Id].Select(oldChannelId => importedChannels[oldChannelId].Id));
                 }
             }
+
             await Repository.DeploymentProcesses.Modify(importedDeploymentProcess).ConfigureAwait(false);
         }
 
@@ -215,9 +204,7 @@ namespace Octopus.Cli.Importers
         {
             var existingLifecycles = await Repository.Lifecycles.FindAll().ConfigureAwait(false);
             if (existingLifecycles.Count == 0)
-            {
                 return null;
-            }
 
             LifecycleResource existingLifecycle = null;
             if (lifecycle != null)
@@ -225,9 +212,7 @@ namespace Octopus.Cli.Importers
                 Log.Debug("Checking that lifecycle {Lifecycle:l} exists", lifecycle.Name);
                 existingLifecycle = existingLifecycles.Find(lc => lc.Name == lifecycle.Name);
                 if (existingLifecycle == null)
-                {
                     Log.Debug("Lifecycle {Lifecycle:l} does not exist, default lifecycle will be used instead", lifecycle.Name);
-                }
             }
 
             return existingLifecycle ?? existingLifecycles.FirstOrDefault();
@@ -237,9 +222,9 @@ namespace Octopus.Cli.Importers
         {
             var usedScopeValues = new Dictionary<ScopeField, List<ReferenceDataItem>>
             {
-                {ScopeField.Environment, new List<ReferenceDataItem>()},
-                {ScopeField.Machine, new List<ReferenceDataItem>()},
-                {ScopeField.Channel, new List<ReferenceDataItem>()}
+                { ScopeField.Environment, new List<ReferenceDataItem>() },
+                { ScopeField.Machine, new List<ReferenceDataItem>() },
+                { ScopeField.Channel, new List<ReferenceDataItem>() }
             };
 
             foreach (var variable in variables)
@@ -254,10 +239,9 @@ namespace Octopus.Cli.Importers
                             {
                                 var environment = variableScopeValues.Environments.Find(e => e.Id == usedEnvironment);
                                 if (environment != null)
-                                {
                                     usedScopeValues[ScopeField.Environment].Add(environment);
-                                }
                             }
+
                             break;
                         case ScopeField.Machine:
                             var usedMachines = variableScope.Value;
@@ -265,10 +249,9 @@ namespace Octopus.Cli.Importers
                             {
                                 var machine = variableScopeValues.Machines.Find(m => m.Id == usedMachine);
                                 if (machine != null)
-                                {
                                     usedScopeValues[ScopeField.Machine].Add(machine);
-                                }
                             }
+
                             break;
                         case ScopeField.Channel:
                             var usedChannels = variableScope.Value;
@@ -276,14 +259,14 @@ namespace Octopus.Cli.Importers
                             {
                                 var channel = variableScopeValues.Channels.Find(c => c.Id == usedChannel);
                                 if (channel != null)
-                                {
                                     usedScopeValues[ScopeField.Channel].Add(channel);
-                                }
                             }
+
                             break;
                     }
                 }
             }
+
             foreach (var step in steps)
             {
                 foreach (var action in step.Actions)
@@ -292,25 +275,21 @@ namespace Octopus.Cli.Importers
                     {
                         var environment = variableScopeValues.Environments.Find(e => e.Id == usedEnvironment);
                         if (environment != null && !usedScopeValues[ScopeField.Environment].Exists(env => env.Id == usedEnvironment))
-                        {
                             usedScopeValues[ScopeField.Environment].Add(environment);
-                        }
                     }
 
                     foreach (var usedChannel in action.Channels)
                     {
                         var channel = variableScopeValues.Channels.Find(c => c.Id == usedChannel);
                         if (channel != null && !usedScopeValues[ScopeField.Channel].Exists(ch => ch.Id == usedChannel))
-                        {
                             usedScopeValues[ScopeField.Channel].Add(channel);
-                        }
                     }
                 }
             }
 
             return usedScopeValues;
         }
-        
+
         async Task ImportVariableSets(VariableSetResource variableSet,
             ProjectResource importedProject,
             IDictionary<string, EnvironmentResource> environments,
@@ -349,6 +328,7 @@ namespace Octopus.Cli.Importers
                 var newEnvironment = environments[environment.Id];
                 scopeValues.Environments.Add(new ReferenceDataItem(newEnvironment.Id, newEnvironment.Name));
             }
+
             Log.Debug("Updating the Machines of the Variable Sets Scope Values");
             scopeValues.Machines = new List<ReferenceDataItem>();
             foreach (var machine in scopeValuesUsed[ScopeField.Machine])
@@ -356,6 +336,7 @@ namespace Octopus.Cli.Importers
                 var newMachine = machines[machine.Id];
                 scopeValues.Machines.Add(new ReferenceDataItem(newMachine.Id, newMachine.Name));
             }
+
             Log.Debug("Updating the Channels of the Variable Sets Scope Values");
             scopeValues.Channels = new List<ReferenceDataItem>();
             foreach (var channel in scopeValuesUsed[ScopeField.Channel])
@@ -363,6 +344,7 @@ namespace Octopus.Cli.Importers
                 var newChannel = channels[channel.Id];
                 scopeValues.Channels.Add(new ReferenceDataItem(newChannel.Id, newChannel.Name));
             }
+
             return scopeValues;
         }
 
@@ -375,8 +357,9 @@ namespace Octopus.Cli.Importers
                 if (variable.IsSensitive)
                 {
                     Log.Warning("{Variable} is a sensitive variable and it's value will be reset to a blank string, once the import has completed you will have to update it's value from the UI", variable.Name);
-                    variable.Value = String.Empty;
+                    variable.Value = string.Empty;
                 }
+
                 foreach (var scopeValue in variable.Scope)
                 {
                     switch (scopeValue.Key)
@@ -386,9 +369,7 @@ namespace Octopus.Cli.Importers
                             var oldEnvironmentIds = scopeValue.Value;
                             var newEnvironmentIds = new List<string>();
                             foreach (var oldEnvironmentId in oldEnvironmentIds)
-                            {
                                 newEnvironmentIds.Add(environments[oldEnvironmentId].Id);
-                            }
                             scopeValue.Value.Clear();
                             scopeValue.Value.AddRange(newEnvironmentIds);
                             break;
@@ -397,9 +378,7 @@ namespace Octopus.Cli.Importers
                             var oldMachineIds = scopeValue.Value;
                             var newMachineIds = new List<string>();
                             foreach (var oldMachineId in oldMachineIds)
-                            {
                                 newMachineIds.Add(machines[oldMachineId].Id);
-                            }
                             scopeValue.Value.Clear();
                             scopeValue.Value.AddRange(newMachineIds);
                             break;
@@ -408,15 +387,14 @@ namespace Octopus.Cli.Importers
                             var oldChannelIds = scopeValue.Value;
                             var newChannelIds = new List<string>();
                             foreach (var oldChannelId in oldChannelIds)
-                            {
                                 newChannelIds.Add(channels[oldChannelId].Id);
-                            }
                             scopeValue.Value.Clear();
                             scopeValue.Value.AddRange(newChannelIds);
                             break;
                     }
                 }
             }
+
             return variables;
         }
 
@@ -440,6 +418,7 @@ namespace Octopus.Cli.Importers
                         var nugetFeedId = action.Properties["Octopus.Action.Package.NuGetFeedId"];
                         action.Properties["Octopus.Action.Package.NuGetFeedId"] = nugetFeeds[nugetFeedId.Value].Id;
                     }
+
                     if (action.Properties.ContainsKey("Octopus.Action.Template.Id"))
                     {
                         Log.Debug("Updating ID and version of Action Template");
@@ -448,13 +427,12 @@ namespace Octopus.Cli.Importers
                         action.Properties["Octopus.Action.Template.Id"] = template.Id;
                         action.Properties["Octopus.Action.Template.Version"] = template.Version.ToString(CultureInfo.InvariantCulture);
                     }
+
                     var oldEnvironmentIds = action.Environments;
                     var newEnvironmentIds = new List<string>();
                     Log.Debug("Updating IDs of Environments");
                     foreach (var oldEnvironmentId in oldEnvironmentIds)
-                    {
                         newEnvironmentIds.Add(environments[oldEnvironmentId].Id);
-                    }
                     action.Environments.Clear();
                     action.Environments.AddRange(newEnvironmentIds);
 
@@ -468,6 +446,7 @@ namespace Octopus.Cli.Importers
                     action.Channels.Clear();
                 }
             }
+
             existingDeploymentProcess.Steps.Clear();
             existingDeploymentProcess.Steps.AddRange(steps);
 
@@ -497,19 +476,13 @@ namespace Octopus.Cli.Importers
                     existingChannel.Description = channel.Description;
                     existingChannel.IsDefault = channel.IsDefault;
                     if (channel.LifecycleId != null)
-                    {
                         existingChannel.LifecycleId = channelLifecycles[channel.LifecycleId].Id;
-                    }
                     if (existingChannel.IsDefault && !existingChannel.Name.Equals(newDefaultChannel?.Name, StringComparison.OrdinalIgnoreCase))
-                    {
                         existingChannel.IsDefault = false;
-                    }
                     existingChannel.Rules.Clear();
                     existingChannel.Rules.AddRange(channel.Rules);
                     if (existingChannel.Name.Equals(defaultChannel?.Name))
-                    {
                         defaultChannelUpdated = true;
-                    }
                     var modified = await Repository.Channels.Modify(existingChannel).ConfigureAwait(false);
                     results.Add(new KeyValuePair<string, ChannelResource>(channel.Id, modified));
                 }
@@ -518,9 +491,7 @@ namespace Octopus.Cli.Importers
                     Log.Debug($"Channel '{channel.Name}' does not exist, a new channel will be created");
                     channel.ProjectId = importedProject.Id;
                     if (channel.LifecycleId != null)
-                    {
                         channel.LifecycleId = channelLifecycles[channel.LifecycleId].Id;
-                    }
 
                     var created = await Repository.Channels.Create(channel).ConfigureAwait(false);
                     results.Add(new KeyValuePair<string, ChannelResource>(channel.Id, created));
@@ -528,9 +499,7 @@ namespace Octopus.Cli.Importers
             }
 
             if (!KeepExistingProjectChannels && !defaultChannelUpdated)
-            {
                 await Repository.Channels.Delete(defaultChannel).ConfigureAwait(false);
-            }
 
             return results;
         }
@@ -555,6 +524,7 @@ namespace Octopus.Cli.Importers
 
                 return await Repository.Projects.Modify(existingProject).ConfigureAwait(false);
             }
+
             Log.Debug("Project does not exist, a new project will be created");
             project.ProjectGroupId = projectGroupId;
             project.IncludedLibraryVariableSetIds.Clear();
@@ -582,6 +552,7 @@ namespace Octopus.Cli.Importers
                 var variableSet = allVariableSets.Find(avs => avs.Name == libraryVariableSet.Name);
                 dependencies.Register(libraryVariableSet.Name, libraryVariableSet.Id, variableSet);
             }
+
             return dependencies;
         }
 
@@ -599,6 +570,7 @@ namespace Octopus.Cli.Importers
 
                 dependencies.Register(nugetFeed.Name, nugetFeed.Id, feed);
             }
+
             return dependencies;
         }
 
@@ -611,6 +583,7 @@ namespace Octopus.Cli.Importers
                 var template = await actionTemplateRepository.FindByName(actionTemplate.Name).ConfigureAwait(false);
                 dependencies.Register(actionTemplate.Name, actionTemplate.Id, template);
             }
+
             return dependencies;
         }
 
@@ -623,6 +596,7 @@ namespace Octopus.Cli.Importers
                 var machine = await Repository.Machines.FindByName(m.Name).ConfigureAwait(false);
                 dependencies.Register(m.Name, m.Id, machine);
             }
+
             return dependencies;
         }
 
@@ -635,6 +609,7 @@ namespace Octopus.Cli.Importers
                 var environment = await Repository.Environments.FindByName(env.Name).ConfigureAwait(false);
                 dependencies.Register(env.Name, env.Id, environment);
             }
+
             return dependencies;
         }
 
@@ -647,6 +622,7 @@ namespace Octopus.Cli.Importers
                 var pool = await Repository.WorkerPools.FindByName(p.Name).ConfigureAwait(false);
                 dependencies.Register(p.Name, p.Id, pool);
             }
+
             return dependencies;
         }
 
@@ -660,8 +636,25 @@ namespace Octopus.Cli.Importers
                 var lifecycle = await Repository.Lifecycles.FindOne(lc => lc.Name == channelLifecycle.Name).ConfigureAwait(false);
                 dependencies.Register(channelLifecycle.Name, channelLifecycle.Id, lifecycle);
             }
+
             return dependencies;
         }
 
+        class ValidatedImportSettings : BaseValidatedImportSettings
+        {
+            public ProjectResource Project { get; set; }
+            public IDictionary<ScopeField, List<ReferenceDataItem>> ScopeValuesUsed { get; set; }
+            public string ProjectGroupId { get; set; }
+            public IDictionary<string, LibraryVariableSetResource> LibraryVariableSets { get; set; }
+            public DeploymentProcessResource DeploymentProcess { get; set; }
+            public IDictionary<string, EnvironmentResource> Environments { get; set; }
+            public IDictionary<string, WorkerPoolResource> WorkerPools { get; set; }
+            public IDictionary<string, MachineResource> Machines { get; set; }
+            public IDictionary<string, FeedResource> Feeds { get; set; }
+            public IDictionary<string, ActionTemplateResource> Templates { get; set; }
+            public VariableSetResource VariableSet { get; set; }
+            public IEnumerable<ChannelResource> Channels { get; set; }
+            public IDictionary<string, LifecycleResource> ChannelLifecycles { get; set; }
+        }
     }
 }

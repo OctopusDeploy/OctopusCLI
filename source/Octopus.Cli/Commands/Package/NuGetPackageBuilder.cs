@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,8 +11,8 @@ namespace Octopus.Cli.Commands.Package
     public class NuGetPackageBuilder : IPackageBuilder
     {
         readonly IOctopusFileSystem fileSystem;
-        private readonly ICommandOutputProvider commandOutputProvider;
-        private readonly List<string> files;
+        readonly ICommandOutputProvider commandOutputProvider;
+        readonly List<string> files;
 
         public NuGetPackageBuilder(IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider)
         {
@@ -23,22 +24,23 @@ namespace Octopus.Cli.Commands.Package
         public string[] Files => files.ToArray();
         public string PackageFormat => "nupkg";
 
-        public void BuildPackage(string basePath, IList<string> includes, ManifestMetadata metadata, string outFolder, bool overwrite, bool verboseInfo)
+        public void BuildPackage(string basePath,
+            IList<string> includes,
+            ManifestMetadata metadata,
+            string outFolder,
+            bool overwrite,
+            bool verboseInfo)
         {
-            var nugetPkgBuilder = new NuGet.Packaging.PackageBuilder();
+            var nugetPkgBuilder = new PackageBuilder();
 
-            var manifestFiles = includes.Select(i => new ManifestFile {Source = i}).ToList();
+            var manifestFiles = includes.Select(i => new ManifestFile { Source = i }).ToList();
             nugetPkgBuilder.PopulateFiles(basePath, manifestFiles);
             nugetPkgBuilder.Populate(metadata);
 
             if (verboseInfo)
-            {
-                foreach(var file in nugetPkgBuilder.Files)
-                {
+                foreach (var file in nugetPkgBuilder.Files)
                     commandOutputProvider.Information($"Added file: {file.Path}");
-                }
-            }
-            files.AddRange(nugetPkgBuilder.Files.Select(x=>x.Path).ToArray());
+            files.AddRange(nugetPkgBuilder.Files.Select(x => x.Path).ToArray());
 
             var filename = $"{metadata.Id}.{metadata.Version}.nupkg";
             var output = Path.Combine(outFolder, filename);
@@ -51,13 +53,14 @@ namespace Octopus.Cli.Commands.Package
             fileSystem.EnsureDirectoryExists(outFolder);
 
             using (var outStream = fileSystem.OpenFile(output, FileMode.Create))
+            {
                 nugetPkgBuilder.Save(outStream);
+            }
         }
 
         public void SetCompression(PackageCompressionLevel level)
         {
             // does nothing
-            return;
         }
     }
 }

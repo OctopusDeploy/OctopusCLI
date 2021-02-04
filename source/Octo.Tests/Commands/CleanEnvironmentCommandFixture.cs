@@ -17,13 +17,13 @@ namespace Octo.Tests.Commands
     [TestFixture]
     public class CleanEnvironmentCommandFixture : ApiCommandFixtureBase
     {
+        CleanEnvironmentCommand listMachinesCommand;
+
         [SetUp]
         public void SetUp()
         {
             listMachinesCommand = new CleanEnvironmentCommand(RepositoryFactory, FileSystem, ClientFactory, CommandOutputProvider);
         }
-
-        CleanEnvironmentCommand listMachinesCommand;
 
         [Test]
         public void ShouldCleanEnvironmentWithEnvironmentAndStatusArgs()
@@ -31,9 +31,10 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("-environment=Development");
             CommandLineArgs.Add("-status=Offline");
 
-            Repository.Environments.FindByName("Development").Returns(
-                new EnvironmentResource {Name = "Development", Id = "Environments-001"}
-            );
+            Repository.Environments.FindByName("Development")
+                .Returns(
+                    new EnvironmentResource { Name = "Development", Id = "Environments-001" }
+                );
 
             var machineList = new List<MachineResource>
             {
@@ -72,9 +73,10 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("-environment=Development");
             CommandLineArgs.Add("-status=Offline");
 
-            Repository.Environments.FindByName("Development").Returns(
-                new EnvironmentResource {Name = "Development", Id = "Environments-001"}
-            );
+            Repository.Environments.FindByName("Development")
+                .Returns(
+                    new EnvironmentResource { Name = "Development", Id = "Environments-001" }
+                );
 
             var machineList = new List<MachineResource>
             {
@@ -83,7 +85,7 @@ namespace Octo.Tests.Commands
                     Name = "PC01466",
                     Id = "Machines-002",
                     Status = MachineModelStatus.Offline,
-                    EnvironmentIds = new ReferenceCollection(new[] {"Environments-001", "Environments-002"})
+                    EnvironmentIds = new ReferenceCollection(new[] { "Environments-001", "Environments-002" })
                 },
                 new MachineResource
                 {
@@ -123,7 +125,7 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("-environment=Development");
             Func<Task> exec = () => listMachinesCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
-              .WithMessage("Please specify a status using the parameter: --status or --health-status");
+                .WithMessage("Please specify a status using the parameter: --status or --health-status");
         }
 
         [Test]
@@ -134,7 +136,7 @@ namespace Octo.Tests.Commands
 
             Func<Task> exec = () => listMachinesCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CouldNotFindException>()
-              .WithMessage("Could not find the specified environment; either it does not exist or you lack permissions to view it.");
+                .WithMessage("Could not find the specified environment; either it does not exist or you lack permissions to view it.");
         }
 
         [Test]
@@ -142,7 +144,7 @@ namespace Octo.Tests.Commands
         {
             var environmentResource = new EnvironmentResource { Name = "Development", Id = "Environments-001" };
             Repository.Environments.FindByName("Development").Returns(environmentResource);
-            
+
             CommandLineArgs.Add("--outputFormat=json");
             CommandLineArgs.Add($"--environment={environmentResource.Name}");
             CommandLineArgs.Add("-status=Offline");
@@ -154,7 +156,7 @@ namespace Octo.Tests.Commands
                     Name = "PC01466",
                     Id = "Machines-002",
                     Status = MachineModelStatus.Offline,
-                    EnvironmentIds = new ReferenceCollection(new [] {"Environments-001", "Environments-002"})
+                    EnvironmentIds = new ReferenceCollection(new[] { "Environments-001", "Environments-002" })
                 },
                 new MachineResource
                 {
@@ -169,12 +171,14 @@ namespace Octo.Tests.Commands
 
             await listMachinesCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
-            string logoutput = LogOutput.ToString();
+            var logoutput = LogOutput.ToString();
             Console.WriteLine(logoutput);
             JsonConvert.DeserializeObject(logoutput);
-            Regex.Matches(logoutput, CleanEnvironmentCommand.MachineAction.Deleted.ToString()).Count.Should()
+            Regex.Matches(logoutput, CleanEnvironmentCommand.MachineAction.Deleted.ToString())
+                .Count.Should()
                 .Be(1, "should only have one deleted machine");
-            Regex.Matches(logoutput, CleanEnvironmentCommand.MachineAction.RemovedFromEnvironment.ToString()).Count.Should()
+            Regex.Matches(logoutput, CleanEnvironmentCommand.MachineAction.RemovedFromEnvironment.ToString())
+                .Count.Should()
                 .Be(1, "should only have one machine removed from the environment");
             logoutput.Should().Contain(machineList[0].Name);
             logoutput.Should().Contain(machineList[0].Id);

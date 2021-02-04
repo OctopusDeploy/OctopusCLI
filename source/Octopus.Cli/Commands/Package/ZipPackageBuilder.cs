@@ -11,10 +11,19 @@ namespace Octopus.Cli.Commands.Package
 {
     public class ZipPackageBuilder : IPackageBuilder
     {
+        static readonly DateTime MinDatetime = new DateTime(1980, 1, 1);
+
+        static readonly DateTime MaxDatetime = new DateTime(2107,
+            12,
+            31,
+            23,
+            59,
+            58);
+
         readonly IOctopusFileSystem fileSystem;
-        private readonly ICommandOutputProvider commandOutputProvider;
-        private readonly List<string> files;
-        private CompressionLevel compressionLevel = CompressionLevel.Optimal;
+        readonly ICommandOutputProvider commandOutputProvider;
+        readonly List<string> files;
+        CompressionLevel compressionLevel = CompressionLevel.Optimal;
 
         public ZipPackageBuilder(IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider)
         {
@@ -27,7 +36,12 @@ namespace Octopus.Cli.Commands.Package
 
         public string PackageFormat => "zip";
 
-        public void BuildPackage(string basePath, IList<string> includes, ManifestMetadata metadata, string outFolder, bool overwrite, bool verboseInfo)
+        public void BuildPackage(string basePath,
+            IList<string> includes,
+            ManifestMetadata metadata,
+            string outFolder,
+            bool overwrite,
+            bool verboseInfo)
         {
             var filename = metadata.Id + "." + metadata.Version + ".zip";
             var output = fileSystem.GetFullPath(Path.Combine(outFolder, filename));
@@ -56,9 +70,7 @@ namespace Octopus.Cli.Commands.Package
                             fullFilePath.Substring(basePathLength).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
                         if (verboseInfo)
-                        {
                             commandOutputProvider.Information($"Added file: {relativePath}");
-                        }
 
                         files.Add(relativePath);
 
@@ -77,7 +89,7 @@ namespace Octopus.Cli.Commands.Package
 
         public void SetCompression(PackageCompressionLevel level)
         {
-            switch(level)
+            switch (level)
             {
                 case PackageCompressionLevel.None:
                     compressionLevel = CompressionLevel.NoCompression;
@@ -95,13 +107,10 @@ namespace Octopus.Cli.Commands.Package
             commandOutputProvider.Information($"Setting Zip compression level to {compressionLevel.ToString()}");
         }
 
-        private static readonly DateTime MinDatetime = new DateTime(1980, 1, 1);
-        private static readonly DateTime MaxDatetime = new DateTime(2107, 12, 31, 23, 59, 58);
-
-        private static void UpdateLastWriteTime(string file, ZipArchiveEntry entry)
+        static void UpdateLastWriteTime(string file, ZipArchiveEntry entry)
         {
             var fileInfo = new FileInfo(file);
-            
+
             try
             {
                 entry.LastWriteTime = new DateTimeOffset(fileInfo.LastWriteTime);
@@ -118,10 +127,10 @@ namespace Octopus.Cli.Commands.Package
         }
 
         /// <summary>
-        /// Per the .ZIP File Format Specification 4.4.17.1 all slashes should be forward slashes, not back slashes. 
+        /// Per the .ZIP File Format Specification 4.4.17.1 all slashes should be forward slashes, not back slashes.
         /// https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
-        ///
-        /// This functionality is being implemented in the framework: 
+        /// 
+        /// This functionality is being implemented in the framework:
         /// https://github.com/dotnet/corefx/commit/7b9331e89a795c72709aef38898929e74c343dfb
         /// </summary>
         /// <param name="path"></param>

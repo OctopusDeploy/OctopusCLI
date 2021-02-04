@@ -14,33 +14,8 @@ namespace Octopus.Cli.Commands.Runbooks
     [Command("run-runbook", Description = "Runs a Runbook.")]
     public class RunRunbookCommand : ApiCommand, ISupportFormattedOutput
     {
-        private readonly ExecutionResourceWaiter.Factory executionResourceWaiterFactory;
-        private readonly Dictionary<string, string> Variables = new Dictionary<string, string>();
-
-        private RunbookRunResource[] RunbookRuns { get; set; }
-
-        private string ProjectNameOrId { get; set; } // required for tenant filtering with *, runbook filtering
-        private string RunbookNameOrId { get; set; }
-        private List<string> EnvironmentNamesOrIds { get; } = new List<string>();
-        private string Snapshot { get; set; }
-        private bool ForcePackageDownload { get; set; }
-        private bool GuidedFailure { get; set; }
-        private List<string> IncludedMachineIds { get; } = new List<string>();
-        private List<string> ExcludedMachineIds { get; } = new List<string>();
-        private List<string> StepNamesToSkip { get; } = new List<string>();
-        private bool UseDefaultSnapshot { get; } = false;
-        private List<string> TenantNamesOrIds { get; } = new List<string>();
-        private List<string> TenantTagNames { get; } = new List<string>();
-        private DateTimeOffset? RunAt { get; set; }
-        private DateTimeOffset? NoRunAfter { get; set; }
-
-        private bool WaitForRun { get; set; }
-        private bool Progress { get; set; }
-        private TimeSpan RunTimeout { get; set; } = TimeSpan.FromMinutes(10);
-        private bool CancelOnTimeout { get; set; }
-        private TimeSpan RunCheckSleepCycle { get; set; } = TimeSpan.FromSeconds(10);
-        private bool NoRawLog { get; set; }
-        private string RawLogFile { get; set; }
+        readonly ExecutionResourceWaiter.Factory executionResourceWaiterFactory;
+        readonly Dictionary<string, string> Variables = new Dictionary<string, string>();
 
         public RunRunbookCommand(
             IOctopusAsyncRepositoryFactory repositoryFactory,
@@ -48,7 +23,9 @@ namespace Octopus.Cli.Commands.Runbooks
             IOctopusClientFactory clientFactory,
             ICommandOutputProvider commandOutputProvider,
             ExecutionResourceWaiter.Factory executionResourceWaiterFactory) : base(clientFactory,
-            repositoryFactory, fileSystem, commandOutputProvider)
+            repositoryFactory,
+            fileSystem,
+            commandOutputProvider)
         {
             this.executionResourceWaiterFactory = executionResourceWaiterFactory;
             var options = Options.For("Run Runbook");
@@ -80,13 +57,13 @@ namespace Octopus.Cli.Commands.Runbooks
 
             options.Add<string>("specificMachines=",
                 "[Optional] A comma-separated list of machine names to target in the specified environment/s. If not specified all machines in the environment will be considered.",
-                v => IncludedMachineIds.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                v => IncludedMachineIds.AddRange(v.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(m => m.Trim())),
                 allowsMultiple: true);
 
             options.Add<string>("excludeMachines=",
                 "[Optional] A comma-separated list of machine names to exclude in the specified environment/s. If not specified all machines in the environment will be considered.",
-                v => ExcludedMachineIds.AddRange(v.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                v => ExcludedMachineIds.AddRange(v.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(m => m.Trim())),
                 allowsMultiple: true);
 
@@ -118,15 +95,18 @@ namespace Octopus.Cli.Commands.Runbooks
                 ParseVariable,
                 allowsMultiple: true);
 
-            options.Add<bool>("waitForRun", "[Optional] Whether to wait synchronously for deployment to finish.",
+            options.Add<bool>("waitForRun",
+                "[Optional] Whether to wait synchronously for deployment to finish.",
                 v => WaitForRun = true);
 
-            options.Add<bool>("progress", "[Optional] Show progress of the runbook run", v =>
-            {
-                Progress = true;
-                WaitForRun = true;
-                NoRawLog = true;
-            });
+            options.Add<bool>("progress",
+                "[Optional] Show progress of the runbook run",
+                v =>
+                {
+                    Progress = true;
+                    WaitForRun = true;
+                    NoRawLog = true;
+                });
 
             options.Add<TimeSpan>("runTimeout=",
                 "[Optional] Specifies maximum time (timespan format) that the console session will wait for the runbook run to finish (default 00:10:00). This will not stop the run. Requires --waitForRun parameter to be set.",
@@ -140,13 +120,39 @@ namespace Octopus.Cli.Commands.Runbooks
                 "[Optional] Specifies how much time (timespan format) should elapse between runbook run status checks (default 00:00:10)",
                 v => RunCheckSleepCycle = v);
 
-            options.Add<bool>("noRawLog", 
+            options.Add<bool>("noRawLog",
                 "[Optional] Don't print the raw log of failed tasks",
                 v => NoRawLog = true);
 
-            options.Add<string>("rawLogFile=", "[Optional] Redirect the raw log of failed tasks to a file",
+            options.Add<string>("rawLogFile=",
+                "[Optional] Redirect the raw log of failed tasks to a file",
                 v => RawLogFile = v);
         }
+
+        RunbookRunResource[] RunbookRuns { get; set; }
+
+        string ProjectNameOrId { get; set; } // required for tenant filtering with *, runbook filtering
+        string RunbookNameOrId { get; set; }
+        List<string> EnvironmentNamesOrIds { get; } = new List<string>();
+        string Snapshot { get; set; }
+        bool ForcePackageDownload { get; set; }
+        bool GuidedFailure { get; set; }
+        List<string> IncludedMachineIds { get; } = new List<string>();
+        List<string> ExcludedMachineIds { get; } = new List<string>();
+        List<string> StepNamesToSkip { get; } = new List<string>();
+        bool UseDefaultSnapshot { get; } = false;
+        List<string> TenantNamesOrIds { get; } = new List<string>();
+        List<string> TenantTagNames { get; } = new List<string>();
+        DateTimeOffset? RunAt { get; set; }
+        DateTimeOffset? NoRunAfter { get; set; }
+
+        bool WaitForRun { get; set; }
+        bool Progress { get; set; }
+        TimeSpan RunTimeout { get; set; } = TimeSpan.FromMinutes(10);
+        bool CancelOnTimeout { get; set; }
+        TimeSpan RunCheckSleepCycle { get; set; } = TimeSpan.FromSeconds(10);
+        bool NoRawLog { get; set; }
+        string RawLogFile { get; set; }
 
         public async Task Request()
         {
@@ -156,7 +162,7 @@ namespace Octopus.Cli.Commands.Runbooks
             var tenants = await RetrieveTenants();
             LogScheduledDeployment();
 
-            var payload = new RunbookRunParameters()
+            var payload = new RunbookRunParameters
             {
                 RunbookId = runbook.Id,
                 ProjectId = project.Id,
@@ -181,20 +187,21 @@ namespace Octopus.Cli.Commands.Runbooks
             {
                 var waiter = executionResourceWaiterFactory(Repository, ServerBaseUrl);
                 await waiter.WaitForRunbookRunToComplete(
-                    RunbookRuns,
-                    project,
-                    Progress,
-                    NoRawLog,
-                    RawLogFile,
-                    CancelOnTimeout,
-                    RunCheckSleepCycle,
-                    RunTimeout).ConfigureAwait(false);
+                        RunbookRuns,
+                        project,
+                        Progress,
+                        NoRawLog,
+                        RawLogFile,
+                        CancelOnTimeout,
+                        RunCheckSleepCycle,
+                        RunTimeout)
+                    .ConfigureAwait(false);
             }
         }
 
-        private async Task<string[]> RetrieveTenants()
+        async Task<string[]> RetrieveTenants()
         {
-            return (!TenantNamesOrIds.Contains("*") && TenantNamesOrIds.Any())
+            return !TenantNamesOrIds.Contains("*") && TenantNamesOrIds.Any()
                 ? (await Repository.Tenants.FindByNamesOrIdsOrFail(TenantNamesOrIds).ConfigureAwait(false)).Select(ten => ten.Id).ToArray()
                 : TenantNamesOrIds.ToArray();
         }
@@ -202,19 +209,13 @@ namespace Octopus.Cli.Commands.Runbooks
         protected override Task ValidateParameters()
         {
             if (ProjectNameOrId == null)
-            {
                 throw new CommandException("A project name or id must be supplied.");
-            }
 
             if (RunbookNameOrId == null)
-            {
                 throw new CommandException("Runbook name or id must be supplied.");
-            }
 
             if (!EnvironmentNamesOrIds.Any())
-            {
                 throw new CommandException("One or more environment must be supplied.");
-            }
 
             if ((RunAt ?? DateTimeOffset.Now) > NoRunAfter)
                 throw new CommandException(
@@ -229,17 +230,15 @@ namespace Octopus.Cli.Commands.Runbooks
             return Task.FromResult(0);
         }
 
-        private static void CheckForIntersection(IEnumerable<string> included, IEnumerable<string> excluded)
+        static void CheckForIntersection(IEnumerable<string> included, IEnumerable<string> excluded)
         {
             var intersection = included.Intersect(excluded).ToArray();
             if (intersection.Any())
-            {
                 throw new CommandException(
                     $"Cannot specify the same machine as both included and excluded: {intersection.ReadableJoin(", ")}");
-            }
         }
 
-        private void LogScheduledDeployment()
+        void LogScheduledDeployment()
         {
             if (RunAt == null) return;
             var now = DateTimeOffset.UtcNow;
@@ -247,14 +246,14 @@ namespace Octopus.Cli.Commands.Runbooks
                 (RunAt.Value - now).FriendlyDuration());
         }
 
-        private void ParseVariable(string variable)
+        void ParseVariable(string variable)
         {
-            var index = variable.IndexOfAny(new[] {':', '='});
+            var index = variable.IndexOfAny(new[] { ':', '=' });
             if (index <= 0)
                 return;
 
             var key = variable.Substring(0, index);
-            var value = (index >= variable.Length - 1) ? string.Empty : variable.Substring(index + 1);
+            var value = index >= variable.Length - 1 ? string.Empty : variable.Substring(index + 1);
 
             Variables.Add(key, value);
         }

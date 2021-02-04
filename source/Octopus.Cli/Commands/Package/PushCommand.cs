@@ -15,20 +15,24 @@ namespace Octopus.Cli.Commands.Package
     [Command("push", Description = "Pushes a package (.nupkg, .zip, .tar.gz, .jar, .war, etc.) package to the built-in NuGet repository in an Octopus Server.")]
     public class PushCommand : ApiCommand, ISupportFormattedOutput
     {
-        private static OverwriteMode DefaultOverwriteMode = OverwriteMode.FailIfExists;
-        private List<string> pushedPackages;
-        private List<Tuple<string, Exception>> failedPackages;
+        static readonly OverwriteMode DefaultOverwriteMode = OverwriteMode.FailIfExists;
+        readonly List<string> pushedPackages;
+        readonly List<Tuple<string, Exception>> failedPackages;
 
         public PushCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Package pushing");
-            options.Add<string>("package=", "Package file to push. Specify multiple packages by specifying this argument multiple times: \n--package package1 --package package2.",
-                package => Packages.Add(EnsurePackageExists(fileSystem, package)), allowsMultiple: true);
+            options.Add<string>("package=",
+                "Package file to push. Specify multiple packages by specifying this argument multiple times: \n--package package1 --package package2.",
+                package => Packages.Add(EnsurePackageExists(fileSystem, package)),
+                allowsMultiple: true);
             options.Add<OverwriteMode>("overwrite-mode=", $"Determines behavior if the package already exists in the repository. Valid values are {Enum.GetNames(typeof(OverwriteMode)).ReadableJoin()}. Default is {DefaultOverwriteMode}.", mode => OverwriteMode = mode);
-            options.Add<bool>("replace-existing", "If the package already exists in the repository, the default behavior is to reject the new package being pushed. You can pass this flag to overwrite the existing package. This flag may be deprecated in a future version; passing it is the same as using the OverwriteExisting overwrite-mode.",
+            options.Add<bool>("replace-existing",
+                "If the package already exists in the repository, the default behavior is to reject the new package being pushed. You can pass this flag to overwrite the existing package. This flag may be deprecated in a future version; passing it is the same as using the OverwriteExisting overwrite-mode.",
                 replace => OverwriteMode = OverwriteMode.OverwriteExisting);
-            options.Add<bool>("use-delta-compression=", "Allows disabling of delta compression when uploading packages to the Octopus Server. (True or False. Defaults to true.)",
+            options.Add<bool>("use-delta-compression=",
+                "Allows disabling of delta compression when uploading packages to the Octopus Server. (True or False. Defaults to true.)",
                 v => UseDeltaCompression = v);
             pushedPackages = new List<string>();
             failedPackages = new List<Tuple<string, Exception>>();
@@ -62,9 +66,7 @@ namespace Octopus.Cli.Commands.Package
                 catch (Exception ex)
                 {
                     if (OutputFormat == OutputFormat.Default)
-                    {
                         throw;
-                    }
                     failedPackages.Add(new Tuple<string, Exception>(package, ex));
                 }
             }
@@ -80,7 +82,7 @@ namespace Octopus.Cli.Commands.Package
             commandOutputProvider.Json(new
             {
                 SuccessfulPackages = pushedPackages,
-                FailedPackages = failedPackages.Select(x=>new { Package = x.Item1, Reason = x.Item2.Message.Replace("\r\n", string.Empty) })
+                FailedPackages = failedPackages.Select(x => new { Package = x.Item1, Reason = x.Item2.Message.Replace("\r\n", string.Empty) })
             });
         }
 

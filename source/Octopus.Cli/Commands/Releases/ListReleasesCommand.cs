@@ -7,7 +7,6 @@ using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
-using Serilog;
 
 namespace Octopus.Cli.Commands.Releases
 {
@@ -15,8 +14,8 @@ namespace Octopus.Cli.Commands.Releases
     public class ListReleasesCommand : ApiCommand, ISupportFormattedOutput
     {
         readonly HashSet<string> projects = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        private List<ProjectResource> projectResources;
-        private string[] projectsFilter;
+        List<ProjectResource> projectResources;
+        string[] projectsFilter;
         List<ReleaseResource> releases;
 
         public ListReleasesCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
@@ -25,7 +24,6 @@ namespace Octopus.Cli.Commands.Releases
             var options = Options.For("Listing");
             options.Add<string>("project=", "Name of a project to filter by. Can be specified many times.", v => projects.Add(v), allowsMultiple: true);
         }
-
 
         public async Task Request()
         {
@@ -41,7 +39,7 @@ namespace Octopus.Cli.Commands.Releases
             }
 
             commandOutputProvider.Debug("Loading releases...");
-            
+
             releases = await Repository.Releases
                 .FindMany(x => projectsFilter.Contains(x.ProjectId))
                 .ConfigureAwait(false);
@@ -59,9 +57,7 @@ namespace Octopus.Cli.Commands.Releases
                     var propertiesToLog = new List<string>();
                     propertiesToLog.AddRange(FormatReleasePropertiesAsStrings(release));
                     foreach (var property in propertiesToLog)
-                    {
                         commandOutputProvider.Information("    {Property:l}", property);
-                    }
                     commandOutputProvider.Information("");
                 }
             }
@@ -72,15 +68,16 @@ namespace Octopus.Cli.Commands.Releases
             commandOutputProvider.Json(projectResources.Select(pr => new
             {
                 Project = new { pr.Id, pr.Name },
-                Releases = releases.Where(r => r.ProjectId == pr.Id).Select(r => new
-                {
-                    r.Version,
-                    r.Assembled,
-                    PackageVersions = GetPackageVersionsAsString(r.SelectedPackages),
-                    ReleaseNotes = GetReleaseNotes(r),
-                    GitReference = r.VersionControlReference?.GitRef,
-                    r.VersionControlReference?.GitCommit
-                })
+                Releases = releases.Where(r => r.ProjectId == pr.Id)
+                    .Select(r => new
+                    {
+                        r.Version,
+                        r.Assembled,
+                        PackageVersions = GetPackageVersionsAsString(r.SelectedPackages),
+                        ReleaseNotes = GetReleaseNotes(r),
+                        GitReference = r.VersionControlReference?.GitRef,
+                        r.VersionControlReference?.GitCommit
+                    })
             }));
         }
     }

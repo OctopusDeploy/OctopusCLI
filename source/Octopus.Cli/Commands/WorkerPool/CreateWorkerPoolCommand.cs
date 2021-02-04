@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
@@ -26,7 +27,7 @@ namespace Octopus.Cli.Commands.WorkerPool
         public async Task Request()
         {
             if (string.IsNullOrWhiteSpace(WorkerPoolName)) throw new CommandException("Please specify a worker pool name using the parameter: --name=XYZ");
-            
+
             pool = await Repository.WorkerPools.FindByName(WorkerPoolName).ConfigureAwait(false);
             if (pool != null)
             {
@@ -40,9 +41,9 @@ namespace Octopus.Cli.Commands.WorkerPool
             }
 
             commandOutputProvider.Information("Creating worker pool: {WorkerPool:l}", WorkerPoolName);
-            pool = await Repository.WorkerPools.Create(new WorkerPoolResource {Name = WorkerPoolName}).ConfigureAwait(false);
+            pool = await Repository.WorkerPools.Create(new WorkerPoolResource { Name = WorkerPoolName }).ConfigureAwait(false);
         }
-        
+
         public void PrintDefaultOutput()
         {
             commandOutputProvider.Information("WorkerPool created. ID: {Id:l}", pool.Id);
@@ -53,7 +54,7 @@ namespace Octopus.Cli.Commands.WorkerPool
             commandOutputProvider.Json(new
             {
                 pool.Id,
-                pool.Name,
+                pool.Name
             });
         }
     }

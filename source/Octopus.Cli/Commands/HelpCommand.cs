@@ -46,6 +46,7 @@ namespace Octopus.Cli.Commands
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.WriteLine("Command '{0}' is not supported", commandName);
                         }
+
                         Console.ResetColor();
                         PrintGeneralHelp();
                     }
@@ -65,13 +66,9 @@ namespace Octopus.Cli.Commands
         void PrintGeneralHelp()
         {
             if (HelpOutputFormat == OutputFormat.Json)
-            {
                 PrintJsonOutput();
-            }
             else
-            {
                 PrintDefaultOutput();
-            }
         }
 
         public Task Request()
@@ -108,12 +105,13 @@ namespace Octopus.Cli.Commands
 
         public void PrintJsonOutput()
         {
-            commandOutputProvider.Json(commands.List().Select(x => new
-            {
-                x.Name,
-                x.Description,
-                x.Aliases
-            }));
+            commandOutputProvider.Json(commands.List()
+                .Select(x => new
+                {
+                    x.Name,
+                    x.Description,
+                    x.Aliases
+                }));
         }
     }
 }

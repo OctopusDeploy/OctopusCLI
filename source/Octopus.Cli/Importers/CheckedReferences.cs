@@ -1,11 +1,18 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Octopus.Client.Model;
 
 namespace Octopus.Cli.Importers
 {
-    public class CheckedReferences<T> where T:Resource
+    public class CheckedReferences<T> where T : Resource
     {
+        public CheckedReferences()
+        {
+            FoundDependencies = new Dictionary<string, T>();
+            MissingDependencyNames = new List<string>();
+        }
+
         public IDictionary<string, T> FoundDependencies { get; set; }
         public ICollection<string> MissingDependencyNames { get; set; }
 
@@ -13,13 +20,7 @@ namespace Octopus.Cli.Importers
 
         public IEnumerable<string> MissingDependencyErrors
         {
-            get { return MissingDependencyNames.Select(d => string.Format("Could not find {0} '{1}'", typeof (T).Name.Replace("Resource",""), d)); }
-        }
-
-        public CheckedReferences()
-        {
-            FoundDependencies = new Dictionary<string, T>();
-            MissingDependencyNames = new List<string>();
+            get { return MissingDependencyNames.Select(d => string.Format("Could not find {0} '{1}'", typeof(T).Name.Replace("Resource", ""), d)); }
         }
 
         public void Register(string uniqueName, string originalId, T resource)

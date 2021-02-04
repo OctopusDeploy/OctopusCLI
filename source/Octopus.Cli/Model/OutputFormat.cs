@@ -1,4 +1,6 @@
-﻿namespace Octopus.Cli.Model
+﻿using System;
+
+namespace Octopus.Cli.Model
 {
     public enum OutputFormat
     {

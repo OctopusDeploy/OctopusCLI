@@ -1,7 +1,7 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
 using Octo.Tests.Util;
 using Octopus.Cli.Commands.Releases;
-using Octopus.Cli.Infrastructure;
 using Serilog;
 
 namespace Octo.Tests.Commands
@@ -29,7 +29,7 @@ namespace Octo.Tests.Commands
             Assert.That(resolver.ResolveVersion("Step", "PackageA", "Package1"), Is.EqualTo("1.0.0"));
             Assert.That(resolver.ResolveVersion("Step", "PackageB", "Package1"), Is.EqualTo("1.1.0"));
         }
-        
+
         [Test]
         public void ShouldReturnDockerPackageVersionToUse()
         {
@@ -129,7 +129,6 @@ namespace Octo.Tests.Commands
             resolver.Add("PackageId", "Package1", "1.2.0");
             Assert.That(resolver.ResolveVersion("StepName", "PackageId", "Package1"), Is.EqualTo("1.1.0"));
         }
-
 
         [Test]
         public void ShouldPreferPackageIdToDefault()

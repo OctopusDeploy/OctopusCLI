@@ -11,11 +11,12 @@ namespace Octopus.Cli.Util
             var path = uri.AbsolutePath.ToLowerInvariant();
             suffix = suffix.ToLowerInvariant();
             var overlap = FindOverlapSection(path, suffix);
-            if (!String.IsNullOrEmpty(overlap))
+            if (!string.IsNullOrEmpty(overlap))
             {
                 path = path.Replace(overlap, string.Empty);
                 suffix = suffix.Replace(overlap, string.Empty);
             }
+
             path = path + overlap + suffix;
             path = path.Replace("//", "/");
 
@@ -33,7 +34,7 @@ namespace Octopus.Cli.Util
                 shorter = temp;
             }
 
-            return longer.Contains(shorter) ? shorter : String.Empty;
+            return longer.Contains(shorter) ? shorter : string.Empty;
         }
     }
 }

@@ -1,19 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
-using Serilog;
+using Octopus.Client.Model;
 
 namespace Octopus.Cli.Commands.Project
 {
     [Command("list-projects", Description = "Lists all projects.")]
     public class ListProjectsCommand : ApiCommand, ISupportFormattedOutput
     {
-        private List<Octopus.Client.Model.ProjectResource> _projectResources;
+        List<ProjectResource> _projectResources;
 
         public ListProjectsCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
@@ -30,9 +30,7 @@ namespace Octopus.Cli.Commands.Project
         {
             commandOutputProvider.Information("Projects: {Count}", _projectResources.Count);
             foreach (var project in _projectResources)
-            {
                 commandOutputProvider.Information(" - {Project:l} (ID: {Id:l})", project.Name, project.Id);
-            }
         }
 
         public void PrintJsonOutput()

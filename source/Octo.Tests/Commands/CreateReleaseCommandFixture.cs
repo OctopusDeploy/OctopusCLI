@@ -1,6 +1,4 @@
 using System;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
@@ -27,9 +25,16 @@ namespace Octo.Tests.Commands
         [Test]
         public void ShouldLoadOptionsFromFile()
         {
-            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory, new OctopusPhysicalFileSystem(Log), versionResolver, releasePlanBuilder, ClientFactory, CommandOutputProvider, ExecutionResourceWaiterFactory);
+            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory,
+                new OctopusPhysicalFileSystem(Log),
+                versionResolver,
+                releasePlanBuilder,
+                ClientFactory,
+                CommandOutputProvider,
+                ExecutionResourceWaiterFactory);
 
-            Assert.Throws<CouldNotFindException>(delegate {
+            Assert.Throws<CouldNotFindException>(delegate
+            {
                 createReleaseCommand.Execute("--configfile=Commands/Resources/CreateRelease.config.txt");
             });
 
@@ -41,7 +46,13 @@ namespace Octo.Tests.Commands
         [Test]
         public void ShouldThrowForBadTag()
         {
-            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory, new OctopusPhysicalFileSystem(Log), versionResolver, releasePlanBuilder, ClientFactory, CommandOutputProvider, ExecutionResourceWaiterFactory);
+            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory,
+                new OctopusPhysicalFileSystem(Log),
+                versionResolver,
+                releasePlanBuilder,
+                ClientFactory,
+                CommandOutputProvider,
+                ExecutionResourceWaiterFactory);
 
             CommandLineArgs.Add("--server=https://test-server-url/api/");
             CommandLineArgs.Add("--apikey=API-test");
@@ -57,7 +68,13 @@ namespace Octo.Tests.Commands
         [Test]
         public void ShouldThrowForBadTenant()
         {
-            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory, new OctopusPhysicalFileSystem(Log), versionResolver, releasePlanBuilder, ClientFactory, CommandOutputProvider, ExecutionResourceWaiterFactory);
+            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory,
+                new OctopusPhysicalFileSystem(Log),
+                versionResolver,
+                releasePlanBuilder,
+                ClientFactory,
+                CommandOutputProvider,
+                ExecutionResourceWaiterFactory);
 
             CommandLineArgs.Add("--server=https://test-server-url/api/");
             CommandLineArgs.Add("--apikey=API-test");
@@ -73,7 +90,13 @@ namespace Octo.Tests.Commands
         [Test]
         public void ShouldThrowForBadMachine()
         {
-            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory, new OctopusPhysicalFileSystem(Log), versionResolver, releasePlanBuilder, ClientFactory, CommandOutputProvider, ExecutionResourceWaiterFactory);
+            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory,
+                new OctopusPhysicalFileSystem(Log),
+                versionResolver,
+                releasePlanBuilder,
+                ClientFactory,
+                CommandOutputProvider,
+                ExecutionResourceWaiterFactory);
 
             CommandLineArgs.Add("--server=https://test-server-url/api/");
             CommandLineArgs.Add("--apikey=API-test");
@@ -86,11 +109,16 @@ namespace Octo.Tests.Commands
             ex.Message.Should().Be("The machines 'badMach', 'badMachB' do not exist or you do not have permissions to view them.");
         }
 
-
         [Test]
         public void ShouldThrowForBadEnvironment()
         {
-            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory, new OctopusPhysicalFileSystem(Log), versionResolver, releasePlanBuilder, ClientFactory, CommandOutputProvider, ExecutionResourceWaiterFactory);
+            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory,
+                new OctopusPhysicalFileSystem(Log),
+                versionResolver,
+                releasePlanBuilder,
+                ClientFactory,
+                CommandOutputProvider,
+                ExecutionResourceWaiterFactory);
 
             CommandLineArgs.Add("--server=https://test-server-url/api/");
             CommandLineArgs.Add("--apikey=API-test");
@@ -105,15 +133,21 @@ namespace Octo.Tests.Commands
         [Test]
         public void ShouldThrowForBadEnvironments()
         {
-            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory, new OctopusPhysicalFileSystem(Log), versionResolver, releasePlanBuilder, ClientFactory, CommandOutputProvider, ExecutionResourceWaiterFactory);
+            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory,
+                new OctopusPhysicalFileSystem(Log),
+                versionResolver,
+                releasePlanBuilder,
+                ClientFactory,
+                CommandOutputProvider,
+                ExecutionResourceWaiterFactory);
 
             CommandLineArgs.Add("--server=https://test-server-url/api/");
             CommandLineArgs.Add("--apikey=API-test");
             CommandLineArgs.Add("--project=Test Project");
             CommandLineArgs.Add("--releaseNumber=1.0.0");
-            CommandLineArgs.Add($"--deployto=badEnv1");
+            CommandLineArgs.Add("--deployto=badEnv1");
             CommandLineArgs.Add($"--deployto={ValidEnvironment}");
-            CommandLineArgs.Add($"--deployto=badEnv2");
+            CommandLineArgs.Add("--deployto=badEnv2");
 
             var ex = Assert.ThrowsAsync<CouldNotFindException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
             ex.Message.Should().Be("The environments 'badEnv1', 'badEnv2' do not exist or you do not have permissions to view them.");

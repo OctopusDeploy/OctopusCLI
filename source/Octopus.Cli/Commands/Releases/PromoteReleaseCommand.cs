@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Octopus.Cli.Commands.Deployment;
 using Octopus.Cli.Infrastructure;
@@ -13,14 +14,22 @@ namespace Octopus.Cli.Commands.Releases
     [Command("promote-release", Description = "Promotes a release.")]
     public class PromoteReleaseCommand : DeploymentCommandBase, ISupportFormattedOutput
     {
-        private static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
-        
+        static readonly OctopusVersionParser OctopusVersionParser = new OctopusVersionParser();
+
         ProjectResource project;
         EnvironmentResource environment;
         ReleaseResource release;
 
-        public PromoteReleaseCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider, ExecutionResourceWaiter.Factory executionResourceWaiterFactory)
-            : base(repositoryFactory, fileSystem, clientFactory, commandOutputProvider, executionResourceWaiterFactory)
+        public PromoteReleaseCommand(IOctopusAsyncRepositoryFactory repositoryFactory,
+            IOctopusFileSystem fileSystem,
+            IOctopusClientFactory clientFactory,
+            ICommandOutputProvider commandOutputProvider,
+            ExecutionResourceWaiter.Factory executionResourceWaiterFactory)
+            : base(repositoryFactory,
+                fileSystem,
+                clientFactory,
+                commandOutputProvider,
+                executionResourceWaiterFactory)
         {
             var options = Options.For("Release Promotion");
             options.Add<string>("project=", "Name or ID of the project.", v => ProjectNameOrId = v);
@@ -52,7 +61,7 @@ namespace Octopus.Cli.Commands.Releases
                 ? DashboardItemsOptions.IncludeCurrentAndPreviousSuccessfulDeployment
                 : DashboardItemsOptions.IncludeCurrentDeploymentOnly;
 
-            var dashboard = await Repository.Dashboards.GetDynamicDashboard(new[] {project.Id}, new[] {environment.Id}, dashboardItemsOptions).ConfigureAwait(false);
+            var dashboard = await Repository.Dashboards.GetDynamicDashboard(new[] { project.Id }, new[] { environment.Id }, dashboardItemsOptions).ConfigureAwait(false);
             var dashboardItems = dashboard.Items
                 .Where(e => e.EnvironmentId == environment.Id && e.ProjectId == project.Id)
                 .OrderByDescending(i => OctopusVersionParser.Parse(i.ReleaseVersion));
@@ -83,7 +92,6 @@ namespace Octopus.Cli.Commands.Releases
 
         public void PrintDefaultOutput()
         {
-
         }
 
         public void PrintJsonOutput()
@@ -110,7 +118,7 @@ namespace Octopus.Cli.Commands.Releases
                     d.QueueTime,
                     Tenant = string.IsNullOrEmpty(d.TenantId)
                         ? null
-                        : new {d.TenantId, TenantName = deploymentTenants.FirstOrDefault(x => x.Id == d.TenantId)?.Name}
+                        : new { d.TenantId, TenantName = deploymentTenants.FirstOrDefault(x => x.Id == d.TenantId)?.Name }
                 })
             });
         }

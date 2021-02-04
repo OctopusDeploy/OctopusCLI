@@ -2,7 +2,7 @@ using System;
 
 namespace Octopus.Cli.Infrastructure
 {
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class CommandAttribute : Attribute, ICommandMetadata
     {
         public CommandAttribute(string name, params string[] aliases)

@@ -15,8 +15,8 @@ using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Exceptions;
+using Octopus.Client.Logging;
 using Serilog;
-using AssemblyExtensions = Octopus.Cli.Util.AssemblyExtensions;
 
 namespace Octopus.Cli
 {
@@ -25,8 +25,8 @@ namespace Octopus.Cli
         public int Execute(string[] args)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls
-                                                   | SecurityProtocolType.Tls11
-                                                   | SecurityProtocolType.Tls12;
+                | SecurityProtocolType.Tls11
+                | SecurityProtocolType.Tls12;
 
             ConfigureLogger();
             return Run(args);
@@ -64,18 +64,18 @@ namespace Octopus.Cli
         public static void ConfigureLogger()
         {
             Log.Logger = new LoggerConfiguration()
-               .MinimumLevel.ControlledBy(LogUtilities.LevelSwitch)
-               .WriteTo.Trace()
-               .WriteTo.ColoredConsole(outputTemplate: "{Message}{NewLine}{Exception}")
-               .CreateLogger();
+                .MinimumLevel.ControlledBy(LogUtilities.LevelSwitch)
+                .WriteTo.Trace()
+                .WriteTo.ColoredConsole(outputTemplate: "{Message}{NewLine}{Exception}")
+                .CreateLogger();
 
-            Client.Logging.LogProvider.SetCurrentLogProvider(new CliSerilogLogProvider(Log.Logger));
+            LogProvider.SetCurrentLogProvider(new CliSerilogLogProvider(Log.Logger));
         }
 
         static IContainer BuildContainer()
         {
             var builder = new ContainerBuilder();
-            var thisAssembly = typeof (CliProgram).GetTypeInfo().Assembly;
+            var thisAssembly = typeof(CliProgram).GetTypeInfo().Assembly;
 
             builder.RegisterModule(new LoggingModule());
 
@@ -109,9 +109,7 @@ namespace Octopus.Cli
         static ICommand GetCommand(string first, ICommandLocator commandLocator)
         {
             if (string.IsNullOrWhiteSpace(first))
-            {
                 return commandLocator.Find("help");
-            }
 
             var command = commandLocator.Find(first);
             if (command == null)
@@ -137,18 +135,14 @@ namespace Octopus.Cli
 
                     var lastExit = 0;
                     foreach (var inner in errors)
-                    {
                         lastExit = PrintError(inner);
-                    }
 
                     return lastExit;
                 }
                 case OctopusSecurityException securityException:
                 {
                     if (!string.IsNullOrWhiteSpace(securityException.HelpText))
-                    {
                         Log.Error(securityException.HelpText);
-                    }
 
                     Log.Error(securityException.Message);
                     return -5;
@@ -157,9 +151,7 @@ namespace Octopus.Cli
                 {
                     Log.Error(ex.Message);
                     if (LogExtensions.IsKnownEnvironment())
-                    {
                         Log.Error($"This error is most likely occurring while executing {AssemblyExtensions.GetExecutableName()} as part of an automated build process. The following doc is recommended to get some tips on how to troubleshoot this: https://g.octopushq.com/OctoexeTroubleshooting");
-                    }
                     return -1;
                 }
                 case ReflectionTypeLoadException reflex:
@@ -167,9 +159,7 @@ namespace Octopus.Cli
                     Log.Error(ex, string.Empty);
 
                     foreach (var loaderException in reflex.LoaderExceptions)
-                    {
                         Log.Error(loaderException, string.Empty);
-                    }
 
                     return -43;
                 }
@@ -181,8 +171,9 @@ namespace Octopus.Cli
                 case OctopusException octo:
                 {
                     Log.Information("{HttpErrorMessage:l}", octo.Message);
-                    Log.Error("Error from Octopus Server (HTTP {StatusCode} {StatusDescription})", octo.HttpStatusCode,
-                        (HttpStatusCode) octo.HttpStatusCode);
+                    Log.Error("Error from Octopus Server (HTTP {StatusCode} {StatusDescription})",
+                        octo.HttpStatusCode,
+                        (HttpStatusCode)octo.HttpStatusCode);
                     return -7;
                 }
             }

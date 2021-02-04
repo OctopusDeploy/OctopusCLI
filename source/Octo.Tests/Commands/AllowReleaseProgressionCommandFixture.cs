@@ -96,7 +96,8 @@ namespace Octo.Tests.Commands
                 .WithMessage("Please specify a release version number using the version parameter: --version=1.0.5");
         }
 
-        [TestCase("9999999999999999999999999999999999999"), Description("Version number larger than an int")]
+        [TestCase("9999999999999999999999999999999999999")]
+        [Description("Version number larger than an int")]
         public void ShouldValidateReleaseVersionNumberParameterForFormat(string releaseVersionNumber)
         {
             CommandLineArgs.Add($"--project={projectResource.Name}");
