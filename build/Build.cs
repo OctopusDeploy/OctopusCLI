@@ -371,7 +371,7 @@ class Build : NukeBuild
                 .SetCommand("bash")
                 .SetArgs("/BuildAssets/create-octopuscli-linux-packages.sh"));
 
-            DeleteDirectory(ArtifactsDirectory / $"/OctopusTools.{OctoVersionInfo.FullSemVer}.linux-x64.extracted");
+            DeleteDirectory(ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.linux-x64.extracted");
 
             var linuxPackagesDir = ArtifactsDirectory / $"linuxpackages";
             EnsureExistingDirectory(linuxPackagesDir);
