@@ -368,7 +368,8 @@ class Build : NukeBuild
                     LinuxPackageFeedsDir + ":/opt/linux-package-feeds",
                     ArtifactsDirectory + ":/artifacts")
                 .SetImage("octopusdeploy/package-linux-docker:latest")
-                .SetCommand("bash /BuildAssets/create-octopuscli-linux-packages.sh"));
+                .SetCommand("bash")
+                .SetArgs("/BuildAssets/create-octopuscli-linux-packages.sh"));
 
             DeleteDirectory(ArtifactsDirectory / $"/OctopusTools.{OctoVersionInfo.FullSemVer}.linux-x64.extracted");
 
