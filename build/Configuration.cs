@@ -1,3 +1,4 @@
+// ReSharper disable RedundantUsingDirective - prevent PrettyBot from getting confused about unused code.
 using System;
 using System.ComponentModel;
 using System.Linq;
