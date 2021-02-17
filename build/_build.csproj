@@ -20,4 +20,10 @@
     <PackageDownload Include="NuGet.CommandLine" Version="[5.8.1]" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\global.json">
+      <Link>config\global.json</Link>
+    </Content>
+  </ItemGroup>
+
 </Project>
