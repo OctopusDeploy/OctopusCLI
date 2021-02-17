@@ -99,20 +99,6 @@ class Build : NukeBuild
                 .EnableNoRestore());
         });
 
-    // Target Pack => _ => _
-    //     .DependsOn(Compile)
-    //     .DependsOn(Test)
-    //     .Executes(() =>
-    //     {
-    //         DotNetPack(_ => _
-    //             .SetProject(Solution)
-    //             .SetConfiguration(Configuration)
-    //             .SetOutputDirectory(ArtifactsDirectory)
-    //             .EnableNoBuild()
-    //             .AddProperty("Version", OctoVersionInfo.FullSemVer)
-    //         );
-    //     });
-
     Target DotnetPublish => _ => _
         .DependsOn(Test)
         .Executes(() =>
@@ -231,11 +217,11 @@ class Build : NukeBuild
             var nuspecFile = "OctopusTools.nuspec";
 
             CopyDirectoryRecursively(OctoPublishDirectory / "win-x64", nugetPackDir);
-            CopyFileToDirectory(AssetDirectory / $"icon.png", nugetPackDir);
-            CopyFileToDirectory(AssetDirectory / $"LICENSE.txt", nugetPackDir);
-            CopyFileToDirectory(AssetDirectory / $"VERIFICATION.txt", nugetPackDir);
-            CopyFileToDirectory(AssetDirectory / $"init.ps1", nugetPackDir);
-            CopyFileToDirectory(AssetDirectory / $"{nuspecFile}", nugetPackDir);
+            CopyFileToDirectory(AssetDirectory / "icon.png", nugetPackDir);
+            CopyFileToDirectory(AssetDirectory / "LICENSE.txt", nugetPackDir);
+            CopyFileToDirectory(AssetDirectory / "VERIFICATION.txt", nugetPackDir);
+            CopyFileToDirectory(AssetDirectory / "init.ps1", nugetPackDir);
+            CopyFileToDirectory(AssetDirectory / nuspecFile, nugetPackDir);
 
             NuGetTasks.NuGetPack(_ => _
                 .SetTargetPath($"{nugetPackDir}/{nuspecFile}")
@@ -247,7 +233,6 @@ class Build : NukeBuild
         .DependsOn(DotnetPublish)
         .Executes(() =>
         {
-
             SignBinaries($"{OctopusCliDirectory}/bin/{Configuration}");
 
             DotNetPack(_ => _
@@ -399,13 +384,14 @@ class Build : NukeBuild
         var files = Directory.EnumerateFiles(path, "Octopus.*.dll", SearchOption.AllDirectories).ToList();
         files.AddRange(Directory.EnumerateFiles(path, "octo.dll", SearchOption.AllDirectories));
         files.AddRange(Directory.EnumerateFiles(path, "octo.exe", SearchOption.AllDirectories));
-        //files.AddRange(Directory.EnumerateFiles(path, "octo", SearchOption.AllDirectories));
         files.AddRange(Directory.EnumerateFiles(path, "dotnet-octo.dll", SearchOption.AllDirectories));
+        files.AddRange(Directory.EnumerateFiles(path, "octo*.dll", SearchOption.AllDirectories));
+        files.AddRange(Directory.EnumerateFiles(path, "Octo*.dll", SearchOption.AllDirectories));
 
         SignToolTasks.SignTool(_ => _
             .SetFile(SigningCertificatePath)
             .SetPassword(SigningCertificatePassword)
-            .SetFiles(files)
+            .SetFiles(files.Distinct())
             .SetProcessToolPath(RootDirectory / "certificates" / "signtool.exe")
             .SetTimestampServerUrl("http://timestamp.digicert.com"));
     }
