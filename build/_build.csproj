@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace></RootNamespace>
+    <NoWarn>CS0649;CS0169</NoWarn>
+    <NukeRootDirectory>..</NukeRootDirectory>
+    <NukeScriptDirectory>..</NukeScriptDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ILRepack.Lib" Version="2.0.18" />
+    <PackageReference Include="Nuke.Common" Version="5.0.2" />
+    <PackageReference Include="Nuke.OctoVersion" Version="0.2.289" />
+    <PackageReference Include="SharpCompress" Version="0.28.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageDownload Include="NuGet.CommandLine" Version="[5.8.1]" />
+  </ItemGroup>
+
+</Project>

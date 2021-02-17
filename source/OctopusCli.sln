@@ -4,14 +4,10 @@ VisualStudioVersion = 16.0.28803.202
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{193F466A-BECE-4809-A369-7CC061C31C82}"
 	ProjectSection(SolutionItems) = preProject
-		..\build.cake = ..\build.cake
-		..\build.cmd = ..\build.cmd
-		..\build.ps1 = ..\build.ps1
-		..\build.sh = ..\build.sh
-		..\gitversion.yml = ..\gitversion.yml
 		NuGet.Config = NuGet.Config
 		..\readme.md = ..\readme.md
 		..\BuildAssets\create-linux-packages.sh = ..\BuildAssets\create-linux-packages.sh
+		..\.gitignore = ..\.gitignore
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Octo", "Octo\Octo.csproj", "{D1BFD88F-FB8E-49EC-968F-F4D9A8A52519}"
@@ -37,6 +33,8 @@ ProjectSection(SolutionItems) = preProject
 	..\Dockerfiles\nanoserver\Dockerfile = ..\Dockerfiles\nanoserver\Dockerfile
 EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "..\build\_build.csproj", "{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +45,10 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{D1BFD88F-FB8E-49EC-968F-F4D9A8A52519}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D1BFD88F-FB8E-49EC-968F-F4D9A8A52519}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1BFD88F-FB8E-49EC-968F-F4D9A8A52519}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
