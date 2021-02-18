@@ -89,7 +89,6 @@ class Build : NukeBuild
                 .EnableNoRestore());
         });
 
-
     Target Test => _ => _
         .DependsOn(Compile)
         .Executes(() =>
@@ -146,10 +145,8 @@ class Build : NukeBuild
                     .SetVersion(OctoVersionInfo.FullSemVer));
 
                 if (!rid.StartsWith("linux-") && !rid.StartsWith("osx-"))
-                {
                     // Sign binaries, except linux which are verified at download, and osx which are signed on a mac
                     SignBinaries(OctoPublishDirectory / rid);
-                }
             }
         });
 
@@ -161,7 +158,6 @@ class Build : NukeBuild
             var outputFolder = OctoPublishDirectory / "netfx-merged";
             EnsureExistingDirectory(outputFolder);
 
-
             var cliList = new List<string> { $"{inputFolder}/octo.exe" };
             cliList.AddRange(Directory.EnumerateFiles(inputFolder, "*.dll")
                 .Union(Directory.EnumerateFiles(inputFolder, "octodiff.exe")));
@@ -172,7 +168,7 @@ class Build : NukeBuild
                 InputAssemblies = cliList.ToArray(),
                 SearchDirectories = new[] { inputFolder.ToString() },
                 Internalize = true,
-                Parallel = true,
+                Parallel = true
             };
 
             new ILRepack(cliOptions).Repack();
@@ -204,12 +200,11 @@ class Build : NukeBuild
 
                     if (!dirName.Contains("win"))
                         TarGzip(dir, outFile,
-                            insertCapitalizedOctoWrapper: dirName.Contains("linux"),
-                            insertCapitalizedDotNetWrapper: dirName == "portable");
+                            dirName.Contains("linux"),
+                            dirName == "portable");
                 }
             }
         });
-
 
     Target PackOctopusToolsNuget => _ => _
         .DependsOn(DotnetPublish)
@@ -287,9 +282,7 @@ class Build : NukeBuild
         {
             var platform = "nanoserver";
             if (EnvironmentInfo.IsLinux)
-            {
                 platform = "alpine";
-            }
 
             var tag = $"octopusdeploy/octo-prerelease:{OctoVersionInfo.FullSemVer}-{platform}";
             var latest = $"octopusdeploy/octo-prerelease:latest-{platform}";
@@ -308,13 +301,9 @@ class Build : NukeBuild
                 .EnableRm());
 
             if (stdOut.FirstOrDefault().Text == OctoVersionInfo.FullSemVer)
-            {
                 Logger.Info($"Image successfully created - running 'docker run {tag} version --rm' returned '{stdOut}'");
-            }
             else
-            {
                 throw new Exception($"Built image did not return expected version {OctoVersionInfo.FullSemVer} - it returned {stdOut}");
-            }
 
             DockerTasks.DockerPush(_ => _.SetName(tag));
             DockerTasks.DockerPush(_ => _.SetName(latest));
@@ -326,18 +315,14 @@ class Build : NukeBuild
         {
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SIGN_PRIVATE_KEY"))
                 || string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SIGN_PASSPHRASE")))
-            {
                 throw new Exception("This build requires environment variables `SIGN_PRIVATE_KEY` (in a format gpg1 can import)"
                     + " and `SIGN_PASSPHRASE`, which are used to sign the .rpm.");
-            }
 
             if (!DirectoryExists(LinuxPackageFeedsDir))
-            {
                 throw new Exception($"This build requires `{LinuxPackageFeedsDir}` to contain scripts from https://github.com/OctopusDeploy/linux-package-feeds.\n"
                     + "They are usually added as an Artifact Dependency in TeamCity from 'Infrastructure / Linux Package Feeds' with the rule:\n"
                     + "  LinuxPackageFeedsTools.*.zip!*=>linux-package-feeds\n"
                     + "See https://build.octopushq.com/admin/editDependencies.html?id=buildType:OctopusDeploy_OctopusCLI_BuildLinuxContainer");
-            }
 
             UnTarGZip(
                 ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.linux-x64.tar.gz",
@@ -360,14 +345,14 @@ class Build : NukeBuild
 
             DeleteDirectory(ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.linux-x64.extracted");
 
-            var linuxPackagesDir = ArtifactsDirectory / $"linuxpackages";
+            var linuxPackagesDir = ArtifactsDirectory / "linuxpackages";
             EnsureExistingDirectory(linuxPackagesDir);
-            ArtifactsDirectory.GlobFiles($"*.deb").ForEach(path => MoveFile(path, linuxPackagesDir / new FileInfo(path).Name));
-            ArtifactsDirectory.GlobFiles($"*.rpm").ForEach(path => MoveFile(path, linuxPackagesDir / new FileInfo(path).Name));
+            ArtifactsDirectory.GlobFiles("*.deb").ForEach(path => MoveFile(path, linuxPackagesDir / new FileInfo(path).Name));
+            ArtifactsDirectory.GlobFiles("*.rpm").ForEach(path => MoveFile(path, linuxPackagesDir / new FileInfo(path).Name));
             CopyFileToDirectory($"{LinuxPackageFeedsDir}/publish-apt.sh", linuxPackagesDir);
             CopyFileToDirectory($"{LinuxPackageFeedsDir}/publish-rpm.sh", linuxPackagesDir);
-            CopyFileToDirectory(AssetDirectory / $"repos/test-linux-package-from-feed-in-dists.sh", linuxPackagesDir);
-            CopyFileToDirectory(AssetDirectory / $"repos/test-linux-package-from-feed.sh", linuxPackagesDir);
+            CopyFileToDirectory(AssetDirectory / "repos/test-linux-package-from-feed-in-dists.sh", linuxPackagesDir);
+            CopyFileToDirectory(AssetDirectory / "repos/test-linux-package-from-feed.sh", linuxPackagesDir);
             CopyFileToDirectory($"{LinuxPackageFeedsDir}/test-env-docker-images.conf", linuxPackagesDir);
             CopyFileToDirectory($"{LinuxPackageFeedsDir}/install-linux-feed-package.sh", linuxPackagesDir);
             CompressionTasks.CompressZip(linuxPackagesDir, ArtifactsDirectory / $"OctopusTools.Packages.linux-x64.{OctoVersionInfo.FullSemVer}.zip");
@@ -379,6 +364,21 @@ class Build : NukeBuild
     Target CreateDockerContainerAndLinuxPackages => _ => _
         .DependsOn(BuildDockerImage)
         .DependsOn(CreateLinuxPackages);
+
+    Target CopyToLocalPackages => _ => _
+        .OnlyWhenStatic(() => IsLocalBuild)
+        .DependsOn(PackOctopusToolsNuget)
+        .DependsOn(PackDotNetOctoNuget)
+        .DependsOn(Zip)
+        .Executes(() =>
+        {
+            EnsureExistingDirectory(LocalPackagesDirectory);
+            CopyFileToDirectory(ArtifactsDirectory / $"Octopus.Cli.{OctoVersionInfo.FullSemVer}.nupkg", LocalPackagesDirectory, FileExistsPolicy.Overwrite);
+            CopyFileToDirectory(ArtifactsDirectory / $"Octopus.DotNet.Cli.{OctoVersionInfo.FullSemVer}.nupkg", LocalPackagesDirectory, FileExistsPolicy.Overwrite);
+        });
+
+    Target Default => _ => _
+        .DependsOn(CopyToLocalPackages);
 
     void SignBinaries(string path)
     {
@@ -408,13 +408,9 @@ class Build : NukeBuild
             {
                 // If using a capitalized wrapper, insert it first so it wouldn't overwrite the main payload on a case-insensitive system.
                 if (insertCapitalizedOctoWrapper)
-                {
-                    tar.Write("Octo", AssetDirectory / $"OctoWrapper.sh");
-                }
+                    tar.Write("Octo", AssetDirectory / "OctoWrapper.sh");
                 else if (insertCapitalizedDotNetWrapper)
-                {
-                    tar.Write("Octo", AssetDirectory / $"octo");
-                }
+                    tar.Write("Octo", AssetDirectory / "octo");
 
                 // Add the remaining files
                 tar.WriteAll(path, "*", SearchOption.AllDirectories);
@@ -424,7 +420,9 @@ class Build : NukeBuild
 
             using (Stream stream = File.Open(outFile, FileMode.Create))
             using (var zip = WriterFactory.Open(stream, ArchiveType.GZip, CompressionType.GZip))
+            {
                 zip.Write($"{outputFile}.tar", tarMemStream);
+            }
         }
 
         Logger.Info("Successfully created TGZ file: {0}", outFile);
@@ -445,10 +443,8 @@ class Build : NukeBuild
                         {
                             var entryDestination = Path.Combine(destination, reader.Entry.Key);
                             if (EnvironmentInfo.IsWin && File.Exists(entryDestination))
-                            {
                                 // In Windows, remove existing files before overwrite, to prevent existing filename case sticking
                                 File.Delete(entryDestination);
-                            }
 
                             reader.WriteEntryToDirectory(destination, new ExtractionOptions { ExtractFullPath = true, Overwrite = true });
                         }
@@ -457,21 +453,6 @@ class Build : NukeBuild
             }
         }
     }
-
-    Target CopyToLocalPackages => _ => _
-        .OnlyWhenStatic(() => IsLocalBuild)
-        .DependsOn(PackOctopusToolsNuget)
-        .DependsOn(PackDotNetOctoNuget)
-        .DependsOn(Zip)
-        .Executes(() =>
-        {
-            EnsureExistingDirectory(LocalPackagesDirectory);
-            CopyFileToDirectory(ArtifactsDirectory / $"Octopus.Cli.{OctoVersionInfo.FullSemVer}.nupkg", LocalPackagesDirectory, FileExistsPolicy.Overwrite);
-            CopyFileToDirectory(ArtifactsDirectory / $"Octopus.DotNet.Cli.{OctoVersionInfo.FullSemVer}.nupkg", LocalPackagesDirectory, FileExistsPolicy.Overwrite);
-        });
-
-    Target Default => _ => _
-        .DependsOn(CopyToLocalPackages);
 
     /// Support plugins are available for:
     /// - JetBrains ReSharper        https://nuke.build/resharper
