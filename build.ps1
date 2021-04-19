@@ -14,7 +14,7 @@ $PSScriptRoot = Split-Path $MyInvocation.MyCommand.Path -Parent
 ###########################################################################
 
 $BuildProjectFile = "$PSScriptRoot\build\_build.csproj"
-$TempDirectory = "$PSScriptRoot\\.tmp"
+$TempDirectory = "$PSScriptRoot\\.nuke\temp"
 
 $DotNetGlobalFile = "$PSScriptRoot\\global.json"
 $DotNetInstallUrl = "https://dot.net/v1/dotnet-install.ps1"
@@ -29,7 +29,6 @@ $env:DOTNET_MULTILEVEL_LOOKUP = 0
 ###########################################################################
 
 function ExecSafe([scriptblock] $cmd) {
-    $LASTEXITCODE = $null
     & $cmd
     if ($LASTEXITCODE) { exit $LASTEXITCODE }
 }
