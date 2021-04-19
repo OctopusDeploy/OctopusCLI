@@ -365,9 +365,9 @@ class Build : NukeBuild
 
     Target CopyToLocalPackages => _ => _
         .OnlyWhenStatic(() => IsLocalBuild)
-        .DependsOn(PackOctopusToolsNuget)
-        .DependsOn(PackDotNetOctoNuget)
-        .DependsOn(Zip)
+        .TriggeredBy(PackOctopusToolsNuget)
+        .TriggeredBy(PackDotNetOctoNuget)
+        .TriggeredBy(Zip)
         .Executes(() =>
         {
             EnsureExistingDirectory(LocalPackagesDirectory);
@@ -376,7 +376,9 @@ class Build : NukeBuild
         });
 
     Target Default => _ => _
-        .DependsOn(CopyToLocalPackages);
+        .DependsOn(PackOctopusToolsNuget)
+        .DependsOn(PackDotNetOctoNuget)
+        .DependsOn(Zip);
 
     void SignBinaries(string path)
     {
