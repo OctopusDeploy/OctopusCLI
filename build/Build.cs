@@ -37,7 +37,7 @@ class Build : NukeBuild
     [Parameter("Pfx certificate to use for signing the files")] readonly AbsolutePath SigningCertificatePath = RootDirectory / "certificates" / "OctopusDevelopment.pfx";
     [Parameter("Password for the signing certificate")] readonly string SigningCertificatePassword = "Password01!";
 
-    [Solution] readonly Solution Solution;
+    [Solution(GenerateProjects = true)] readonly Solution Solution;
 
     [NukeOctoVersion] readonly OctoVersionInfo OctoVersionInfo;
 
@@ -104,10 +104,8 @@ class Build : NukeBuild
         .DependsOn(Test)
         .Executes(() =>
         {
-            var projectToPublish = "./source/Octo/Octo.csproj";
-
             DotNetPublish(_ => _
-                .SetProject(projectToPublish)
+                .SetProject(Solution.Octo)
                 .SetFramework("net452")
                 .SetConfiguration(Configuration)
                 .SetOutput(OctoPublishDirectory / "netfx")
@@ -115,7 +113,7 @@ class Build : NukeBuild
 
             var portablePublishDir = OctoPublishDirectory / "portable";
             DotNetPublish(_ => _
-                .SetProject(projectToPublish)
+                .SetProject(Solution.Octo)
                 .SetFramework("netcoreapp2.0") /* For compatibility until we gently phase it out. We encourage upgrading to self-contained executable. */
                 .SetConfiguration(Configuration)
                 .SetOutput(portablePublishDir)
@@ -127,7 +125,7 @@ class Build : NukeBuild
             CopyFileToDirectory(AssetDirectory / "octo.cmd", portablePublishDir, FileExistsPolicy.Overwrite);
 
             var doc = new XmlDocument();
-            doc.Load(@".\source\Octo\Octo.csproj");
+            doc.Load(Solution.Octo.Path);
             var selectSingleNode = doc.SelectSingleNode("Project/PropertyGroup/RuntimeIdentifiers");
             if (selectSingleNode == null)
                 throw new ApplicationException("Unable to find Project/PropertyGroup/RuntimeIdentifiers in Octo.csproj");
@@ -135,7 +133,7 @@ class Build : NukeBuild
             foreach (var rid in rids.Split(';'))
             {
                 DotNetPublish(_ => _
-                    .SetProject(projectToPublish)
+                    .SetProject(Solution.Octo)
                     .SetConfiguration(Configuration)
                     .SetFramework("netcoreapp3.1")
                     .SetRuntime(rid)
@@ -367,9 +365,9 @@ class Build : NukeBuild
 
     Target CopyToLocalPackages => _ => _
         .OnlyWhenStatic(() => IsLocalBuild)
-        .DependsOn(PackOctopusToolsNuget)
-        .DependsOn(PackDotNetOctoNuget)
-        .DependsOn(Zip)
+        .TriggeredBy(PackOctopusToolsNuget)
+        .TriggeredBy(PackDotNetOctoNuget)
+        .TriggeredBy(Zip)
         .Executes(() =>
         {
             EnsureExistingDirectory(LocalPackagesDirectory);
@@ -378,7 +376,9 @@ class Build : NukeBuild
         });
 
     Target Default => _ => _
-        .DependsOn(CopyToLocalPackages);
+        .DependsOn(PackOctopusToolsNuget)
+        .DependsOn(PackDotNetOctoNuget)
+        .DependsOn(Zip);
 
     void SignBinaries(string path)
     {
