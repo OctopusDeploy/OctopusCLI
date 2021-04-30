@@ -7,6 +7,8 @@ using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 
 namespace Octopus.Cli.Commands.Deployment
 {
@@ -39,15 +41,14 @@ namespace Octopus.Cli.Commands.Deployment
         public delegate IExecutionResourceWaiter Factory(IOctopusAsyncRepository repository, string serverBaseUrl);
 
         readonly TaskOutputProgressPrinter printer = new TaskOutputProgressPrinter();
-        readonly ICommandOutputProvider commandOutputProvider;
+        readonly IOctopusCliCommandOutputProvider commandOutputProvider;
         readonly IOctopusAsyncRepository repository;
         readonly string serverBaseUrl;
 
         public ExecutionResourceWaiter(
-            ICommandOutputProvider commandOutputProvider,
+            IOctopusCliCommandOutputProvider commandOutputProvider,
             IOctopusAsyncRepository repository,
-            string serverBaseUrl
-        )
+            string serverBaseUrl)
         {
             this.commandOutputProvider = commandOutputProvider;
             this.repository = repository;

@@ -11,6 +11,9 @@ using Octopus.Client;
 using Octopus.Client.Exceptions;
 using Octopus.Client.Model;
 using Octopus.Client.Model.VersionControl;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
+using Octopus.CommandLine.OptionParsing;
 using Serilog.Events;
 
 namespace Octopus.Cli.Commands.Releases
@@ -19,6 +22,7 @@ namespace Octopus.Cli.Commands.Releases
     public class CreateReleaseCommand : DeploymentCommandBase, ISupportFormattedOutput
     {
         readonly IReleasePlanBuilder releasePlanBuilder;
+        new readonly IOctopusCliCommandOutputProvider commandOutputProvider;
         ReleaseResource release;
         ProjectResource project;
         ReleasePlan plan;
@@ -29,7 +33,7 @@ namespace Octopus.Cli.Commands.Releases
             IPackageVersionResolver versionResolver,
             IReleasePlanBuilder releasePlanBuilder,
             IOctopusClientFactory clientFactory,
-            ICommandOutputProvider commandOutputProvider,
+            IOctopusCliCommandOutputProvider commandOutputProvider,
             ExecutionResourceWaiter.Factory executionResourceWaiterFactory)
             : base(repositoryFactory,
                 fileSystem,
@@ -38,6 +42,7 @@ namespace Octopus.Cli.Commands.Releases
                 executionResourceWaiterFactory)
         {
             this.releasePlanBuilder = releasePlanBuilder;
+            this.commandOutputProvider = commandOutputProvider;
 
             var options = Options.For("Release creation");
             options.Add<string>("project=", "Name or ID of the project.", v => ProjectNameOrId = v);

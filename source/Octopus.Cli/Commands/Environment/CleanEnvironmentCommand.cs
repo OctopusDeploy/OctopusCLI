@@ -8,6 +8,9 @@ using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
 using Octopus.Client.Model.Endpoints;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
+using Octopus.CommandLine.OptionParsing;
 
 #pragma warning disable 618
 
@@ -32,7 +35,7 @@ namespace Octopus.Cli.Commands.Environment
         EnvironmentResource environmentResource;
         IEnumerable<MachineResource> machines;
 
-        public CleanEnvironmentCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
+        public CleanEnvironmentCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, IOctopusCliCommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Cleanup");

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
+using Octopus.CommandLine;
 
 namespace Octopus.Cli.Commands.Deployment
 {
@@ -12,7 +13,7 @@ namespace Octopus.Cli.Commands.Deployment
     {
         readonly HashSet<string> printed = new HashSet<string>();
 
-        public async Task Render(IOctopusAsyncRepository repository, ICommandOutputProvider commandOutputProvider, TaskResource resource)
+        public async Task Render(IOctopusAsyncRepository repository, IOctopusCliCommandOutputProvider commandOutputProvider, TaskResource resource)
         {
             var details = await repository.Tasks.GetDetails(resource).ConfigureAwait(false);
 
@@ -74,7 +75,7 @@ namespace Octopus.Cli.Commands.Deployment
                 RenderToConsole(child, commandOutputProvider, indent + "  ");
         }
 
-        void RenderToTeamCity(ActivityElement element, ICommandOutputProvider commandOutputProvider)
+        void RenderToTeamCity(ActivityElement element, IOctopusCliCommandOutputProvider commandOutputProvider)
         {
             if (!IsPrintable(element))
                 return;

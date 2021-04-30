@@ -10,6 +10,7 @@ using Octopus.Cli.Tests.Helpers;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
+using Octopus.CommandLine;
 using Serilog;
 
 namespace Octo.Tests.Commands
@@ -34,9 +35,9 @@ namespace Octo.Tests.Commands
 
         public IOctopusFileSystem FileSystem { get; set; }
 
-        public ICommandOutputProvider CommandOutputProvider { get; set; }
+        public IOctopusCliCommandOutputProvider CommandOutputProvider { get; set; }
 
-        public ExecutionResourceWaiter.Factory ExecutionResourceWaiterFactory => (repository, serverBaseUrl) => new ExecutionResourceWaiter(Substitute.For<ICommandOutputProvider>(), repository, serverBaseUrl);
+        public ExecutionResourceWaiter.Factory ExecutionResourceWaiterFactory => (repository, serverBaseUrl) => new ExecutionResourceWaiter(Substitute.For<IOctopusCliCommandOutputProvider>(), repository, serverBaseUrl);
 
         public List<string> CommandLineArgs { get; set; }
 

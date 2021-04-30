@@ -8,6 +8,7 @@ using Octopus.Client.Exceptions;
 using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
 using Octopus.Client.Repositories.Async;
+using Octopus.CommandLine.Commands;
 using Serilog;
 
 namespace Octopus.Cli.Util

@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 
 namespace Octopus.Cli.Commands
 {

@@ -9,6 +9,7 @@ using Octopus.Cli.Commands.Machine;
 using Octopus.Cli.Infrastructure;
 using Octopus.Client.Model;
 using Octopus.Client.Model.Endpoints;
+using Octopus.CommandLine.Commands;
 
 #pragma warning disable 618
 

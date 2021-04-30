@@ -7,6 +7,7 @@ using Octopus.Cli.Commands.Runbooks;
 using Octopus.Cli.Infrastructure;
 using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
+using Octopus.CommandLine.Commands;
 
 namespace Octo.Tests.Commands
 {

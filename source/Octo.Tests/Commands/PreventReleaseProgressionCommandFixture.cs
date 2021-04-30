@@ -12,6 +12,8 @@ using Octopus.Client.Exceptions;
 using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
 using Octopus.Client.Serialization;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 
 namespace Octo.Tests.Commands
 {

@@ -9,6 +9,8 @@ using Octopus.Cli.Diagnostics;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Model;
 using Octopus.Cli.Util;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 
 namespace Octopus.Cli.Commands.Package
 {

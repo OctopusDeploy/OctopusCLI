@@ -4,6 +4,7 @@ using System.Reflection;
 using Autofac;
 using Octopus.Cli.Util;
 using Octopus.Client;
+using Octopus.CommandLine;
 
 namespace Octopus.Cli.Exporters
 {
@@ -43,7 +44,7 @@ namespace Octopus.Cli.Exporters
                 : (IExporter)lifetimeScope.Resolve(found,
                     new TypedParameter(typeof(IOctopusAsyncRepository), repository),
                     new TypedParameter(typeof(IOctopusFileSystem), fileSystem),
-                    new TypedParameter(typeof(ICommandOutputProvider), commandOutputProvider));
+                    new TypedParameter(typeof(IOctopusCliCommandOutputProvider), commandOutputProvider));
         }
     }
 }

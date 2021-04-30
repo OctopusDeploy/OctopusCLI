@@ -9,6 +9,7 @@ using NUnit.Framework;
 using Octopus.Cli.Commands.Environment;
 using Octopus.Cli.Infrastructure;
 using Octopus.Client.Model;
+using Octopus.CommandLine.Commands;
 
 #pragma warning disable 618
 

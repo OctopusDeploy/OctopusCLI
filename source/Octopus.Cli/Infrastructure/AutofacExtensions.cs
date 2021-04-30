@@ -1,6 +1,8 @@
 using System;
 using Autofac;
 using Autofac.Builder;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 
 namespace Octopus.Cli.Infrastructure
 {

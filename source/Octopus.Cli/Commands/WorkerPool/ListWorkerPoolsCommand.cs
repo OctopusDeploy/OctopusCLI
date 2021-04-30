@@ -7,6 +7,8 @@ using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 
 namespace Octopus.Cli.Commands.WorkerPool
 {
@@ -15,7 +17,7 @@ namespace Octopus.Cli.Commands.WorkerPool
     {
         List<WorkerPoolResource> pools;
 
-        public ListWorkerPoolsCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
+        public ListWorkerPoolsCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, IOctopusCliCommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
         }

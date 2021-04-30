@@ -7,6 +7,9 @@ using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
+using Octopus.CommandLine.OptionParsing;
 using Octopus.Versioning.Octopus;
 
 namespace Octopus.Cli.Commands.Releases
@@ -23,7 +26,7 @@ namespace Octopus.Cli.Commands.Releases
         public PromoteReleaseCommand(IOctopusAsyncRepositoryFactory repositoryFactory,
             IOctopusFileSystem fileSystem,
             IOctopusClientFactory clientFactory,
-            ICommandOutputProvider commandOutputProvider,
+            IOctopusCliCommandOutputProvider commandOutputProvider,
             ExecutionResourceWaiter.Factory executionResourceWaiterFactory)
             : base(repositoryFactory,
                 fileSystem,

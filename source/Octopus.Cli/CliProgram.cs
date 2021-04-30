@@ -6,16 +6,17 @@ using System.Reflection;
 using Autofac;
 using Octopus.Cli.Commands.Deployment;
 using Octopus.Cli.Commands.Releases;
-using Octopus.Cli.Commands.ShellCompletion;
 using Octopus.Cli.Diagnostics;
 using Octopus.Cli.Exporters;
 using Octopus.Cli.Importers;
-using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Exceptions;
 using Octopus.Client.Logging;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
+using Octopus.CommandLine.ShellCompletion;
 using Serilog;
 
 namespace Octopus.Cli
@@ -82,7 +83,10 @@ namespace Octopus.Cli
             builder.RegisterAssemblyTypes(thisAssembly).As<ICommand>().AsSelf();
             builder.RegisterType<CommandLocator>().As<ICommandLocator>();
 
-            builder.RegisterType<CommandOutputProvider>().As<ICommandOutputProvider>().SingleInstance();
+            builder.RegisterType<CommandOutputProvider>()
+                .As<IOctopusCliCommandOutputProvider>()
+                .As<ICommandOutputProvider>()
+                .SingleInstance();
 
             builder.RegisterAssemblyTypes(thisAssembly).As<IExporter>().AsSelf();
             builder.RegisterAssemblyTypes(thisAssembly).As<IImporter>().AsSelf();
@@ -99,8 +103,8 @@ namespace Octopus.Cli
 
             builder.RegisterType<OctopusPhysicalFileSystem>().As<IOctopusFileSystem>();
             builder.RegisterAssemblyTypes(thisAssembly)
-                .Where(t => t.IsSubclassOf(typeof(ShellCompletionInstaller)))
-                .As<ShellCompletionInstaller>()
+                .Where(t => t.IsAssignableTo<IShellCompletionInstaller>())
+                .AsImplementedInterfaces()
                 .AsSelf();
 
             return builder.Build();

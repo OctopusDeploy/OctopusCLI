@@ -9,7 +9,8 @@ using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
-
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 #if NETFRAMEWORK
 using System.Net;
 using System.Net.Security;
@@ -55,7 +56,7 @@ namespace Octopus.Cli.Commands
         int keepAlive;
 #endif
 
-        protected ApiCommand(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
+        protected ApiCommand(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusCliCommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
             this.clientFactory = clientFactory;
             this.repositoryFactory = repositoryFactory;

@@ -5,6 +5,8 @@ using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 using Serilog;
 
 namespace Octopus.Cli.Commands
@@ -19,7 +21,7 @@ namespace Octopus.Cli.Commands
             IOctopusAsyncRepositoryFactory repositoryFactory,
             ILogger log,
             IOctopusClientFactory clientFactory,
-            ICommandOutputProvider commandOutputProvider)
+            IOctopusCliCommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             this.importerLocator = importerLocator;

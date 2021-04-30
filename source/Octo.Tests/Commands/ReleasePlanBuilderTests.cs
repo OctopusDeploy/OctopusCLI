@@ -12,6 +12,8 @@ using Octopus.Client;
 using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
 using Octopus.Client.Repositories.Async;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 using Serilog;
 
 namespace Octo.Tests.Commands
@@ -83,7 +85,7 @@ namespace Octo.Tests.Commands
             logger = Substitute.For<ILogger>();
             versionResolver = Substitute.For<IPackageVersionResolver>();
             versionRuleTester = Substitute.For<IChannelVersionRuleTester>();
-            commandOutputProvider = Substitute.For<ICommandOutputProvider>();
+            commandOutputProvider = Substitute.For<IOctopusCliCommandOutputProvider>();
 
             deploymentProcessRepository = Substitute.For<IDeploymentProcessRepository>();
             deploymentProcessRepository.Get(projectResource.DeploymentProcessId)

@@ -7,6 +7,9 @@ using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
 using Octopus.Client.Model.PackageMetadata;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
+using Octopus.CommandLine.OptionParsing;
 
 namespace Octopus.Cli.Commands.Package
 {
@@ -17,7 +20,7 @@ namespace Octopus.Cli.Commands.Package
 
         OctopusPackageMetadataMappedResource resultResource;
 
-        public PushMetadataCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
+        public PushMetadataCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, IOctopusCliCommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Package metadata pushing");

@@ -4,6 +4,7 @@ using System.Dynamic;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
 using Octopus.Client.Serialization;
+using Octopus.CommandLine.Commands;
 using Serilog;
 
 namespace Octopus.Cli.Importers

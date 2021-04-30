@@ -1,125 +1,39 @@
 ﻿using System;
-using System.IO;
-using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Octopus.Cli.Diagnostics;
-using Octopus.Cli.Infrastructure;
 using Octopus.Client.Model;
 using Octopus.Client.Serialization;
+using Octopus.CommandLine;
 using Serilog;
-using Serilog.Events;
 
 namespace Octopus.Cli.Util
 {
-    public class CommandOutputProvider : ICommandOutputProvider
+    public interface IOctopusCliCommandOutputProvider : ICommandOutputProvider
+    {
+        void EnableServiceMessages();
+        bool ServiceMessagesEnabled();
+        bool IsVSTS();
+        void ServiceMessage(string messageName, object o);
+        void TfsServiceMessage(string serverBaseUrl, ProjectResource project, ReleaseResource release);
+    }
+
+    public class CommandOutputProvider : CommandOutputProviderBase, IOctopusCliCommandOutputProvider
     {
         readonly ILogger logger;
 
-        public CommandOutputProvider(ILogger logger)
+        public CommandOutputProvider(ILogger logger) : base(logger)
         {
             this.logger = logger;
-            PrintMessages = true; // unless told otherwise
         }
 
-        public bool PrintMessages { get; set; }
+        protected override string GetAppVersion() => typeof(CliProgram).GetInformationalVersion();
 
-        public void PrintHeader()
-        {
-            if (PrintMessages)
-            {
-                logger.Information("Octopus Deploy Command Line Tool, version {Version:l}",
-                    typeof(CliProgram).GetInformationalVersion());
-                logger.Information(string.Empty);
-            }
-        }
+        protected override string SerializeObjectToJason(object o) => JsonSerialization.SerializeObject(o);
 
-        public void PrintCommandHelpHeader(string executable, string commandName, string description, TextWriter textWriter)
-        {
-            if (PrintMessages)
-            {
-                Console.ResetColor();
-                textWriter.WriteLine(description);
-                textWriter.WriteLine();
-                textWriter.Write("Usage: ");
-                Console.ForegroundColor = ConsoleColor.White;
-                textWriter.WriteLine($"{executable} {commandName} [<options>]");
-                Console.ResetColor();
-                textWriter.WriteLine();
-                textWriter.WriteLine("Where [<options>] is any of: ");
-                textWriter.WriteLine();
-            }
-        }
+        public bool ServiceMessagesEnabled() => logger.ServiceMessagesEnabled();
 
-        public void PrintCommandOptions(Options options, TextWriter writer)
-        {
-            if (PrintMessages)
-                foreach (var g in options.OptionSets.Keys.Reverse())
-                {
-                    writer.WriteLine($"{g}: ");
-                    writer.WriteLine();
-                    options.OptionSets[g].WriteOptionDescriptions(writer);
-                    writer.WriteLine();
-                }
-        }
+        public bool IsVSTS() => logger.IsVSTS();
 
-        public void Debug(string template, string propertyValue)
-        {
-            if (PrintMessages)
-                logger.Debug(template, propertyValue);
-        }
-
-        public void Debug(string template, params object[] propertyValues)
-        {
-            if (PrintMessages)
-                logger.Debug(template, propertyValues);
-        }
-
-        public void Information(string template, string propertyValue)
-        {
-            if (PrintMessages)
-                logger.Information(template, propertyValue);
-        }
-
-        public void Information(string template, params object[] propertyValues)
-        {
-            if (PrintMessages)
-                logger.Information(template, propertyValues);
-        }
-
-        public void Json(object o)
-        {
-            logger.Information(JsonSerialization.SerializeObject(o));
-        }
-
-        public void Json(object o, TextWriter writer)
-        {
-            var settings = new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore,
-                Formatting = Formatting.Indented,
-                Converters = new JsonConverterCollection { new StringEnumConverter() }
-            };
-            writer.WriteLine(JsonConvert.SerializeObject(o, settings));
-        }
-
-        public void Warning(string s)
-        {
-            if (PrintMessages)
-                logger.Warning(s);
-        }
-
-        public void Warning(string template, params object[] propertyValues)
-        {
-            if (PrintMessages)
-                logger.Warning(template, propertyValues);
-        }
-
-        public void Error(string template, params object[] propertyValues)
-        {
-            if (PrintMessages)
-                logger.Error(template, propertyValues);
-        }
+        public void EnableServiceMessages() => logger.EnableServiceMessages();
 
         public void ServiceMessage(string messageName, object o)
         {
@@ -131,33 +45,6 @@ namespace Octopus.Cli.Util
         {
             if (PrintMessages)
                 logger.TfsServiceMessage(serverBaseUrl, project, release);
-        }
-
-        public void Write(LogEventLevel logEventLevel, string messageTemplate, params object[] propertyValues)
-        {
-            if (PrintMessages)
-                logger.Write(logEventLevel, messageTemplate, propertyValues);
-        }
-
-        public void Error(Exception ex, string messageTemplate)
-        {
-            if (PrintMessages)
-                logger.Error(ex, messageTemplate);
-        }
-
-        public bool ServiceMessagesEnabled()
-        {
-            return logger.ServiceMessagesEnabled();
-        }
-
-        public bool IsVSTS()
-        {
-            return logger.IsVSTS();
-        }
-
-        public void EnableServiceMessages()
-        {
-            logger.EnableServiceMessages();
         }
     }
 }

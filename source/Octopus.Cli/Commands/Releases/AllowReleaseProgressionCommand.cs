@@ -7,6 +7,9 @@ using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Exceptions;
 using Octopus.Client.Model;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
+using Octopus.CommandLine.OptionParsing;
 using Octopus.Versioning.Octopus;
 
 namespace Octopus.Cli.Commands.Releases
@@ -18,7 +21,7 @@ namespace Octopus.Cli.Commands.Releases
         ProjectResource project;
         ReleaseResource release;
 
-        public AllowReleaseProgressionCommand(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider)
+        public AllowReleaseProgressionCommand(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusCliCommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Allowing release progression");

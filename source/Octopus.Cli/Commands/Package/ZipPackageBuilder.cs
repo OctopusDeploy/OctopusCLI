@@ -6,6 +6,8 @@ using NuGet.Common;
 using NuGet.Packaging;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 
 namespace Octopus.Cli.Commands.Package
 {
@@ -129,7 +131,7 @@ namespace Octopus.Cli.Commands.Package
         /// <summary>
         /// Per the .ZIP File Format Specification 4.4.17.1 all slashes should be forward slashes, not back slashes.
         /// https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
-        /// 
+        ///
         /// This functionality is being implemented in the framework:
         /// https://github.com/dotnet/corefx/commit/7b9331e89a795c72709aef38898929e74c343dfb
         /// </summary>

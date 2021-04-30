@@ -9,6 +9,9 @@ using Octopus.Client;
 using Octopus.Client.Model;
 using Octopus.Client.Model.BuildInformation;
 using Octopus.Client.Model.PackageMetadata;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
+using Octopus.CommandLine.OptionParsing;
 
 namespace Octopus.Cli.Commands.Package
 {
@@ -19,7 +22,7 @@ namespace Octopus.Cli.Commands.Package
         readonly List<OctopusPackageVersionBuildInformationMappedResource> pushedBuildInformation;
         OctopusPackageVersionBuildInformationMappedResource resultResource;
 
-        public BuildInformationCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
+        public BuildInformationCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, IOctopusCliCommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Build information pushing");

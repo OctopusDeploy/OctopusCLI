@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Octopus.Cli.Infrastructure;
 using Octopus.Client.Model;
+using Octopus.CommandLine.Commands;
 using Octopus.Versioning.Octopus;
 
 namespace Octopus.Cli.Commands.Releases

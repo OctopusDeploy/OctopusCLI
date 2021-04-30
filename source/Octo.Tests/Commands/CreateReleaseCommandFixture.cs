@@ -6,6 +6,7 @@ using Octopus.Cli.Commands.Releases;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Tests.Helpers;
 using Octopus.Cli.Util;
+using Octopus.CommandLine.Commands;
 
 namespace Octo.Tests.Commands
 {
