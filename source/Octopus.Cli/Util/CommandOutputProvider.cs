@@ -25,9 +25,11 @@ namespace Octopus.Cli.Util
             this.logger = logger;
         }
 
+        protected override string GetAppName() => "Octopus Deploy Command Line Tool";
+
         protected override string GetAppVersion() => typeof(CliProgram).GetInformationalVersion();
 
-        protected override string SerializeObjectToJason(object o) => JsonSerialization.SerializeObject(o);
+        protected override string SerializeObjectToJson(object o) => JsonSerialization.SerializeObject(o);
 
         public bool ServiceMessagesEnabled() => logger.ServiceMessagesEnabled();
 

@@ -49,8 +49,7 @@ namespace Octopus.Cli
             {
                 var container = BuildContainer();
                 var commandLocator = container.Resolve<ICommandLocator>();
-                var first = GetFirstArgument(args);
-                var command = GetCommand(first, commandLocator);
+                var command = commandLocator.GetCommand(args);
                 command.Execute(args.Skip(1).ToArray()).GetAwaiter().GetResult();
                 return 0;
             }
@@ -103,28 +102,12 @@ namespace Octopus.Cli
 
             builder.RegisterType<OctopusPhysicalFileSystem>().As<IOctopusFileSystem>();
             builder.RegisterAssemblyTypes(thisAssembly)
+                .WithParameter("executableNames", new [] { "Octo", "octo" })
                 .Where(t => t.IsAssignableTo<IShellCompletionInstaller>())
                 .AsImplementedInterfaces()
                 .AsSelf();
 
             return builder.Build();
-        }
-
-        static ICommand GetCommand(string first, ICommandLocator commandLocator)
-        {
-            if (string.IsNullOrWhiteSpace(first))
-                return commandLocator.Find("help");
-
-            var command = commandLocator.Find(first);
-            if (command == null)
-                throw new CommandException("Error: Unrecognized command '" + first + "'");
-
-            return command;
-        }
-
-        static string GetFirstArgument(IEnumerable<string> args)
-        {
-            return (args.FirstOrDefault() ?? string.Empty).ToLowerInvariant().TrimStart('-', '/');
         }
 
         static int PrintError(Exception ex)
