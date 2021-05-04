@@ -33,7 +33,7 @@ if command -v dpkg > /dev/null; then
 fi
 
 if [[ "$OSRELID" == "fedora" ]]; then
-  echo "Fedora detected. Setting BUNDLE_EXTRACTION_BASE_DIR to $(pwd)/dotnet-extraction-dir"
+  echo "Fedora detected. Setting DOTNET_BUNDLE_EXTRACT_BASE_DIR to $(pwd)/dotnet-extraction-dir"
   # to workaround error
   #   realpath(): Operation not permitted
   #   Failure processing application bundle.
@@ -42,7 +42,7 @@ if [[ "$OSRELID" == "fedora" ]]; then
   #   A fatal error was encountered. Could not extract contents of the bundle
 
   mkdir dotnet-extraction-dir
-  export BUNDLE_EXTRACTION_BASE_DIR=$(pwd)/dotnet-extraction-dir
+  export DOTNET_BUNDLE_EXTRACT_BASE_DIR=$(pwd)/dotnet-extraction-dir
 fi
 
 
