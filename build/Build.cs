@@ -363,6 +363,7 @@ class Build : NukeBuild
         .DependsOn(BuildDockerImage)
         .DependsOn(CreateLinuxPackages);
 
+    [PublicAPI]
     Target CopyToLocalPackages => _ => _
         .OnlyWhenStatic(() => IsLocalBuild)
         .TriggeredBy(PackOctopusToolsNuget)
