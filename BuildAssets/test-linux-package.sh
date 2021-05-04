@@ -7,6 +7,7 @@ if [[ -z "$OCTOPUS_CLI_SERVER" || -z "$OCTOPUS_CLI_API_KEY" || -z "$OCTOPUS_SPAC
     '\nSpace to search, and an environment name expected to be found there.' >&2
   exit 1
 fi
+
 OSRELID="$(. /etc/os-release && echo $ID)"
 if [[ "$OSRELID" == "rhel" && ( -z "$REDHAT_SUBSCRIPTION_USERNAME" || -z "$REDHAT_SUBSCRIPTION_PASSWORD" ) ]]; then
   echo -e 'This script requires the environment variables REDHAT_SUBSCRIPTION_USERNAME and REDHAT_SUBSCRIPTION_PASSWORD to register'\
@@ -21,9 +22,8 @@ if [[ ! -e /opt/linux-package-feeds ]]; then
   exit 1
 fi
 
-
 # Install the package (with any needed docker config, system registration, dependencies) using a script from 'linux-package-feeds'.
-export PKG_PATH_PREFIX="octopuscli"
+
 bash /opt/linux-package-feeds/install-linux-package.sh || exit
 
 if command -v dpkg > /dev/null; then
@@ -31,6 +31,20 @@ if command -v dpkg > /dev/null; then
   export DEBIAN_FRONTEND=noninteractive
   apt-get --no-install-recommends --yes install ca-certificates >/dev/null || exit
 fi
+
+if [[ "$OSRELID" == "fedora" ]]; then
+  echo "Fedora detected. Setting DOTNET_BUNDLE_EXTRACT_BASE_DIR to $(pwd)/dotnet-extraction-dir"
+  # to workaround error
+  #   realpath(): Operation not permitted
+  #   Failure processing application bundle.
+  #   Failed to determine location for extracting embedded files
+  #   DOTNET_BUNDLE_EXTRACT_BASE_DIR is not set, and a read-write temp-directory couldn't be created.
+  #   A fatal error was encountered. Could not extract contents of the bundle
+
+  mkdir dotnet-extraction-dir
+  export DOTNET_BUNDLE_EXTRACT_BASE_DIR=$(pwd)/dotnet-extraction-dir
+fi
+
 
 echo Testing octo.
 octo version || exit
