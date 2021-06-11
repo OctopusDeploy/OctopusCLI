@@ -278,14 +278,15 @@ class Build : NukeBuild
         .DependsOn(AssertPortableArtifactsExists)
         .Executes(() =>
         {
-            var platform = "nanoserver";
-            if (EnvironmentInfo.IsLinux)
-                platform = "alpine";
+            var platform = "alpine";
+            if (EnvironmentInfo.IsWin)
+            {
+                platform = "nanoserver";
+                CompressionTasks.Uncompress(ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.portable.zip", ArtifactsDirectory / "Extracted");
+            }
 
             var tag = $"octopusdeploy/octo-prerelease:{OctoVersionInfo.FullSemVer}-{platform}";
             var latest = $"octopusdeploy/octo-prerelease:latest-{platform}";
-
-            CompressionTasks.Uncompress(ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.portable.zip", ArtifactsDirectory / "Extracted");
 
             DockerTasks.DockerBuild(_ => _
                 .SetFile(RootDirectory / "Dockerfiles" / platform / "Dockerfile")
