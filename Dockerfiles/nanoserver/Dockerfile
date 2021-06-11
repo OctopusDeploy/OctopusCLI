@@ -1,15 +1,12 @@
-FROM microsoft/dotnet:2.1-runtime-nanoserver-sac2016
+FROM mcr.microsoft.com/dotnet/runtime:3.1-nanoserver-20H2
 ARG OCTO_TOOLS_VERSION=4.31.1
 
-LABEL maintainer="devops@octopus.com" 
+LABEL maintainer="devops@octopus.com"
 LABEL octopus.dockerfile.version="1.0"
-LABEL octopus.tools.version=$OCTO_TOOLS_VERSION 
+LABEL octopus.tools.version=$OCTO_TOOLS_VERSION
 
-COPY OctopusTools.$OCTO_TOOLS_VERSION.portable.zip ./octo/OctopusTools.zip
-
-RUN Expand-Archive ./octo/OctopusTools.zip -DestinationPath octo; \
-	Remove-Item -Force ./octo/OctopusTools.zip; \
-	mkdir src |Out-Null
+COPY Extracted/*.* ./octo/
+RUN "mkdir src"
 
 WORKDIR /src
 ENTRYPOINT ["dotnet", "/octo/octo.dll"]
