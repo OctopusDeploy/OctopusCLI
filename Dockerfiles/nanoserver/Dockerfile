@@ -5,7 +5,7 @@ LABEL maintainer="devops@octopus.com"
 LABEL octopus.dockerfile.version="1.0"
 LABEL octopus.tools.version=$OCTO_TOOLS_VERSION
 
-COPY Extracted/*.* ./octo/
+ADD OctopusTools.$OCTO_TOOLS_VERSION.portable.tar.gz ./octo/
 RUN "mkdir src"
 
 WORKDIR /src
