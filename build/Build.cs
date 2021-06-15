@@ -299,7 +299,7 @@ class Build : NukeBuild
                 .EnableRm());
 
             if (stdOut.FirstOrDefault().Text == OctoVersionInfo.FullSemVer)
-                Logger.Info($"Image successfully created - running 'docker run {tag} version --rm' returned '{stdOut}'");
+                Logger.Info($"Image successfully created - running 'docker run {tag} version --rm' returned '{string.Join('\n', stdOut.Select(x => x.Text))}'");
             else
                 throw new Exception($"Built image did not return expected version {OctoVersionInfo.FullSemVer} - it returned {stdOut}");
 
