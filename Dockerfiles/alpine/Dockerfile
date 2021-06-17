@@ -13,17 +13,14 @@ RUN mkdir /octo &&\
         echo "dotnet /octo/octo.dll \"\$@\"" > /octo/alpine &&\
         ln /octo/alpine /usr/bin/octo &&\
         chmod +x /usr/bin/octo
-        
+
 ARG OCTO_TOOLS_VERSION=4.31.1
 
 LABEL maintainer="devops@octopus.com"
 LABEL octopus.dockerfile.version="1.0"
 LABEL octopus.tools.version=$OCTO_TOOLS_VERSION
 
-COPY OctopusTools.$OCTO_TOOLS_VERSION.portable.tar.gz ./tmp/OctopusTools.portable.tar.gz
-
-RUN tar -zxvf /tmp/OctopusTools.portable.tar.gz -C /octo &&\
-	rm /tmp/OctopusTools.portable.tar.gz
+ADD OctopusTools.$OCTO_TOOLS_VERSION.portable.tar.gz /octo
 
 WORKDIR /src
 ENTRYPOINT ["dotnet", "/octo/octo.dll"]

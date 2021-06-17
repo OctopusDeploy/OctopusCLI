@@ -14,12 +14,17 @@ if [[ -z "$OCTOPUS_CLI_SERVER" || -z "$OCTOPUS_CLI_API_KEY" || -z "$OCTOPUS_SPAC
   exit 1
 fi
 
+export PKG_PATH_PREFIX="octopuscli"
+if [ ! -e "$PKG_PATH_PREFIX"*amd64.deb ]; then
+  echo -e 'This script requires the deb & rpm files in the current directory' >&2
+  exit 1
+fi
+
 which docker >/dev/null || {
   echo 'This script requires docker.' >&2
   exit 1
 }
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-
 
 for DOCKER_IMAGE in $(cat "$LPF_PATH/test-env-docker-images.conf" | grep -o '^[^#]*' | tr -d '\r')
 do
@@ -29,13 +34,18 @@ do
     RHEL_OPTS=''
   fi
 
-  echo "== Testing in '$DOCKER_IMAGE' =="
+  echo "##teamcity[blockOpened name='Testing in $DOCKER_IMAGE']"
   docker pull "$DOCKER_IMAGE" >/dev/null || exit
   docker run --rm \
     --hostname "octotestpkg$RANDOM" \
     --volume "$(pwd):/working" --volume "$SCRIPT_DIR/test-linux-package.sh:/test-linux-package.sh" \
     --volume "$(realpath "$LPF_PATH"):/opt/linux-package-feeds" \
-    --env OCTOPUS_CLI_SERVER --env OCTOPUS_CLI_API_KEY --env OCTOPUS_SPACE --env OCTOPUS_EXPECT_ENV \
+    --env OCTOPUS_CLI_SERVER \
+    --env OCTOPUS_CLI_API_KEY \
+    --env OCTOPUS_SPACE \
+    --env OCTOPUS_EXPECT_ENV \
+    --env PKG_PATH_PREFIX \
     $RHEL_OPTS \
     "$DOCKER_IMAGE" bash -c 'cd /working && bash /test-linux-package.sh' || exit
+  echo "##teamcity[blockClosed name='Testing in $DOCKER_IMAGE']"
 done
