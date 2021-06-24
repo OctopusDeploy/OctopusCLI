@@ -8,7 +8,6 @@ using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
 using Octopus.Client.Model.BuildInformation;
-using Octopus.Client.Model.PackageMetadata;
 
 namespace Octopus.Cli.Commands.Package
 {
@@ -51,31 +50,13 @@ namespace Octopus.Cli.Commands.Package
 
             var fileContent = FileSystem.ReadAllText(File);
 
-            var rootDocument = await Repository.LoadRootDocument();
-            if (rootDocument.HasLink("BuildInformation"))
+            var buildInformation = JsonConvert.DeserializeObject<OctopusBuildInformation>(fileContent);
+
+            foreach (var packageId in PackageIds)
             {
-                var buildInformation = JsonConvert.DeserializeObject<OctopusBuildInformation>(fileContent);
-
-                foreach (var packageId in PackageIds)
-                {
-                    commandOutputProvider.Debug("Pushing build information for package {PackageId} version {Version}...", packageId, Version);
-                    resultResource = await Repository.BuildInformationRepository.Push(packageId, Version, buildInformation, OverwriteMode);
-                    pushedBuildInformation.Add(resultResource);
-                }
-            }
-            else
-            {
-                commandOutputProvider.Warning("Detected Octopus server version doesn't support the Build Information API.");
-
-                var metadata = JsonConvert.DeserializeObject<OctopusPackageMetadata>(fileContent);
-                // old server won't parse without the CommentParser being set, default it to Jira
-                metadata.CommentParser = "Jira";
-
-                foreach (var packageId in PackageIds)
-                {
-                    commandOutputProvider.Debug("Pushing build information as legacy package metadata for package {PackageId} version {Version}...", packageId, Version);
-                    var result = await Repository.PackageMetadataRepository.Push(packageId, Version, metadata, OverwriteMode);
-                }
+                commandOutputProvider.Debug("Pushing build information for package {PackageId} version {Version}...", packageId, Version);
+                resultResource = await Repository.BuildInformationRepository.Push(packageId, Version, buildInformation, OverwriteMode);
+                pushedBuildInformation.Add(resultResource);
             }
         }
 
