@@ -81,6 +81,7 @@ namespace Octopus.Cli
 
             builder.RegisterAssemblyTypes(thisAssembly).As<ICommand>().AsSelf();
             builder.RegisterType<CommandLocator>().As<ICommandLocator>();
+            builder.RegisterAssemblyTypes(typeof(ICommand).Assembly).As<ICommand>().AsSelf();
 
             builder.RegisterType<CommandOutputProvider>()
                 .As<IOctopusCliCommandOutputProvider>()
@@ -101,7 +102,7 @@ namespace Octopus.Cli
             builder.RegisterType<ExecutionResourceWaiter>().As<IExecutionResourceWaiter>();
 
             builder.RegisterType<OctopusPhysicalFileSystem>().As<IOctopusFileSystem>();
-            builder.RegisterAssemblyTypes(thisAssembly)
+            builder.RegisterAssemblyTypes(typeof(ICommand).Assembly)
                 .WithParameter("executableNames", new [] { "Octo", "octo" })
                 .Where(t => t.IsAssignableTo<IShellCompletionInstaller>())
                 .AsImplementedInterfaces()
