@@ -41,12 +41,12 @@ namespace Octopus.Cli.Commands.Deployment
         public delegate IExecutionResourceWaiter Factory(IOctopusAsyncRepository repository, string serverBaseUrl);
 
         readonly TaskOutputProgressPrinter printer = new TaskOutputProgressPrinter();
-        readonly IOctopusCliCommandOutputProvider commandOutputProvider;
+        readonly ICommandOutputProvider commandOutputProvider;
         readonly IOctopusAsyncRepository repository;
         readonly string serverBaseUrl;
 
         public ExecutionResourceWaiter(
-            IOctopusCliCommandOutputProvider commandOutputProvider,
+            ICommandOutputProvider commandOutputProvider,
             IOctopusAsyncRepository repository,
             string serverBaseUrl)
         {

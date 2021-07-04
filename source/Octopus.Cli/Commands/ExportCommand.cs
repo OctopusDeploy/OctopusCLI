@@ -21,7 +21,7 @@ namespace Octopus.Cli.Commands
             IOctopusAsyncRepositoryFactory repositoryFactory,
             ILogger log,
             IOctopusClientFactory clientFactory,
-            IOctopusCliCommandOutputProvider commandOutputProvider)
+            ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             this.exporterLocator = exporterLocator;

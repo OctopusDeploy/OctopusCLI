@@ -44,7 +44,7 @@ namespace Octopus.Cli.Exporters
                 : (IExporter)lifetimeScope.Resolve(found,
                     new TypedParameter(typeof(IOctopusAsyncRepository), repository),
                     new TypedParameter(typeof(IOctopusFileSystem), fileSystem),
-                    new TypedParameter(typeof(IOctopusCliCommandOutputProvider), commandOutputProvider));
+                    new TypedParameter(typeof(ICommandOutputProvider), commandOutputProvider));
         }
     }
 }

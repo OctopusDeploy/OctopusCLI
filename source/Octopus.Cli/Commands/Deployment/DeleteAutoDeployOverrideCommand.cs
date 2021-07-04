@@ -20,7 +20,7 @@ namespace Octopus.Cli.Commands.Deployment
         IReadOnlyList<TenantResource> tenants;
         ProjectResource project;
 
-        public DeleteAutoDeployOverrideCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory octopusClientFactory, IOctopusCliCommandOutputProvider commandOutputProvider) :
+        public DeleteAutoDeployOverrideCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory octopusClientFactory, ICommandOutputProvider commandOutputProvider) :
             base(octopusClientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Delete auto deploy release override");

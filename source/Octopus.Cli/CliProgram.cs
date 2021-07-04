@@ -82,9 +82,12 @@ namespace Octopus.Cli
             builder.RegisterAssemblyTypes(thisAssembly).As<ICommand>().AsSelf();
             builder.RegisterType<CommandLocator>().As<ICommandLocator>();
             builder.RegisterAssemblyTypes(typeof(ICommand).Assembly).As<ICommand>().AsSelf();
+            builder.RegisterType<CommandOutputJsonSerializer>()
+                .As<ICommandOutputJsonSerializer>();
 
             builder.RegisterType<CommandOutputProvider>()
-                .As<IOctopusCliCommandOutputProvider>()
+                .WithParameter("applicationName", "Octopus CLI")
+                .WithParameter("applicationVersion", typeof(CliProgram).GetInformationalVersion())
                 .As<ICommandOutputProvider>()
                 .SingleInstance();
 
@@ -138,7 +141,7 @@ namespace Octopus.Cli
                 case CommandException cmd:
                 {
                     Log.Error(ex.Message);
-                    if (LogExtensions.IsKnownEnvironment())
+                    if (CommandOutputProviderExtensionMethods.IsKnownEnvironment())
                         Log.Error($"This error is most likely occurring while executing {AssemblyExtensions.GetExecutableName()} as part of an automated build process. The following doc is recommended to get some tips on how to troubleshoot this: https://g.octopushq.com/OctoexeTroubleshooting");
                     return -1;
                 }

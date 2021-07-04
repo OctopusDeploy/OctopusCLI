@@ -27,7 +27,7 @@ namespace Octo.Tests.Commands
             output = new StringWriter();
             Console.SetOut(output);
 
-            commandOutputProvider = new CommandOutputProvider(logger);
+            commandOutputProvider = new CommandOutputProvider("Octo", "1.0.0", logger);
             versionCommand = new VersionCommand(commandOutputProvider);
             logger = new LoggerConfiguration().WriteTo.TextWriter(output).CreateLogger();
         }

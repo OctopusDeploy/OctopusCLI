@@ -22,7 +22,7 @@ namespace Octopus.Cli.Commands.Package
         readonly List<OctopusPackageVersionBuildInformationMappedResource> pushedBuildInformation;
         OctopusPackageVersionBuildInformationMappedResource resultResource;
 
-        public BuildInformationCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, IOctopusCliCommandOutputProvider commandOutputProvider)
+        public BuildInformationCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Build information pushing");

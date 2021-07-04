@@ -6,18 +6,19 @@ using System.Linq;
 using System.Reflection;
 using Octopus.Client.AutomationEnvironments;
 using Octopus.Client.Model;
+using Octopus.CommandLine;
 using Serilog;
 
 namespace Octopus.Cli.Diagnostics
 {
-    public static class LogExtensions
+    public static class CommandOutputProviderExtensionMethods
     {
         static readonly Dictionary<string, string> Escapes;
         static bool serviceMessagesEnabled;
         static AutomationEnvironment buildEnvironment;
         internal static AutomationEnvironmentProvider automationEnvironmentProvider = new AutomationEnvironmentProvider();
 
-        static LogExtensions()
+        static CommandOutputProviderExtensionMethods()
         {
             serviceMessagesEnabled = false;
             buildEnvironment = AutomationEnvironment.NoneOrUnknown;
@@ -42,75 +43,75 @@ namespace Octopus.Cli.Diagnostics
             return buildEnvironment != AutomationEnvironment.NoneOrUnknown;
         }
 
-        public static void EnableServiceMessages(this ILogger log)
+        public static void EnableServiceMessages(this ICommandOutputProvider commandOutputProvider)
         {
             serviceMessagesEnabled = true;
 
             buildEnvironment = automationEnvironmentProvider.DetermineAutomationEnvironment();
         }
 
-        public static void DisableServiceMessages(this ILogger log)
+        public static void DisableServiceMessages(this ICommandOutputProvider commandOutputProvider)
         {
             serviceMessagesEnabled = false;
         }
 
-        public static bool ServiceMessagesEnabled(this ILogger log)
+        public static bool ServiceMessagesEnabled(this ICommandOutputProvider commandOutputProvider)
         {
             return serviceMessagesEnabled;
         }
 
-        public static bool IsVSTS(this ILogger log)
+        public static bool IsVSTS(this ICommandOutputProvider commandOutputProvider)
         {
             return buildEnvironment == AutomationEnvironment.AzureDevOps;
         }
 
-        public static void ServiceMessage(this ILogger log, string messageName, string value)
+        public static void ServiceMessage(this ICommandOutputProvider commandOutputProvider, string messageName, string value)
         {
             if (!serviceMessagesEnabled)
                 return;
 
             if (buildEnvironment == AutomationEnvironment.TeamCity)
-                log.Information("##teamcity[{MessageName:l} {Value:l}]", messageName, EscapeValue(value));
+                commandOutputProvider.Information("##teamcity[{MessageName:l} {Value:l}]", messageName, EscapeValue(value));
             else
-                log.Information("{MessageName:l} {Value:l}", messageName, EscapeValue(value));
+                commandOutputProvider.Information("{MessageName:l} {Value:l}", messageName, EscapeValue(value));
         }
 
-        public static void ServiceMessage(this ILogger log, string messageName, IDictionary<string, string> values)
+        public static void ServiceMessage(this ICommandOutputProvider commandOutputProvider, string messageName, IDictionary<string, string> values)
         {
             if (!serviceMessagesEnabled)
                 return;
 
             var valueSummary = string.Join(" ", values.Select(v => $"{v.Key}='{EscapeValue(v.Value)}'"));
             if (buildEnvironment == AutomationEnvironment.TeamCity)
-                log.Information("##teamcity[{MessageName:l} {ValueSummary:l}]", messageName, valueSummary);
+                commandOutputProvider.Information("##teamcity[{MessageName:l} {ValueSummary:l}]", messageName, valueSummary);
             else
-                log.Information("{MessageName:l} {ValueSummary:l}", messageName, valueSummary);
+                commandOutputProvider.Information("{MessageName:l} {ValueSummary:l}", messageName, valueSummary);
         }
 
-        public static void ServiceMessage(this ILogger log, string messageName, object values)
+        public static void ServiceMessage(this ICommandOutputProvider commandOutputProvider, string messageName, object values)
         {
             if (!serviceMessagesEnabled)
                 return;
 
             if (values is string)
             {
-                ServiceMessage(log, messageName, values.ToString());
+                ServiceMessage(commandOutputProvider, messageName, values.ToString());
             }
             else
             {
                 var properties = TypeDescriptor.GetProperties(values).Cast<PropertyDescriptor>();
                 var valueDictionary = properties.ToDictionary(p => p.Name, p => (string)p.GetValue(values));
-                ServiceMessage(log, messageName, valueDictionary);
+                ServiceMessage(commandOutputProvider, messageName, valueDictionary);
             }
         }
 
-        public static void TfsServiceMessage(this ILogger log, string serverBaseUrl, ProjectResource project, ReleaseResource release)
+        public static void TfsServiceMessage(this ICommandOutputProvider commandOutputProvider, string serverBaseUrl, ProjectResource project, ReleaseResource release)
         {
             if (!serviceMessagesEnabled)
                 return;
             if (buildEnvironment == AutomationEnvironment.AzureDevOps || buildEnvironment == AutomationEnvironment.NoneOrUnknown)
             {
-                var workingDirectory = Environment.GetEnvironmentVariable("SYSTEM_DEFAULTWORKINGDIRECTORY") ?? new FileInfo(typeof(LogExtensions).GetTypeInfo().Assembly.Location).DirectoryName;
+                var workingDirectory = Environment.GetEnvironmentVariable("SYSTEM_DEFAULTWORKINGDIRECTORY") ?? new FileInfo(typeof(CommandOutputProviderExtensionMethods).GetTypeInfo().Assembly.Location).DirectoryName;
                 var selflink = new Uri(new Uri(serverBaseUrl), release.Links["Web"].AsString());
                 var markdown = $"[Release {release.Version} created for '{project.Name}']({selflink})";
                 var markdownFile = Path.Combine(workingDirectory, Guid.NewGuid() + ".md");
@@ -124,7 +125,7 @@ namespace Octopus.Cli.Diagnostics
                     throw new UnauthorizedAccessException($"Could not write the TFS service message file '{markdownFile}'. Please make sure the SYSTEM_DEFAULTWORKINGDIRECTORY environment variable is set to a writeable directory. If this command is not being run on a build agent, omit the --enableServiceMessages parameter.", uae);
                 }
 
-                log.Information("##vso[task.addattachment type=Distributedtask.Core.Summary;name=Octopus Deploy;]{MarkdownFile:l}", markdownFile);
+                commandOutputProvider.Information("##vso[task.addattachment type=Distributedtask.Core.Summary;name=Octopus Deploy;]{MarkdownFile:l}", markdownFile);
             }
         }
 

@@ -21,7 +21,7 @@ namespace Octopus.Cli.Commands.Releases
         ProjectResource project;
         ReleaseResource release;
 
-        public PreventReleaseProgressionCommand(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusCliCommandOutputProvider commandOutputProvider)
+        public PreventReleaseProgressionCommand(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Preventing release progression");

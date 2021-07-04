@@ -24,7 +24,7 @@ namespace Octopus.Cli.Commands.Deployment
         IReadOnlyList<TenantResource> tenants;
         ReleaseResource release;
 
-        public CreateAutoDeployOverrideCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, IOctopusCliCommandOutputProvider commandOutputProvider) :
+        public CreateAutoDeployOverrideCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider) :
             base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Auto deploy release override");

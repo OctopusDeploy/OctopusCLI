@@ -27,7 +27,7 @@ namespace Octopus.Cli.Commands.Deployment
         Dictionary<string, string> tenantsById;
         Dictionary<DashboardItemResource, DeploymentRelatedResources> dashboardRelatedResourceses;
 
-        public ListLatestDeploymentsCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, IOctopusCliCommandOutputProvider commandOutputProvider)
+        public ListLatestDeploymentsCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
         {
             var options = Options.For("Listing");

@@ -35,9 +35,9 @@ namespace Octo.Tests.Commands
 
         public IOctopusFileSystem FileSystem { get; set; }
 
-        public IOctopusCliCommandOutputProvider CommandOutputProvider { get; set; }
+        public ICommandOutputProvider CommandOutputProvider { get; set; }
 
-        public ExecutionResourceWaiter.Factory ExecutionResourceWaiterFactory => (repository, serverBaseUrl) => new ExecutionResourceWaiter(Substitute.For<IOctopusCliCommandOutputProvider>(), repository, serverBaseUrl);
+        public ExecutionResourceWaiter.Factory ExecutionResourceWaiterFactory => (repository, serverBaseUrl) => new ExecutionResourceWaiter(Substitute.For<ICommandOutputProvider>(), repository, serverBaseUrl);
 
         public List<string> CommandLineArgs { get; set; }
 
@@ -96,7 +96,7 @@ namespace Octo.Tests.Commands
 
             FileSystem = Substitute.For<IOctopusFileSystem>();
 
-            CommandOutputProvider = new CommandOutputProvider(Log);
+            CommandOutputProvider = new CommandOutputProvider("Octopus Deploy Command Line Tool", "1.0.0", new CommandOutputJsonSerializer(), Log);
 
             CommandLineArgs = new List<string>
             {

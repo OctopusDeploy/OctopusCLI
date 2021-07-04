@@ -56,7 +56,7 @@ namespace Octopus.Cli.Commands
         int keepAlive;
 #endif
 
-        protected ApiCommand(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusCliCommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
+        protected ApiCommand(IOctopusClientFactory clientFactory, IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
             this.clientFactory = clientFactory;
             this.repositoryFactory = repositoryFactory;

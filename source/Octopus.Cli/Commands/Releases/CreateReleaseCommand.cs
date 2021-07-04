@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Octopus.Cli.Commands.Deployment;
+using Octopus.Cli.Diagnostics;
 using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
@@ -22,7 +23,7 @@ namespace Octopus.Cli.Commands.Releases
     public class CreateReleaseCommand : DeploymentCommandBase, ISupportFormattedOutput
     {
         readonly IReleasePlanBuilder releasePlanBuilder;
-        new readonly IOctopusCliCommandOutputProvider commandOutputProvider;
+        new readonly ICommandOutputProvider commandOutputProvider;
         ReleaseResource release;
         ProjectResource project;
         ReleasePlan plan;
@@ -33,7 +34,7 @@ namespace Octopus.Cli.Commands.Releases
             IPackageVersionResolver versionResolver,
             IReleasePlanBuilder releasePlanBuilder,
             IOctopusClientFactory clientFactory,
-            IOctopusCliCommandOutputProvider commandOutputProvider,
+            ICommandOutputProvider commandOutputProvider,
             ExecutionResourceWaiter.Factory executionResourceWaiterFactory)
             : base(repositoryFactory,
                 fileSystem,

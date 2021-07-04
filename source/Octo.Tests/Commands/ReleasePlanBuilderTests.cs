@@ -85,7 +85,7 @@ namespace Octo.Tests.Commands
             logger = Substitute.For<ILogger>();
             versionResolver = Substitute.For<IPackageVersionResolver>();
             versionRuleTester = Substitute.For<IChannelVersionRuleTester>();
-            commandOutputProvider = Substitute.For<IOctopusCliCommandOutputProvider>();
+            commandOutputProvider = Substitute.For<ICommandOutputProvider>();
 
             deploymentProcessRepository = Substitute.For<IDeploymentProcessRepository>();
             deploymentProcessRepository.Get(projectResource.DeploymentProcessId)

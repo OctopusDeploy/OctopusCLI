@@ -22,7 +22,7 @@ namespace Octopus.Cli.Commands.Deployment
         public DeployReleaseCommand(IOctopusAsyncRepositoryFactory repositoryFactory,
             IOctopusFileSystem fileSystem,
             IOctopusClientFactory clientFactory,
-            IOctopusCliCommandOutputProvider commandOutputProvider,
+            ICommandOutputProvider commandOutputProvider,
             ExecutionResourceWaiter.Factory executionResourceWaiterFactory)
             : base(repositoryFactory,
                 fileSystem,

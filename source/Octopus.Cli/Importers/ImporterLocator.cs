@@ -39,7 +39,7 @@ namespace Octopus.Cli.Importers
                 where attribute.Name == name
                 select t).FirstOrDefault();
 
-            return found == null ? null : (IImporter)lifetimeScope.Resolve(found, new TypedParameter(typeof(IOctopusAsyncRepository), repository), new TypedParameter(typeof(IOctopusFileSystem), fileSystem), new TypedParameter(typeof(IOctopusCliCommandOutputProvider), commandOutputProvider));
+            return found == null ? null : (IImporter)lifetimeScope.Resolve(found, new TypedParameter(typeof(IOctopusAsyncRepository), repository), new TypedParameter(typeof(IOctopusFileSystem), fileSystem), new TypedParameter(typeof(ICommandOutputProvider), commandOutputProvider));
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Octopus.Cli.Commands.Runbooks
             IOctopusAsyncRepositoryFactory repositoryFactory,
             IOctopusFileSystem fileSystem,
             IOctopusClientFactory clientFactory,
-            IOctopusCliCommandOutputProvider commandOutputProvider,
+            ICommandOutputProvider commandOutputProvider,
             ExecutionResourceWaiter.Factory executionResourceWaiterFactory) : base(clientFactory,
             repositoryFactory,
             fileSystem,
