@@ -7,9 +7,8 @@ using System.Reflection;
 using Octopus.Client.AutomationEnvironments;
 using Octopus.Client.Model;
 using Octopus.CommandLine;
-using Serilog;
 
-namespace Octopus.Cli.Diagnostics
+namespace Octopus.Cli.Util
 {
     public static class CommandOutputProviderExtensionMethods
     {
