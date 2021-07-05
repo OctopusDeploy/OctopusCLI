@@ -10,6 +10,7 @@ using Octopus.Cli.Tests.Helpers;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
+using Octopus.CommandLine;
 using Serilog;
 
 namespace Octo.Tests.Commands
@@ -95,7 +96,7 @@ namespace Octo.Tests.Commands
 
             FileSystem = Substitute.For<IOctopusFileSystem>();
 
-            CommandOutputProvider = new CommandOutputProvider(Log);
+            CommandOutputProvider = new CommandOutputProvider("Octopus Deploy Command Line Tool", "1.0.0", new CommandOutputJsonSerializer(), Log);
 
             CommandLineArgs = new List<string>
             {

@@ -1,6 +1,7 @@
 ﻿using System;
 using Octopus.Cli.Util;
 using Octopus.Client;
+using Octopus.CommandLine;
 
 namespace Octopus.Cli.Importers
 {

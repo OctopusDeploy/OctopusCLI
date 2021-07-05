@@ -9,6 +9,7 @@ using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Tests.Helpers;
 using Octopus.Client;
 using Octopus.Client.Model;
+using Octopus.CommandLine.Commands;
 
 namespace Octo.Tests.Commands
 {

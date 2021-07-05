@@ -7,6 +7,7 @@ using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
+using Octopus.CommandLine.Commands;
 using Octopus.Versioning.Octopus;
 using Serilog;
 

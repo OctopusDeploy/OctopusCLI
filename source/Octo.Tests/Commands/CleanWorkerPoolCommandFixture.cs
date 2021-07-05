@@ -9,6 +9,7 @@ using NUnit.Framework;
 using Octopus.Cli.Commands.WorkerPool;
 using Octopus.Cli.Infrastructure;
 using Octopus.Client.Model;
+using Octopus.CommandLine.Commands;
 
 namespace Octo.Tests.Commands
 {

@@ -9,6 +9,7 @@ using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
+using Octopus.CommandLine.Commands;
 using Serilog;
 
 namespace Octopus.Cli.Exporters

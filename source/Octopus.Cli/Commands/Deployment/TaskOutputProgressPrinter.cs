@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
+using Octopus.CommandLine;
 
 namespace Octopus.Cli.Commands.Deployment
 {

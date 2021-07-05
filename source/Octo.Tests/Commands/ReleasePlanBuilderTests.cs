@@ -12,6 +12,8 @@ using Octopus.Client;
 using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
 using Octopus.Client.Repositories.Async;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 using Serilog;
 
 namespace Octo.Tests.Commands

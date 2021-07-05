@@ -4,6 +4,7 @@ using System.Reflection;
 using Autofac;
 using Octopus.Cli.Util;
 using Octopus.Client;
+using Octopus.CommandLine;
 
 namespace Octopus.Cli.Importers
 {

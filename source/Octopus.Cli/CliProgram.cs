@@ -6,16 +6,17 @@ using System.Reflection;
 using Autofac;
 using Octopus.Cli.Commands.Deployment;
 using Octopus.Cli.Commands.Releases;
-using Octopus.Cli.Commands.ShellCompletion;
 using Octopus.Cli.Diagnostics;
 using Octopus.Cli.Exporters;
 using Octopus.Cli.Importers;
-using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Exceptions;
 using Octopus.Client.Logging;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
+using Octopus.CommandLine.ShellCompletion;
 using Serilog;
 
 namespace Octopus.Cli
@@ -48,8 +49,7 @@ namespace Octopus.Cli
             {
                 var container = BuildContainer();
                 var commandLocator = container.Resolve<ICommandLocator>();
-                var first = GetFirstArgument(args);
-                var command = GetCommand(first, commandLocator);
+                var command = commandLocator.GetCommand(args);
                 command.Execute(args.Skip(1).ToArray()).GetAwaiter().GetResult();
                 return 0;
             }
@@ -81,8 +81,15 @@ namespace Octopus.Cli
 
             builder.RegisterAssemblyTypes(thisAssembly).As<ICommand>().AsSelf();
             builder.RegisterType<CommandLocator>().As<ICommandLocator>();
+            builder.RegisterAssemblyTypes(typeof(ICommand).Assembly).As<ICommand>().AsSelf();
+            builder.RegisterType<CommandOutputJsonSerializer>()
+                .As<ICommandOutputJsonSerializer>();
 
-            builder.RegisterType<CommandOutputProvider>().As<ICommandOutputProvider>().SingleInstance();
+            builder.RegisterType<CommandOutputProvider>()
+                .WithParameter("applicationName", "Octopus CLI")
+                .WithParameter("applicationVersion", typeof(CliProgram).GetInformationalVersion())
+                .As<ICommandOutputProvider>()
+                .SingleInstance();
 
             builder.RegisterAssemblyTypes(thisAssembly).As<IExporter>().AsSelf();
             builder.RegisterAssemblyTypes(thisAssembly).As<IImporter>().AsSelf();
@@ -98,29 +105,13 @@ namespace Octopus.Cli
             builder.RegisterType<ExecutionResourceWaiter>().As<IExecutionResourceWaiter>();
 
             builder.RegisterType<OctopusPhysicalFileSystem>().As<IOctopusFileSystem>();
-            builder.RegisterAssemblyTypes(thisAssembly)
-                .Where(t => t.IsSubclassOf(typeof(ShellCompletionInstaller)))
-                .As<ShellCompletionInstaller>()
+            builder.RegisterAssemblyTypes(typeof(ICommand).Assembly)
+                .WithParameter("executableNames", new [] { "Octo", "octo" })
+                .Where(t => t.IsAssignableTo<IShellCompletionInstaller>())
+                .AsImplementedInterfaces()
                 .AsSelf();
 
             return builder.Build();
-        }
-
-        static ICommand GetCommand(string first, ICommandLocator commandLocator)
-        {
-            if (string.IsNullOrWhiteSpace(first))
-                return commandLocator.Find("help");
-
-            var command = commandLocator.Find(first);
-            if (command == null)
-                throw new CommandException("Error: Unrecognized command '" + first + "'");
-
-            return command;
-        }
-
-        static string GetFirstArgument(IEnumerable<string> args)
-        {
-            return (args.FirstOrDefault() ?? string.Empty).ToLowerInvariant().TrimStart('-', '/');
         }
 
         static int PrintError(Exception ex)
@@ -150,7 +141,7 @@ namespace Octopus.Cli
                 case CommandException cmd:
                 {
                     Log.Error(ex.Message);
-                    if (LogExtensions.IsKnownEnvironment())
+                    if (CommandOutputProviderExtensionMethods.IsKnownEnvironment())
                         Log.Error($"This error is most likely occurring while executing {AssemblyExtensions.GetExecutableName()} as part of an automated build process. The following doc is recommended to get some tips on how to troubleshoot this: https://g.octopushq.com/OctoexeTroubleshooting");
                     return -1;
                 }

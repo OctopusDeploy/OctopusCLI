@@ -5,6 +5,8 @@ using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 
 namespace Octo.Tests.Commands
 {

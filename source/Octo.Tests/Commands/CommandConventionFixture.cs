@@ -7,6 +7,8 @@ using FluentAssertions;
 using NUnit.Framework;
 using Octopus.Cli.Commands;
 using Octopus.Cli.Infrastructure;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 
 namespace Octo.Tests.Commands
 {

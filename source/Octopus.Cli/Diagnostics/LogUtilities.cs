@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Octopus.Cli.Infrastructure;
+using Octopus.CommandLine.Commands;
+using Octopus.CommandLine.OptionParsing;
 using Serilog.Core;
 using Serilog.Events;
 

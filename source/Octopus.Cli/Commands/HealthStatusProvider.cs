@@ -5,6 +5,8 @@ using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 
 #pragma warning disable 618
 namespace Octopus.Cli.Commands

@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Octopus.Cli.Commands;
 using Octopus.Cli.Tests.Helpers;
 using Octopus.Cli.Util;
+using Octopus.CommandLine;
 using Serilog;
 
 namespace Octo.Tests.Commands
@@ -26,7 +27,7 @@ namespace Octo.Tests.Commands
             output = new StringWriter();
             Console.SetOut(output);
 
-            commandOutputProvider = new CommandOutputProvider(logger);
+            commandOutputProvider = new CommandOutputProvider("Octo", "1.0.0", logger);
             versionCommand = new VersionCommand(commandOutputProvider);
             logger = new LoggerConfiguration().WriteTo.TextWriter(output).CreateLogger();
         }

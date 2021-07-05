@@ -7,6 +7,8 @@ using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
+using Octopus.CommandLine;
+using Octopus.CommandLine.Commands;
 
 namespace Octopus.Cli.Commands.Deployment
 {
@@ -46,8 +48,7 @@ namespace Octopus.Cli.Commands.Deployment
         public ExecutionResourceWaiter(
             ICommandOutputProvider commandOutputProvider,
             IOctopusAsyncRepository repository,
-            string serverBaseUrl
-        )
+            string serverBaseUrl)
         {
             this.commandOutputProvider = commandOutputProvider;
             this.repository = repository;
