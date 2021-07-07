@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Octopus.Cli.Infrastructure;
-using Octopus.Cli.Model;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
 using Octopus.CommandLine;
 using Octopus.CommandLine.Commands;
-using Octopus.CommandLine.OptionParsing;
 
 namespace Octopus.Cli.Commands.Package
 {

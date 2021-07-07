@@ -2,7 +2,6 @@
 using FluentAssertions;
 using NUnit.Framework;
 using Octopus.Cli.Diagnostics;
-using Octopus.Cli.Infrastructure;
 using Octopus.CommandLine.Commands;
 using Serilog.Events;
 

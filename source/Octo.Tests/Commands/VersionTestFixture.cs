@@ -5,7 +5,6 @@ using FluentAssertions;
 using NUnit.Framework;
 using Octopus.Cli.Commands;
 using Octopus.Cli.Tests.Helpers;
-using Octopus.Cli.Util;
 using Octopus.CommandLine;
 using Serilog;
 

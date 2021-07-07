@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using Octopus.Cli.Infrastructure;
 using Octopus.CommandLine.Commands;
 
 namespace Octo.Tests.Commands

@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
 using Octopus.CommandLine;
 using Octopus.CommandLine.Commands;
-using Octopus.CommandLine.OptionParsing;
 
 namespace Octopus.Cli.Commands.WorkerPool
 {

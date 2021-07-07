@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using Octopus.Cli.Infrastructure;
 using Octopus.CommandLine.Commands;
 
 namespace Octopus.Cli.Util

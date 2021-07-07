@@ -6,7 +6,6 @@ using Newtonsoft.Json;
 using NSubstitute;
 using NUnit.Framework;
 using Octopus.Cli.Commands.Channel;
-using Octopus.Cli.Infrastructure;
 using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
 using Octopus.CommandLine.Commands;

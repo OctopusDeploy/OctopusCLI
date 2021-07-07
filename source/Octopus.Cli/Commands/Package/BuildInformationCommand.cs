@@ -2,16 +2,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
 using Octopus.Client.Model.BuildInformation;
-using Octopus.Client.Model.PackageMetadata;
 using Octopus.CommandLine;
 using Octopus.CommandLine.Commands;
-using Octopus.CommandLine.OptionParsing;
 
 namespace Octopus.Cli.Commands.Package
 {

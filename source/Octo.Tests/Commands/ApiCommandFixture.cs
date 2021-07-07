@@ -5,7 +5,6 @@ using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
 using Octopus.Cli.Commands;
-using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Tests.Helpers;
 using Octopus.Client;
 using Octopus.Client.Model;

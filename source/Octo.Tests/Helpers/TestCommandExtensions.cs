@@ -1,5 +1,4 @@
 ﻿using System;
-using Octopus.Cli.Infrastructure;
 using Octopus.CommandLine.Commands;
 
 // ReSharper disable CheckNamespace

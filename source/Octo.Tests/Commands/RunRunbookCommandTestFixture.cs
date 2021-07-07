@@ -4,7 +4,6 @@ using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
 using Octopus.Cli.Commands.Runbooks;
-using Octopus.Cli.Infrastructure;
 using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
 using Octopus.CommandLine.Commands;

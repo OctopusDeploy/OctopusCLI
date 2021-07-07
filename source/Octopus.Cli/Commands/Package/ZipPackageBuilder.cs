@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using NuGet.Common;
 using NuGet.Packaging;
-using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
 using Octopus.CommandLine;
 using Octopus.CommandLine.Commands;

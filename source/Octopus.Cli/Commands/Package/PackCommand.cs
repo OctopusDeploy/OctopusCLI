@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using Octopus.Cli.Diagnostics;
-using Octopus.Cli.Infrastructure;
-using Octopus.Cli.Model;
 using Octopus.Cli.Util;
 using Octopus.CommandLine;
 using Octopus.CommandLine.Commands;

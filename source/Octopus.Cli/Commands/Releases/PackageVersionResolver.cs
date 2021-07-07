@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
-using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
 using Octopus.CommandLine.Commands;
 using Octopus.Versioning.Octopus;

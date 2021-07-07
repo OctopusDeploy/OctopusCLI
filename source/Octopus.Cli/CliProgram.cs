@@ -106,7 +106,7 @@ namespace Octopus.Cli
 
             builder.RegisterType<OctopusPhysicalFileSystem>().As<IOctopusFileSystem>();
             builder.RegisterAssemblyTypes(typeof(ICommand).Assembly)
-                .WithParameter("executableNames", new [] { "Octo", "octo" })
+                .WithParameter("executableNames", new[] { "Octo", "octo" })
                 .Where(t => t.IsAssignableTo<IShellCompletionInstaller>())
                 .AsImplementedInterfaces()
                 .AsSelf();

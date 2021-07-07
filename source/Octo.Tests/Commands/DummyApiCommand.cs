@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Octopus.Cli.Commands;
-using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;

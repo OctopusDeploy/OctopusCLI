@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using Octopus.Cli.Infrastructure;
 using Octopus.Cli.Util;
 using Octopus.Client.Serialization;
 using Octopus.CommandLine.Commands;
