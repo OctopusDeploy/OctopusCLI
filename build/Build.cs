@@ -349,8 +349,8 @@ class Build : NukeBuild
             ArtifactsDirectory.GlobFiles("*.rpm").ForEach(path => MoveFile(path, linuxPackagesDir / new FileInfo(path).Name));
             CopyFileToDirectory($"{LinuxPackageFeedsDir}/publish-apt.sh", linuxPackagesDir);
             CopyFileToDirectory($"{LinuxPackageFeedsDir}/publish-rpm.sh", linuxPackagesDir);
-            CopyFileToDirectory(AssetDirectory / "repos/test-linux-package-from-feed-in-dists.sh", linuxPackagesDir);
-            CopyFileToDirectory(AssetDirectory / "repos/test-linux-package-from-feed.sh", linuxPackagesDir);
+            CopyFileToDirectory(AssetDirectory / "repos" / "test-linux-package-from-feed-in-dists.sh", linuxPackagesDir);
+            CopyFileToDirectory(AssetDirectory / "repos" / "test-linux-package-from-feed.sh", linuxPackagesDir);
             CopyFileToDirectory($"{LinuxPackageFeedsDir}/test-env-docker-images.conf", linuxPackagesDir);
             CopyFileToDirectory($"{LinuxPackageFeedsDir}/install-linux-feed-package.sh", linuxPackagesDir);
             CompressionTasks.CompressZip(linuxPackagesDir, ArtifactsDirectory / $"OctopusTools.Packages.linux-x64.{OctoVersionInfo.FullSemVer}.zip");
