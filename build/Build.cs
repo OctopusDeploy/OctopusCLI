@@ -37,6 +37,11 @@ class Build : NukeBuild
     [Parameter("Pfx certificate to use for signing the files")] readonly AbsolutePath SigningCertificatePath = RootDirectory / "certificates" / "OctopusDevelopment.pfx";
     [Parameter("Password for the signing certificate")] readonly string SigningCertificatePassword = "Password01!";
 
+    [Parameter] string AzureKeyVaultUrl = "";
+    [Parameter] string AzureKeyVaultAppId = "";
+    [Parameter, Secret] string AzureKeyVaultAppSecret = "";
+    [Parameter] string AzureKeyVaultCertificateName = "";
+
     [Solution(GenerateProjects = true)] readonly Solution Solution;
 
     [NukeOctoVersion] readonly OctoVersionInfo OctoVersionInfo;
@@ -50,6 +55,11 @@ class Build : NukeBuild
     AbsolutePath DotNetOctoCliFolder => RootDirectory / "source" / "Octopus.DotNet.Cli";
     AbsolutePath OctoPublishDirectory => PublishDirectory / "octo";
     AbsolutePath LocalPackagesDirectory => RootDirectory / ".." / "LocalPackages";
+
+    [PackageExecutable(
+        packageId: "azuresigntool",
+        packageExecutable: "azuresigntool.dll")]
+    readonly Tool AzureSignTool = null!;
 
     Target Clean => _ => _
         .Before(Restore)
@@ -384,6 +394,7 @@ class Build : NukeBuild
     void SignBinaries(string path)
     {
         Logger.Info($"Signing binaries in {path}");
+
         var files = Directory.EnumerateFiles(path, "Octopus.*.dll", SearchOption.AllDirectories).ToList();
         files.AddRange(Directory.EnumerateFiles(path, "octo.dll", SearchOption.AllDirectories));
         files.AddRange(Directory.EnumerateFiles(path, "octo.exe", SearchOption.AllDirectories));
@@ -391,12 +402,38 @@ class Build : NukeBuild
         files.AddRange(Directory.EnumerateFiles(path, "octo*.dll", SearchOption.AllDirectories));
         files.AddRange(Directory.EnumerateFiles(path, "Octo*.dll", SearchOption.AllDirectories));
 
-        SignToolTasks.SignTool(_ => _
-            .SetFile(SigningCertificatePath)
-            .SetPassword(SigningCertificatePassword)
-            .SetFiles(files.Distinct())
-            .SetProcessToolPath(RootDirectory / "certificates" / "signtool.exe")
-            .SetTimestampServerUrl("http://timestamp.digicert.com"));
+        if (string.IsNullOrEmpty(AzureKeyVaultUrl)
+            && string.IsNullOrEmpty(AzureKeyVaultAppId)
+            && string.IsNullOrEmpty(AzureKeyVaultAppSecret)
+            && string.IsNullOrEmpty(AzureKeyVaultCertificateName))
+        {
+            Logger.Info("Signing files using signtool and the self-signed development code signing certificate.");
+
+            SignToolTasks.SignTool(_ => _
+                .SetFile(SigningCertificatePath)
+                .SetPassword(SigningCertificatePassword)
+                .SetFiles(files.Distinct())
+                .SetProcessToolPath(RootDirectory / "certificates" / "signtool.exe")
+                .SetTimestampServerUrl("http://timestamp.digicert.com"));
+        }
+        else
+        {
+            Logger.Info("Signing files using azuresigntool and the production code signing certificate.");
+
+            var arguments = "sign " +
+                $"--azure-key-vault-url \"{AzureKeyVaultUrl}\" " +
+                $"--azure-key-vault-client-id \"{AzureKeyVaultAppId}\" " +
+                $"--azure-key-vault-client-secret \"{AzureKeyVaultAppSecret}\" " +
+                $"--azure-key-vault-certificate \"{AzureKeyVaultCertificateName}\" " +
+                $"--file-digest sha256 ";
+
+            foreach (var file in files)
+                arguments += $"\"{file}\" ";
+
+            AzureSignTool(arguments);
+
+            Logger.Info($"Finished signing {files.Count} files.");
+        }
     }
 
     void TarGzip(string path, string outputFile, bool insertCapitalizedOctoWrapper = false, bool insertCapitalizedDotNetWrapper = false)
