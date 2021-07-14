@@ -63,12 +63,15 @@ class Build : NukeBuild
     readonly Tool AzureSignTool = null!;
 
     string[] SigningTimestampUrls => new[] {
+        "http://timestamp.comodoca.com/rfc3161",
+        "http://timestamp.globalsign.com/tsa/r6advanced1", //https://support.globalsign.com/code-signing/code-signing-windows-7-8-and-10,
+        "http://timestamp.digicert.com", //https://knowledge.digicert.com/solution/SO912.html
+        "http://timestamp.apple.com/ts01",  //https://gist.github.com/Manouchehri/fd754e402d98430243455713efada710
         "http://tsa.starfieldtech.com",
         "http://www.startssl.com/timestamp",
-        "http://timestamp.comodoca.com/rfc3161",
         "http://timestamp.verisign.com/scripts/timstamp.dll",
         "http://timestamp.globalsign.com/scripts/timestamp.dll",
-        "https://rfc3161timestamp.globalsign.com/advanced"
+        "https://rfc3161timestamp.globalsign.com/advanced",
     };
 
     Target Clean => _ => _
@@ -248,7 +251,7 @@ class Build : NukeBuild
         .DependsOn(DotnetPublish)
         .Executes(() =>
         {
-            SignBinaries($"{OctopusCliDirectory}/bin/{Configuration}");
+            SignBinaries(OctopusCliDirectory / "bin" / Configuration);
 
             DotNetPack(_ => _
                 .SetProject(OctopusCliDirectory)
@@ -258,7 +261,7 @@ class Build : NukeBuild
                 .EnableNoBuild()
                 .DisableIncludeSymbols());
 
-            SignBinaries($"{DotNetOctoCliFolder}/bin/{Configuration}");
+            SignBinaries(DotNetOctoCliFolder / "bin" / Configuration);
 
             DotNetPack(_ => _
                 .SetProject(DotNetOctoCliFolder)
