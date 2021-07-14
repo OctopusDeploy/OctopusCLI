@@ -239,7 +239,7 @@ class Build : NukeBuild
             CopyFileToDirectory(AssetDirectory / nuspecFile, nugetPackDir);
 
             NuGetTasks.NuGetPack(_ => _
-                .SetTargetPath($"{nugetPackDir}/{nuspecFile}")
+                .SetTargetPath(nugetPackDir / nuspecFile)
                 .SetVersion(OctoVersionInfo.FullSemVer)
                 .SetOutputDirectory(ArtifactsDirectory));
         });
@@ -413,31 +413,34 @@ class Build : NukeBuild
         files.AddRange(Directory.EnumerateFiles(path, "octo*.dll", SearchOption.AllDirectories));
         files.AddRange(Directory.EnumerateFiles(path, "Octo*.dll", SearchOption.AllDirectories));
 
+        var useSignTool = string.IsNullOrEmpty(AzureKeyVaultUrl)
+            && string.IsNullOrEmpty(AzureKeyVaultAppId)
+            && string.IsNullOrEmpty(AzureKeyVaultAppSecret)
+            && string.IsNullOrEmpty(AzureKeyVaultCertificateName);
+
         var lastException = default(Exception);
         foreach (var url in SigningTimestampUrls)
         {
+            TeamCity.Instance?.OpenBlock("Signing and timestamping with server " + url);
             try
             {
-                if (string.IsNullOrEmpty(AzureKeyVaultUrl)
-                    && string.IsNullOrEmpty(AzureKeyVaultAppId)
-                    && string.IsNullOrEmpty(AzureKeyVaultAppSecret)
-                    && string.IsNullOrEmpty(AzureKeyVaultCertificateName))
-                {
+                if (useSignTool)
                     SignWithSignTool(files, url);
-                }
                 else
-                {
                     SignWithAzureSignTool(files, url);
-                }
+                lastException = null;
             }
             catch (Exception ex)
             {
                 lastException = ex;
             }
+            TeamCity.Instance?.CloseBlock("Signing and timestamping with server " + url);
+            if (lastException == null)
+                break;
         }
 
         if (lastException != null)
-            throw (lastException);
+            throw lastException;
         Logger.Info($"Finished signing {files.Count} files.");
     }
 
@@ -459,12 +462,13 @@ class Build : NukeBuild
         foreach (var file in files)
             arguments += $"\"{file}\" ";
 
-        AzureSignTool(arguments);
+        AzureSignTool(arguments, customLogger: (_, message) => Logger.Normal(message));
     }
 
     void SignWithSignTool(List<string> files, string url)
     {
         Logger.Info("Signing files using signtool and the self-signed development code signing certificate.");
+        SignToolTasks.SignToolLogger = (_, message) => Logger.Normal(message);
 
         SignToolTasks.SignTool(_ => _
             .SetFile(SigningCertificatePath)
@@ -474,7 +478,7 @@ class Build : NukeBuild
             .SetTimestampServerDigestAlgorithm("sha256")
             .SetDescription("Octopus CLI")
             .SetUrl("https://octopus.com")
-            .SetTimestampServerUrl(url));
+            .SetRfc3161TimestampServerUrl(url));
     }
 
     void TarGzip(string path, string outputFile, bool insertCapitalizedOctoWrapper = false, bool insertCapitalizedDotNetWrapper = false)
