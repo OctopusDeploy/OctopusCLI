@@ -414,6 +414,7 @@ class Build : NukeBuild
         files.AddRange(Directory.EnumerateFiles(path, "dotnet-octo.dll", SearchOption.AllDirectories));
         files.AddRange(Directory.EnumerateFiles(path, "octo*.dll", SearchOption.AllDirectories));
         files.AddRange(Directory.EnumerateFiles(path, "Octo*.dll", SearchOption.AllDirectories));
+        var distinctFiles = files.Distinct().ToArray();
 
         var useSignTool = string.IsNullOrEmpty(AzureKeyVaultUrl)
             && string.IsNullOrEmpty(AzureKeyVaultAppId)
@@ -427,9 +428,9 @@ class Build : NukeBuild
             try
             {
                 if (useSignTool)
-                    SignWithSignTool(files, url);
+                    SignWithSignTool(distinctFiles, url);
                 else
-                    SignWithAzureSignTool(files, url);
+                    SignWithAzureSignTool(distinctFiles, url);
                 lastException = null;
             }
             catch (Exception ex)
@@ -443,10 +444,10 @@ class Build : NukeBuild
 
         if (lastException != null)
             throw lastException;
-        Logger.Info($"Finished signing {files.Count} files.");
+        Logger.Info($"Finished signing {distinctFiles.Count()} files.");
     }
 
-    void SignWithAzureSignTool(List<string> files, string timestampUrl)
+    void SignWithAzureSignTool(IEnumerable<string> files, string timestampUrl)
     {
         Logger.Info("Signing files using azuresigntool and the production code signing certificate.");
 
@@ -467,7 +468,7 @@ class Build : NukeBuild
         AzureSignTool(arguments, customLogger: LogStdErrAsWarning);
     }
 
-    void SignWithSignTool(List<string> files, string url)
+    void SignWithSignTool(IEnumerable<string> files, string url)
     {
         Logger.Info("Signing files using signtool.");
         SignToolTasks.SignToolLogger = LogStdErrAsWarning;
@@ -475,7 +476,7 @@ class Build : NukeBuild
         SignToolTasks.SignTool(_ => _
             .SetFile(SigningCertificatePath)
             .SetPassword(SigningCertificatePassword)
-            .SetFiles(files.Distinct())
+            .SetFiles(files)
             .SetProcessToolPath(RootDirectory / "certificates" / "signtool.exe")
             .SetTimestampServerDigestAlgorithm("sha256")
             .SetDescription("Octopus CLI")
