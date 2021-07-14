@@ -444,31 +444,31 @@ class Build : NukeBuild
         Logger.Info($"Finished signing {files.Count} files.");
     }
 
-    void SignWithAzureSignTool(List<string> files, string url)
+    void SignWithAzureSignTool(List<string> files, string timestampUrl)
     {
         Logger.Info("Signing files using azuresigntool and the production code signing certificate.");
 
         var arguments = "sign " +
-            $"--azure-key-vault-url \"{AzureKeyVaultUrl}\" " +
-            $"--azure-key-vault-client-id \"{AzureKeyVaultAppId}\" " +
-            $"--azure-key-vault-client-secret \"{AzureKeyVaultAppSecret}\" " +
-            $"--azure-key-vault-certificate \"{AzureKeyVaultCertificateName}\" " +
-            $"--file-digest sha256 " +
-            $"--timestamp-digest sha256 " +
-            $"--description \"Octopus CLI\" " +
-            $"--description-url \"https://octopus.com\" " +
-            $"--timestamp-rfc3161 \"{url}\"";
+                        $"--azure-key-vault-url \"{AzureKeyVaultUrl}\" " +
+                        $"--azure-key-vault-client-id \"{AzureKeyVaultAppId}\" " +
+                        $"--azure-key-vault-client-secret \"{AzureKeyVaultAppSecret}\" " +
+                        $"--azure-key-vault-certificate \"{AzureKeyVaultCertificateName}\" " +
+                        $"--file-digest sha256 " +
+                        $"--description \"Octopus CLI\" " +
+                        $"--description-url \"https://octopus.com\" " +
+                        $"--timestamp-rfc3161 {timestampUrl} " +
+                        $"--timestamp-digest sha256 ";
 
         foreach (var file in files)
             arguments += $"\"{file}\" ";
 
-        AzureSignTool(arguments, customLogger: (_, message) => Logger.Normal(message));
+        AzureSignTool(arguments, customLogger: LogStdErrAsWarning);
     }
 
     void SignWithSignTool(List<string> files, string url)
     {
-        Logger.Info("Signing files using signtool and the self-signed development code signing certificate.");
-        SignToolTasks.SignToolLogger = (_, message) => Logger.Normal(message);
+        Logger.Info("Signing files using signtool.");
+        SignToolLogger = LogStdErrAsWarning;
 
         SignToolTasks.SignTool(_ => _
             .SetFile(SigningCertificatePath)
@@ -479,6 +479,14 @@ class Build : NukeBuild
             .SetDescription("Octopus CLI")
             .SetUrl("https://octopus.com")
             .SetRfc3161TimestampServerUrl(url));
+    }
+
+    static void LogStdErrAsWarning(OutputType type, string message)
+    {
+        if (type == OutputType.Err)
+            Logger.Warn(message);
+        else
+            Logger.Normal(message);
     }
 
     void TarGzip(string path, string outputFile, bool insertCapitalizedOctoWrapper = false, bool insertCapitalizedDotNetWrapper = false)
