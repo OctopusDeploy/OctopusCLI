@@ -38,14 +38,19 @@ class Build : NukeBuild
     [Parameter("Pfx certificate to use for signing the files")] readonly AbsolutePath SigningCertificatePath = RootDirectory / "certificates" / "OctopusDevelopment.pfx";
     [Parameter("Password for the signing certificate")] readonly string SigningCertificatePassword = "Password01!";
 
-    [Parameter] string AzureKeyVaultUrl = "";
-    [Parameter] string AzureKeyVaultAppId = "";
-    [Parameter, Secret] string AzureKeyVaultAppSecret = "";
-    [Parameter] string AzureKeyVaultCertificateName = "";
-
     [Solution(GenerateProjects = true)] readonly Solution Solution;
 
     [NukeOctoVersion] readonly OctoVersionInfo OctoVersionInfo;
+
+    [PackageExecutable(
+        packageId: "azuresigntool",
+        packageExecutable: "azuresigntool.dll")]
+    readonly Tool AzureSignTool = null!;
+
+    [Parameter] readonly string AzureKeyVaultUrl = "";
+    [Parameter] readonly string AzureKeyVaultAppId = "";
+    [Parameter] [Secret] readonly string AzureKeyVaultAppSecret = "";
+    [Parameter] readonly string AzureKeyVaultCertificateName = "";
 
     AbsolutePath SourceDirectory => RootDirectory / "source";
     AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
@@ -57,21 +62,17 @@ class Build : NukeBuild
     AbsolutePath OctoPublishDirectory => PublishDirectory / "octo";
     AbsolutePath LocalPackagesDirectory => RootDirectory / ".." / "LocalPackages";
 
-    [PackageExecutable(
-        packageId: "azuresigntool",
-        packageExecutable: "azuresigntool.dll")]
-    readonly Tool AzureSignTool = null!;
-
-    string[] SigningTimestampUrls => new[] {
+    string[] SigningTimestampUrls => new[]
+    {
         "http://timestamp.comodoca.com/rfc3161",
         "http://timestamp.globalsign.com/tsa/r6advanced1", //https://support.globalsign.com/code-signing/code-signing-windows-7-8-and-10,
         "http://timestamp.digicert.com", //https://knowledge.digicert.com/solution/SO912.html
-        "http://timestamp.apple.com/ts01",  //https://gist.github.com/Manouchehri/fd754e402d98430243455713efada710
+        "http://timestamp.apple.com/ts01", //https://gist.github.com/Manouchehri/fd754e402d98430243455713efada710
         "http://tsa.starfieldtech.com",
         "http://www.startssl.com/timestamp",
         "http://timestamp.verisign.com/scripts/timstamp.dll",
         "http://timestamp.globalsign.com/scripts/timestamp.dll",
-        "https://rfc3161timestamp.globalsign.com/advanced",
+        "https://rfc3161timestamp.globalsign.com/advanced"
     };
 
     Target Clean => _ => _
@@ -437,6 +438,7 @@ class Build : NukeBuild
             {
                 lastException = ex;
             }
+
             TeamCity.Instance?.CloseBlock("Signing and timestamping with server " + url);
             if (lastException == null)
                 break;
@@ -452,15 +454,15 @@ class Build : NukeBuild
         Logger.Info("Signing files using azuresigntool and the production code signing certificate.");
 
         var arguments = "sign " +
-                        $"--azure-key-vault-url \"{AzureKeyVaultUrl}\" " +
-                        $"--azure-key-vault-client-id \"{AzureKeyVaultAppId}\" " +
-                        $"--azure-key-vault-client-secret \"{AzureKeyVaultAppSecret}\" " +
-                        $"--azure-key-vault-certificate \"{AzureKeyVaultCertificateName}\" " +
-                        $"--file-digest sha256 " +
-                        $"--description \"Octopus CLI\" " +
-                        $"--description-url \"https://octopus.com\" " +
-                        $"--timestamp-rfc3161 {timestampUrl} " +
-                        $"--timestamp-digest sha256 ";
+            $"--azure-key-vault-url \"{AzureKeyVaultUrl}\" " +
+            $"--azure-key-vault-client-id \"{AzureKeyVaultAppId}\" " +
+            $"--azure-key-vault-client-secret \"{AzureKeyVaultAppSecret}\" " +
+            $"--azure-key-vault-certificate \"{AzureKeyVaultCertificateName}\" " +
+            "--file-digest sha256 " +
+            "--description \"Octopus CLI\" " +
+            "--description-url \"https://octopus.com\" " +
+            $"--timestamp-rfc3161 {timestampUrl} " +
+            "--timestamp-digest sha256 ";
 
         foreach (var file in files)
             arguments += $"\"{file}\" ";
