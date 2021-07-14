@@ -468,7 +468,7 @@ class Build : NukeBuild
     void SignWithSignTool(List<string> files, string url)
     {
         Logger.Info("Signing files using signtool.");
-        SignToolLogger = LogStdErrAsWarning;
+        SignToolTasks.SignToolLogger = LogStdErrAsWarning;
 
         SignToolTasks.SignTool(_ => _
             .SetFile(SigningCertificatePath)
