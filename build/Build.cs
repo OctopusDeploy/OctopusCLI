@@ -402,8 +402,7 @@ class Build : NukeBuild
     Target Default => _ => _
         .DependsOn(PackOctopusToolsNuget)
         .DependsOn(PackDotNetOctoNuget)
-        .DependsOn(Zip)
-        .Consumes();
+        .DependsOn(Zip);
 
     void SignBinaries(string path)
     {
