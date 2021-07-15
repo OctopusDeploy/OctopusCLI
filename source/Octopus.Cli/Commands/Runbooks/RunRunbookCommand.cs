@@ -32,7 +32,7 @@ namespace Octopus.Cli.Commands.Runbooks
             var options = Options.For("Run Runbook");
 
             options.Add<string>("project=",
-                "Name or ID of the project. This is optional if the runbook argument is an ID",
+                "Name or ID of the project that contains the Runbook. This is required.",
                 v => ProjectNameOrId = v);
 
             options.Add<string>("runbook=",
@@ -92,7 +92,7 @@ namespace Octopus.Cli.Commands.Runbooks
                 v => NoRunAfter = v);
 
             options.Add<string>("v|variable=",
-                "[Optional] Specifies the value for a prompted variable in the format Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.",
+                "[Optional] Specifies the value for a prompted variable in the format Name:Value. For JSON values, embedded quotation marks should be escaped with a backslash.",
                 ParseVariable,
                 allowsMultiple: true);
 
