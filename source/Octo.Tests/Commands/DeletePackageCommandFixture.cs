@@ -7,6 +7,7 @@ using NSubstitute;
 using NUnit.Framework;
 using Octopus.Cli.Commands.Releases;
 using Octopus.Client.Model;
+using Octopus.CommandLine.Commands;
 
 namespace Octo.Tests.Commands
 {
@@ -30,13 +31,33 @@ namespace Octo.Tests.Commands
         [Test]
         public async Task DefaultOutput_ShouldDeleteTheGivenPackage()
         {
-            deletePackageCommand.PackageName = packageId;
+            deletePackageCommand.PackageId = packageId;
             Repository.BuiltInPackageRepository.GetPackage(packageId, null)
             .Returns(new PackageFromBuiltInFeedResource{Id = packageId});
             
             await deletePackageCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
             LogLines.Should().Contain($"Deleting package");
+        }
+
+        [Test]
+        public async Task ErrorOutput_ShouldThrowErrorWhenPackageIsNotAvailable()
+        {
+            deletePackageCommand.PackageId = packageId;
+            
+            await deletePackageCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
+
+            LogLines.Should().Contain($"There is no available package to be deleted");
+        }
+
+        [Test]
+        public void CommandException_ShouldNotSearchForPackageWhenThereISNoPackageId()
+        {            
+            Func<Task> exec = () => deletePackageCommand.Execute(CommandLineArgs.ToArray());
+            exec.ShouldThrow<CommandException>()
+                .WithMessage("Please specify a package name using the parameter: --package=XYZ");
+
+    
         }
     }
 }
