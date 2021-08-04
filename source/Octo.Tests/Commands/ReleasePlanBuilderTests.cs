@@ -28,7 +28,7 @@ namespace Octo.Tests.Commands
         IChannelVersionRuleTester versionRuleTester;
         IOctopusAsyncRepository repository;
         IDeploymentProcessRepository deploymentProcessRepository;
-        IDeploymentProcessRepositoryBeta deploymentProcessRepositoryBeta;
+        IDeploymentProcessBetaRepository deploymentProcessRepositoryBeta;
         IReleaseRepository releaseRepository;
         IFeedRepository feedRepository;
         ICommandOutputProvider commandOutputProvider;
@@ -96,7 +96,7 @@ namespace Octo.Tests.Commands
                 .Test(Arg.Any<IOctopusAsyncRepository>(), Arg.Any<ChannelVersionRuleResource>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(channelVersionRuleTestResult));
 
-            deploymentProcessRepositoryBeta = Substitute.For<IDeploymentProcessRepositoryBeta>();
+            deploymentProcessRepositoryBeta = Substitute.For<IDeploymentProcessBetaRepository>();
             deploymentProcessRepositoryBeta.Get(projectResource, Arg.Any<string>())
                 .Returns(Task.FromResult(deploymentProcessResource));
 
@@ -357,7 +357,7 @@ namespace Octo.Tests.Commands
             projectResource.IsVersionControlled = false;
             gitReference = "main";
             var ex = Assert.ThrowsAsync<CommandException>(ExecuteBuildAsync);
-            ex.Message.Should().Be(ReleasePlanBuilder.GitReferenceSuppliedForDatabaseProjectErrorMessage(gitReference));
+            ex.Message.Should().Be(ReleasePlanBuilder.GitReferenceSuppliedForDatabaseProjectErrorMessage($"reference {gitReference}"));
         }
 
         static ReleaseTemplatePackage GetReleaseTemplatePackage()
@@ -380,7 +380,8 @@ namespace Octo.Tests.Commands
                 projectResource,
                 channelResource,
                 string.Empty,
-                gitReference);
+                gitReference,
+                null);
         }
     }
 

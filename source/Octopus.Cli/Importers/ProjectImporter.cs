@@ -510,9 +510,17 @@ namespace Octopus.Cli.Importers
             var existingProject = await Repository.Projects.FindByName(project.Name).ConfigureAwait(false);
             if (existingProject != null)
             {
+                if (existingProject.IsVersionControlled)
+                {
+                    throw new CommandException("Version controlled projects cannot be used by this deprecated importer process. Please see https://g.octopushq.com/DataMigration for alternative options.");   
+                }
+                    
                 KeepExistingProjectChannels = true;
                 Log.Debug("Project already exist, project will be updated with new settings");
                 existingProject.ProjectGroupId = projectGroupId;
+                // Continue using deprecated endpoint accessing DeploymentSettings via Project to ensure new cli can still talk to old servers
+                // New servers are backwards compatible with old endpoint-style requests so this should be fine (for non VCS projects) 
+#pragma warning disable 618
                 existingProject.DefaultToSkipIfAlreadyInstalled = project.DefaultToSkipIfAlreadyInstalled;
                 existingProject.Description = project.Description;
                 existingProject.IsDisabled = project.IsDisabled;
@@ -521,7 +529,7 @@ namespace Octopus.Cli.Importers
                 existingProject.Slug = project.Slug;
                 existingProject.VersioningStrategy.DonorPackage = project.VersioningStrategy.DonorPackage;
                 existingProject.VersioningStrategy.Template = project.VersioningStrategy.Template;
-
+#pragma warning restore 618
                 return await Repository.Projects.Modify(existingProject).ConfigureAwait(false);
             }
 

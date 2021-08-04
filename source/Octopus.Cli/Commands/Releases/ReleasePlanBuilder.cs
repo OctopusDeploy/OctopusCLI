@@ -27,16 +27,17 @@ namespace Octopus.Cli.Commands.Releases
             this.commandOutputProvider = commandOutputProvider;
         }
 
-        public static string GitReferenceSuppliedForDatabaseProjectErrorMessage(string gitReference)
+        public static string GitReferenceSuppliedForDatabaseProjectErrorMessage(string gitObjectName)
         {
-            return $"Attempting to create a release from version control because the git reference {gitReference} was provided. The selected project is not a version controlled project.";
+            return $"Attempting to create a release from version control because the git {gitObjectName} was provided. The selected project is not a version controlled project.";
         }
 
         public async Task<ReleasePlan> Build(IOctopusAsyncRepository repository,
             ProjectResource project,
             ChannelResource channel,
             string versionPreReleaseTag,
-            string gitReference)
+            string gitReference,
+            string gitCommit)
         {
             return string.IsNullOrWhiteSpace(gitReference)
                 ? await BuildReleaseFromDatabase(repository, project, channel, versionPreReleaseTag)
@@ -44,30 +45,35 @@ namespace Octopus.Cli.Commands.Releases
                     project,
                     channel,
                     versionPreReleaseTag,
-                    gitReference);
+                    gitReference,
+                    gitCommit);
         }
 
         async Task<ReleasePlan> BuildReleaseFromVersionControl(IOctopusAsyncRepository repository,
             ProjectResource project,
             ChannelResource channel,
             string versionPreReleaseTag,
-            string gitReference)
+            string gitReference,
+            string gitCommit)
         {
             if (repository == null) throw new ArgumentNullException(nameof(repository));
             if (project == null) throw new ArgumentNullException(nameof(project));
-            if (!project.IsVersionControlled)
-                throw new CommandException(GitReferenceSuppliedForDatabaseProjectErrorMessage(gitReference));
-            commandOutputProvider.Debug($"Finding deployment process at git reference {gitReference}...");
-            var deploymentProcess = await repository.DeploymentProcesses.Beta().Get(project, gitReference);
-            if (deploymentProcess == null)
-                throw new CouldNotFindException(
-                    $"a deployment process for project {project.Name} and git reference {gitReference}");
 
-            commandOutputProvider.Debug($"Finding release template at git reference {gitReference}...");
+            var gitObject = string.IsNullOrEmpty(gitCommit) ? gitReference : gitCommit;
+            var gitObjectName = string.IsNullOrEmpty(gitCommit) ? $"reference {gitReference}" : $"commit {gitCommit}";
+
+            if (!project.IsVersionControlled)
+                throw new CommandException(GitReferenceSuppliedForDatabaseProjectErrorMessage(gitObjectName));
+
+            commandOutputProvider.Debug($"Finding deployment process at git {gitObjectName}...");
+            var deploymentProcess = await repository.DeploymentProcesses.Beta().Get(project, gitObject);
+            if (deploymentProcess == null)
+                throw new CouldNotFindException($"a deployment process for project {project.Name} and git {gitObjectName}");
+
+            commandOutputProvider.Debug($"Finding release template at git {gitObjectName}...");
             var releaseTemplate = await repository.DeploymentProcesses.GetTemplate(deploymentProcess, channel).ConfigureAwait(false);
             if (releaseTemplate == null)
-                throw new CouldNotFindException(
-                    $"a release template for project {project.Name}, channel {channel.Name} and git reference {gitReference}");
+                throw new CouldNotFindException($"a release template for project {project.Name}, channel {channel.Name} and git {gitObjectName}");
 
             return await Build(repository,
                 project,

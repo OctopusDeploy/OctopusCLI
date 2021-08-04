@@ -30,7 +30,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Nancy" Version="2.0.0-clinteastwood" />
-    <PackageReference Include="Octopus.Client" Version="8.8.8" />
+    <PackageReference Include="Octopus.Client" Version="11.3.3415" />
     <PackageReference Include="Serilog.Sinks.TextWriter" Version="2.0.0" />
     <PackageReference Include="NSubstitute" Version="4.2.1" />
     <PackageReference Include="FluentAssertions" Version="4.19.4" />
