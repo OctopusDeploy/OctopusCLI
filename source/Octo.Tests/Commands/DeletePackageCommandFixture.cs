@@ -1,8 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using System.IO;
 using FluentAssertions;
-using Newtonsoft.Json;
 using NSubstitute;
 using NUnit.Framework;
 using Octopus.Cli.Commands.Releases;
@@ -25,7 +23,6 @@ namespace Octo.Tests.Commands
                 CommandOutputProvider);
 
             packageId = Guid.NewGuid().ToString();
-            
         }
 
         [Test]
@@ -33,31 +30,29 @@ namespace Octo.Tests.Commands
         {
             deletePackageCommand.PackageId = packageId;
             Repository.BuiltInPackageRepository.GetPackage(packageId, null)
-            .Returns(new PackageFromBuiltInFeedResource{Id = packageId});
-            
+                .Returns(new PackageFromBuiltInFeedResource { Id = packageId });
+
             await deletePackageCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
-            LogLines.Should().Contain($"Deleting package");
+            LogLines.Should().Contain("Deleting package");
         }
 
         [Test]
         public async Task ErrorOutput_ShouldThrowErrorWhenPackageIsNotAvailable()
         {
             deletePackageCommand.PackageId = packageId;
-            
+
             await deletePackageCommand.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
-            LogLines.Should().Contain($"There is no available package to be deleted");
+            LogLines.Should().Contain("There is no available package to be deleted");
         }
 
         [Test]
         public void CommandException_ShouldNotSearchForPackageWhenThereISNoPackageId()
-        {            
+        {
             Func<Task> exec = () => deletePackageCommand.Execute(CommandLineArgs.ToArray());
             exec.ShouldThrow<CommandException>()
                 .WithMessage("Please specify a package name using the parameter: --package=XYZ");
-
-    
         }
     }
 }
