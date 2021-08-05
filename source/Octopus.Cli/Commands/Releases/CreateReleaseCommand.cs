@@ -43,7 +43,7 @@ namespace Octopus.Cli.Commands.Releases
             var options = Options.For("Release creation");
             options.Add<string>("project=", "Name or ID of the project.", v => ProjectNameOrId = v);
             options.Add<string>("defaultPackageVersion=|packageVersion=", "Default version number of all packages to use for this release. Override per-package using --package.", versionResolver.Default);
-            options.Add<string>("commit=", "[Optional, Experimental] Git commit to use when creating the release. Use in conjunction with the --gitRef parameter.", v => GitCommit = v);
+            options.Add<string>("gitCommit=", "[Optional, Experimental] Git commit to use when creating the release. Use in conjunction with the --gitRef parameter.", v => GitCommit = v);
             options.Add<string>("ref=|gitRef=", "[Optional, Experimental] Git reference to use when creating the release.", v => GitReference = v);
             options.Add<string>("version=|releaseNumber=", "[Optional] Release number to use for the new release.", v => VersionNumber = v);
             options.Add<string>("channel=", "[Optional] Name or ID of the channel to use for the new release. Omit this argument to automatically select the best channel.", v => ChannelNameOrId = v);
@@ -381,7 +381,7 @@ namespace Octopus.Cli.Commands.Releases
             if (!project.IsVersionControlled && wasGitRefProvided)
             {
                 throw new CommandException($"Since the provided project is not a version controlled project,"
-                    + $" the --commit and --gitRef arguments are not supported for this command.");
+                    + $" the --gitCommit and --gitRef arguments are not supported for this command.");
             }
         }
     }
