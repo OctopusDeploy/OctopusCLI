@@ -35,7 +35,7 @@
     <PackageReference Include="NuGet.Packaging.Core" Version="3.6.0-octopus-58692" />
     <PackageReference Include="NuGet.Packaging.Core.Types" Version="3.6.0-octopus-58692" />
     <PackageReference Include="NuGet.Versioning" Version="3.6.0-octopus-58692" />
-    <PackageReference Include="Octopus.Client" Version="8.8.8" />
+    <PackageReference Include="Octopus.Client" Version="11.3.3424" />
     <PackageReference Include="Octopus.CommandLine" Version="0.0.112" />
     <PackageReference Include="Octopus.Client" Version="11.3.3415" />
     <PackageReference Include="Octopus.Versioning" Version="4.3.5" />
