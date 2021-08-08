@@ -30,8 +30,17 @@ namespace Octopus.Cli.Util
         public static bool UsePostForChannelVersionRuleTest(this RootResource source)
         {
             // Assume octo 3.4 should use the OctopusServer 3.4 POST, otherwise if we're certain this is an older Octopus Server use the GET method
-            SemanticVersion octopusServerVersion;
-            return source == null || !SemanticVersion.TryParse(source.Version, out octopusServerVersion) || octopusServerVersion >= new SemanticVersion("3.4");
+            return source == null || 
+                !SemanticVersion.TryParse(source.Version, out var octopusServerVersion) || 
+                octopusServerVersion >= new SemanticVersion("3.4");
+        }
+        
+        public static bool HasProjectDeploymentSettingsSeparation(this RootResource source)
+        {
+            // The separation of Projects from DeploymentSettings was exposed from 2021.2 onwards
+            return source == null || 
+                !SemanticVersion.TryParse(source.Version, out var octopusServerVersion) ||
+                octopusServerVersion >= new SemanticVersion("2021.2");
         }
     }
 }

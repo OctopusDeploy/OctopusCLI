@@ -43,6 +43,7 @@ namespace Octopus.Cli.Commands.Releases
             var options = Options.For("Release creation");
             options.Add<string>("project=", "Name or ID of the project.", v => ProjectNameOrId = v);
             options.Add<string>("defaultPackageVersion=|packageVersion=", "Default version number of all packages to use for this release. Override per-package using --package.", versionResolver.Default);
+            options.Add<string>("gitCommit=", "[Optional, Experimental] Git commit to use when creating the release. Use in conjunction with the --gitRef parameter to select any previous commit.", v => GitCommit = v);
             options.Add<string>("ref=|gitRef=", "[Optional, Experimental] Git reference to use when creating the release.", v => GitReference = v);
             options.Add<string>("version=|releaseNumber=", "[Optional] Release number to use for the new release.", v => VersionNumber = v);
             options.Add<string>("channel=", "[Optional] Name or ID of the channel to use for the new release. Omit this argument to automatically select the best channel.", v => ChannelNameOrId = v);
@@ -67,6 +68,7 @@ namespace Octopus.Cli.Commands.Releases
         }
 
         public string GitReference { get; set; }
+        public string GitCommit { get; set; }
         public string ChannelNameOrId { get; set; }
         public string VersionNumber { get; set; }
         public string ReleaseNotes { get; set; }
@@ -89,8 +91,10 @@ namespace Octopus.Cli.Commands.Releases
             commandOutputProvider.Debug(serverSupportsChannels ? "This Octopus Server supports channels" : "This Octopus Server does not support channels");
 
             project = await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
-
-            plan = await BuildReleasePlan(project).ConfigureAwait(false);
+            
+            ValidateProjectPersistenceRequirements();
+            
+            plan = await BuildReleasePlan().ConfigureAwait(false);
 
             if (!string.IsNullOrWhiteSpace(VersionNumber))
             {
@@ -172,9 +176,7 @@ namespace Octopus.Cli.Commands.Releases
                 // Actually create the release!
                 commandOutputProvider.Debug("Creating release...");
 
-                // if no release notes were provided on the command line, but the project has a template, then use the template
-                if (string.IsNullOrWhiteSpace(ReleaseNotes) && !string.IsNullOrWhiteSpace(project.ReleaseNotesTemplate))
-                    ReleaseNotes = project.ReleaseNotesTemplate;
+                await ReleaseNotesFallBackToDeploymentSettings().ConfigureAwait(false);
 
                 release = await Repository.Releases.Create(new ReleaseResource(versionNumber, project.Id, plan.Channel?.Id)
                         {
@@ -182,7 +184,8 @@ namespace Octopus.Cli.Commands.Releases
                             SelectedPackages = plan.GetSelections(),
                             VersionControlReference = new VersionControlReferenceResource
                             {
-                                GitRef = GitReference
+                                GitRef = GitReference,
+                                GitCommit = GitCommit
                             }
                         },
                         IgnoreChannelRules)
@@ -198,7 +201,7 @@ namespace Octopus.Cli.Commands.Releases
             }
         }
 
-        async Task<ReleasePlan> BuildReleasePlan(ProjectResource project)
+        async Task<ReleasePlan> BuildReleasePlan()
         {
             if (!string.IsNullOrWhiteSpace(ChannelNameOrId))
             {
@@ -209,7 +212,8 @@ namespace Octopus.Cli.Commands.Releases
                         project,
                         matchingChannel,
                         VersionPreReleaseTag,
-                        GitReference)
+                        GitReference,
+                        GitCommit)
                     .ConfigureAwait(false);
             }
 
@@ -218,7 +222,7 @@ namespace Octopus.Cli.Commands.Releases
             if (await ServerSupportsChannels().ConfigureAwait(false))
             {
                 commandOutputProvider.Debug("Automatically selecting the best channel for this release...");
-                return await AutoSelectBestReleasePlanOrThrow(project).ConfigureAwait(false);
+                return await AutoSelectBestReleasePlanOrThrow().ConfigureAwait(false);
             }
 
             // Compatibility: this has to cater for Octopus before Channels existed
@@ -227,7 +231,8 @@ namespace Octopus.Cli.Commands.Releases
                     project,
                     null,
                     VersionPreReleaseTag,
-                    GitReference)
+                    GitReference,
+                    GitCommit)
                 .ConfigureAwait(false);
         }
 
@@ -236,21 +241,32 @@ namespace Octopus.Cli.Commands.Releases
             return Repository.HasLink("Channels");
         }
 
-        async Task<ReleasePlan> AutoSelectBestReleasePlanOrThrow(ProjectResource project)
+        async Task<ResourceCollection<ChannelResource>> GetChannel()
+        {
+            if (!project.IsVersionControlled)
+            {
+                return await Repository.Projects.GetChannels(project).ConfigureAwait(false);    
+            }
+
+            return await Repository.Projects.Beta().GetChannels(project, GitCommit ?? GitReference).ConfigureAwait(false);
+        }
+
+        async Task<ReleasePlan> AutoSelectBestReleasePlanOrThrow()
         {
             // Build a release plan for each channel to determine which channel is the best match for the provided options
-            var channels = await Repository.Projects.GetChannels(project).ConfigureAwait(false);
+            var channels = await GetChannel().ConfigureAwait(false);
             var candidateChannels = await channels.GetAllPages(Repository).ConfigureAwait(false);
             var releasePlans = new List<ReleasePlan>();
             foreach (var channel in candidateChannels)
             {
                 commandOutputProvider.Information("Building a release plan for Channel '{Channel:l}'...", channel.Name);
 
-                var plan = await releasePlanBuilder.Build(Repository,
+                plan = await releasePlanBuilder.Build(Repository,
                         project,
                         channel,
                         VersionPreReleaseTag,
-                        GitReference)
+                        GitReference,
+                        GitCommit)
                     .ConfigureAwait(false);
                 releasePlans.Add(plan);
                 if (plan.ChannelHasAnyEnabledSteps() == false)
@@ -288,6 +304,35 @@ namespace Octopus.Cli.Commands.Releases
                 $"{releasePlans.Except(viablePlans).Select(p => p.FormatAsTable()).NewlineSeperate()}");
         }
 
+        /// <summary>
+        /// if no release notes were provided on the command line, but the project has a template, then use the template
+        /// </summary>
+        async Task ReleaseNotesFallBackToDeploymentSettings()
+        {
+            if (!string.IsNullOrWhiteSpace(ReleaseNotes))
+                return;
+
+            // Continue using deprecated property on DeploymentSettings that exposes project for older server backwards compatibility
+#pragma warning disable 618
+            var projectReleaseNotes = project.ReleaseNotesTemplate;
+#pragma warning restore 618
+
+            if (project.IsVersionControlled)
+            {
+                var deploymentSettings = await Repository.DeploymentSettings.Beta().Get(project, GitCommit ?? GitReference)
+                    .ConfigureAwait(false);
+                projectReleaseNotes = deploymentSettings.ReleaseNotesTemplate;
+            }
+            else if ((await Repository.LoadRootDocument().ConfigureAwait(false)).HasProjectDeploymentSettingsSeparation())
+            {
+                var deploymentSettings = await Repository.DeploymentSettings.Get(project).ConfigureAwait(false);
+                projectReleaseNotes = deploymentSettings.ReleaseNotesTemplate;
+            }
+
+            if (!string.IsNullOrWhiteSpace(projectReleaseNotes))
+                ReleaseNotes = projectReleaseNotes;
+        }
+
         void ReadReleaseNotesFromFile(string value)
         {
             try
@@ -322,6 +367,22 @@ namespace Octopus.Cli.Commands.Releases
                     VersionRule = x.ChannelVersionRuleTestResult?.ToSummaryString()
                 })
             });
+        }
+        
+        void ValidateProjectPersistenceRequirements()
+        {
+            var wasGitRefProvided = !string.IsNullOrEmpty(GitReference);
+            if (project.IsVersionControlled && !wasGitRefProvided)
+            {
+                throw new CommandException($"Since the provided project is a version controlled project "
+                    + $"you must provide the gitRef used for this release via the --gitRef argument.");    
+            }
+
+            if (!project.IsVersionControlled && wasGitRefProvided)
+            {
+                throw new CommandException($"Since the provided project is not a version controlled project,"
+                    + $" the --gitCommit and --gitRef arguments are not supported for this command.");
+            }
         }
     }
 }

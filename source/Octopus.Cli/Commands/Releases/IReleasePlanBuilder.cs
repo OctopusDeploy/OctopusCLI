@@ -11,6 +11,7 @@ namespace Octopus.Cli.Commands.Releases
             ProjectResource project,
             ChannelResource channel,
             string versionPreReleaseTag,
-            string gitReference);
+            string gitReference,
+            string gitCommit);
     }
 }
