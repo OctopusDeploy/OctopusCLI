@@ -5,10 +5,10 @@ using FluentAssertions;
 using Newtonsoft.Json;
 using NSubstitute;
 using NUnit.Framework;
-using Octopus.Cli.Commands.Channel;
 using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
 using Octopus.CommandLine.Commands;
+using CreateChannelCommand = Octopus.Cli.Commands.Channel.CreateChannelCommand;
 
 namespace Octo.Tests.Commands
 {
