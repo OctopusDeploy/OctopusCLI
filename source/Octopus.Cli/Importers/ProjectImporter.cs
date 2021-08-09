@@ -511,10 +511,8 @@ namespace Octopus.Cli.Importers
             if (existingProject != null)
             {
                 if (existingProject.IsVersionControlled)
-                {
-                    throw new CommandException("Version controlled projects cannot be used by this deprecated importer process. Please see https://g.octopushq.com/DataMigration for alternative options.");   
-                }
-                    
+                    throw new CommandException("Version controlled projects cannot be used by this deprecated importer process. Please see https://g.octopushq.com/DataMigration for alternative options.");
+
                 KeepExistingProjectChannels = true;
                 Log.Debug("Project already exist, project will be updated with new settings");
                 existingProject.ProjectGroupId = projectGroupId;

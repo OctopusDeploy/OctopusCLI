@@ -41,7 +41,7 @@ namespace Octopus.Cli.Importers
                 exportedObject = importedObject["Items"];
 
             var serializedObject = Serializer.Serialize(exportedObject ?? importedObject);
-            return (T)Serializer.Deserialize<T>(serializedObject);
+            return Serializer.Deserialize<T>(serializedObject);
         }
     }
 }

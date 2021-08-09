@@ -91,9 +91,9 @@ namespace Octopus.Cli.Commands.Releases
             commandOutputProvider.Debug(serverSupportsChannels ? "This Octopus Server supports channels" : "This Octopus Server does not support channels");
 
             project = await Repository.Projects.FindByNameOrIdOrFail(ProjectNameOrId).ConfigureAwait(false);
-            
+
             ValidateProjectPersistenceRequirements();
-            
+
             plan = await BuildReleasePlan().ConfigureAwait(false);
 
             if (!string.IsNullOrWhiteSpace(VersionNumber))
@@ -244,9 +244,7 @@ namespace Octopus.Cli.Commands.Releases
         async Task<ResourceCollection<ChannelResource>> GetChannel()
         {
             if (!project.IsVersionControlled)
-            {
-                return await Repository.Projects.GetChannels(project).ConfigureAwait(false);    
-            }
+                return await Repository.Projects.GetChannels(project).ConfigureAwait(false);
 
             return await Repository.Projects.Beta().GetChannels(project, GitCommit ?? GitReference).ConfigureAwait(false);
         }
@@ -319,7 +317,8 @@ namespace Octopus.Cli.Commands.Releases
 
             if (project.IsVersionControlled)
             {
-                var deploymentSettings = await Repository.DeploymentSettings.Beta().Get(project, GitCommit ?? GitReference)
+                var deploymentSettings = await Repository.DeploymentSettings.Beta()
+                    .Get(project, GitCommit ?? GitReference)
                     .ConfigureAwait(false);
                 projectReleaseNotes = deploymentSettings.ReleaseNotesTemplate;
             }
@@ -368,21 +367,17 @@ namespace Octopus.Cli.Commands.Releases
                 })
             });
         }
-        
+
         void ValidateProjectPersistenceRequirements()
         {
             var wasGitRefProvided = !string.IsNullOrEmpty(GitReference);
             if (project.IsVersionControlled && !wasGitRefProvided)
-            {
-                throw new CommandException($"Since the provided project is a version controlled project "
-                    + $"you must provide the gitRef used for this release via the --gitRef argument.");    
-            }
+                throw new CommandException("Since the provided project is a version controlled project "
+                    + "you must provide the gitRef used for this release via the --gitRef argument.");
 
             if (!project.IsVersionControlled && wasGitRefProvided)
-            {
-                throw new CommandException($"Since the provided project is not a version controlled project,"
-                    + $" the --gitCommit and --gitRef arguments are not supported for this command.");
-            }
+                throw new CommandException("Since the provided project is not a version controlled project,"
+                    + " the --gitCommit and --gitRef arguments are not supported for this command.");
         }
     }
 }

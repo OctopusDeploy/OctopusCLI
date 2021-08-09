@@ -8,18 +8,17 @@ using NUnit.Framework;
 using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
 using Octopus.CommandLine.Commands;
-using CreateChannelCommand = Octopus.Cli.Commands.Channel.CreateChannelCommand;
 
 namespace Octo.Tests.Commands
 {
     public class CreateChannelCommandFixture : ApiCommandFixtureBase
     {
-        CreateChannelCommand createChannelCommand;
+        Octopus.Cli.Commands.Channel.CreateChannelCommand createChannelCommand;
 
         [SetUp]
         public void SetUp()
         {
-            createChannelCommand = new CreateChannelCommand(RepositoryFactory, FileSystem, ClientFactory, CommandOutputProvider);
+            createChannelCommand = new Octopus.Cli.Commands.Channel.CreateChannelCommand(RepositoryFactory, FileSystem, ClientFactory, CommandOutputProvider);
         }
 
         [Test]
