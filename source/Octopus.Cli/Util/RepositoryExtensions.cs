@@ -175,7 +175,7 @@ namespace Octopus.Cli.Util
                 try
                 {
                     
-                    resourceById = await repo.Channels.Beta().Get(project, nameOrId, gitRef);;
+                    resourceById = await repo.Channels.Beta().Get(project, nameOrId, gitRef);
                 }
                 catch (OctopusResourceNotFoundException)
                 {
