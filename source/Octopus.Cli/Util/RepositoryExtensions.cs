@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
+using Octopus.Client;
 using Octopus.Client.Exceptions;
 using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
@@ -69,6 +70,7 @@ namespace Octopus.Cli.Util
             return found;
         }
 
+        
         static async Task<TResource[]> FindByNamesOrIdsOrFail<T, TResource>(this T repository,
             Func<string, Task<TResource>> findByNameFunc,
             string resourceTypeIdPrefix,
@@ -151,6 +153,68 @@ namespace Octopus.Cli.Util
                 "channel",
                 nameOrId,
                 $" in {project.Name}");
+        }
+        
+        internal static async Task<ChannelResource> FindGitRefChannelByNameOrIdOrFail(this IOctopusAsyncRepository repo,
+            ProjectResource project,
+            string nameOrId,
+            string gitRef)
+        {
+
+            var resourceTypeIdPrefix = "Channels";
+            var resourceTypeDisplayName = "channel";
+            var enclosingContextDescription = $" in {project.Name}";
+            var skipLog = false;
+
+            ChannelResource resourceById;
+            if (!Regex.IsMatch(nameOrId,
+                $@"^{Regex.Escape(resourceTypeIdPrefix)}-\d+$",
+                RegexOptions.Compiled | RegexOptions.IgnoreCase))
+                resourceById = null;
+            else
+                try
+                {
+                    
+                    resourceById = await repo.Channels.Beta().Get(project, nameOrId, gitRef);;
+                }
+                catch (OctopusResourceNotFoundException)
+                {
+                    resourceById = null;
+                }
+
+            ChannelResource resourceByName;
+            try
+            {
+                // Duplicates missing FindByName in Client for Beta Repository
+                resourceByName = await repo.Projects.Beta()
+                    .GetAllChannels(project, gitRef)
+                    .ContinueWith(d => 
+                        d.Result.SingleOrDefault(named =>
+                            string.Equals((named.Name ?? string.Empty).Trim(), nameOrId, StringComparison.OrdinalIgnoreCase))
+                        ,TaskContinuationOptions.NotOnFaulted)
+                    .ConfigureAwait(false);
+
+            }
+            catch (OctopusResourceNotFoundException)
+            {
+                resourceByName = null;
+            }
+
+            if (resourceById == null && resourceByName == null)
+                throw new CouldNotFindException(resourceTypeDisplayName, nameOrId, enclosingContextDescription);
+
+            if (resourceById != null
+                && resourceByName != null
+                && !string.Equals(resourceById.Id, resourceByName.Id, StringComparison.OrdinalIgnoreCase))
+                throw new CommandException(
+                    $"Ambiguous {resourceTypeDisplayName} reference '{nameOrId}' matches both '{resourceById.Name}' ({resourceById.Id}) and '{resourceByName.Name}' ({resourceByName.Id}).");
+
+            var found = resourceById ?? resourceByName;
+
+            if (!skipLog)
+                Log.Logger.Debug($"Found {resourceTypeDisplayName}: {found.Name} ({found.Id})");
+
+            return found;
         }
 
         public static Task<ChannelResource[]> FindByNamesOrIdsOrFail(this IChannelRepository repo,

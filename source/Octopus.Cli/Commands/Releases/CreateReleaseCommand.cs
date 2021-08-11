@@ -201,12 +201,25 @@ namespace Octopus.Cli.Commands.Releases
             }
         }
 
+        async Task<ChannelResource> GetMatchingChannel(string channelNameOrId)
+        {
+            if (!project.IsVersionControlled)
+            {
+                return await Repository.Channels.FindByNameOrIdOrFail(project, channelNameOrId)
+                    .ConfigureAwait(false);    
+            }
+
+            return await Repository.FindGitRefChannelByNameOrIdOrFail(project, channelNameOrId, GitCommit ?? GitReference)
+                .ConfigureAwait(false);
+        }
+        
         async Task<ReleasePlan> BuildReleasePlan()
         {
             if (!string.IsNullOrWhiteSpace(ChannelNameOrId))
             {
                 commandOutputProvider.Information("Building release plan for channel '{Channel:l}'...", ChannelNameOrId);
-                var matchingChannel = await Repository.Channels.FindByNameOrIdOrFail(project, ChannelNameOrId).ConfigureAwait(false);
+
+                var matchingChannel = await GetMatchingChannel(ChannelNameOrId).ConfigureAwait(false);
 
                 return await releasePlanBuilder.Build(Repository,
                         project,
