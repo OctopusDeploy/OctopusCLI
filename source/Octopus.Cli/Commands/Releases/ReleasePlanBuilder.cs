@@ -163,7 +163,7 @@ namespace Octopus.Cli.Commands.Releases
 
                     if (latestPackage == null)
                     {
-                        commandOutputProvider.Error(
+                        commandOutputProvider.Information(
                             "Could not find any packages with ID '{PackageId:l}' in the feed '{FeedUri:l}'",
                             unresolved.PackageId,
                             feed.Name);
