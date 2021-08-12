@@ -15,6 +15,10 @@ namespace Octopus.Cli.Commands.Releases
                 // Anything goes if there is no rule defined for this step
                 return ChannelVersionRuleTestResult.Null();
 
+            if (string.IsNullOrEmpty(packageVersion))
+                // If we don't have a package version, this rule should be ignored
+                return ChannelVersionRuleTestResult.Failed();
+
             var link = await repository.Link("VersionRuleTest").ConfigureAwait(false);
 
             var resource = new
