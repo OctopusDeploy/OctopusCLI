@@ -70,7 +70,6 @@ namespace Octopus.Cli.Util
             return found;
         }
 
-        
         static async Task<TResource[]> FindByNamesOrIdsOrFail<T, TResource>(this T repository,
             Func<string, Task<TResource>> findByNameFunc,
             string resourceTypeIdPrefix,
@@ -154,13 +153,12 @@ namespace Octopus.Cli.Util
                 nameOrId,
                 $" in {project.Name}");
         }
-        
+
         internal static async Task<ChannelResource> FindGitRefChannelByNameOrIdOrFail(this IOctopusAsyncRepository repo,
             ProjectResource project,
             string nameOrId,
             string gitRef)
         {
-
             var resourceTypeIdPrefix = "Channels";
             var resourceTypeDisplayName = "channel";
             var enclosingContextDescription = $" in {project.Name}";
@@ -174,7 +172,6 @@ namespace Octopus.Cli.Util
             else
                 try
                 {
-                    
                     resourceById = await repo.Channels.Beta().Get(project, nameOrId, gitRef);
                 }
                 catch (OctopusResourceNotFoundException)
@@ -188,12 +185,11 @@ namespace Octopus.Cli.Util
                 // Duplicates missing FindByName in Client for Beta Repository
                 resourceByName = await repo.Projects.Beta()
                     .GetAllChannels(project, gitRef)
-                    .ContinueWith(d => 
-                        d.Result.SingleOrDefault(named =>
-                            string.Equals((named.Name ?? string.Empty).Trim(), nameOrId, StringComparison.OrdinalIgnoreCase))
-                        ,TaskContinuationOptions.NotOnFaulted)
+                    .ContinueWith(d =>
+                            d.Result.SingleOrDefault(named =>
+                                string.Equals((named.Name ?? string.Empty).Trim(), nameOrId, StringComparison.OrdinalIgnoreCase)),
+                        TaskContinuationOptions.NotOnFaulted)
                     .ConfigureAwait(false);
-
             }
             catch (OctopusResourceNotFoundException)
             {
