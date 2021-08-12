@@ -164,7 +164,7 @@ namespace Octopus.Cli.Commands.Releases
                     if (latestPackage == null)
                     {
                         commandOutputProvider.Information(
-                            "Could not find any packages with ID '{PackageId:l}' in the feed '{FeedUri:l}'",
+                            "Could not find any packages with ID '{PackageId:l}' that match the channel filter, in the feed '{FeedUri:l}'",
                             unresolved.PackageId,
                             feed.Name);
                     }
