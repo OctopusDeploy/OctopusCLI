@@ -40,7 +40,7 @@ FPM_DEB_OPTS=(
   --depends 'libssl1.0.0 | libssl1.0.2 | libssl1.1'
   --depends 'libkrb5-3'
   --depends 'zlib1g'
-  --depends 'libicu52 | libicu55 | libicu57 | libicu60 | libicu63 | libicu66'
+  --depends 'libicu52 | libicu55 | libicu57 | libicu60 | libicu63 | libicu66 | libicu67'
 )
 # Note: Microsoft recommends dep 'lttng-ust' but it seems to be unavailable in CentOS 7, so we're omitting it for now.
 # As it's related to tracing, hopefully it will not be required for normal usage.
