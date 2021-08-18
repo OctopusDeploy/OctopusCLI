@@ -19,13 +19,15 @@ namespace Octopus.Cli.Model
             return IsNull ? "Allow any version" : $"Range: {(SatisfiesVersionRange ? Pass : Fail)} Tag: {(SatisfiesPreReleaseTag ? Pass : Fail)}";
         }
 
-        public static ChannelVersionRuleTestResult Failed() =>
-            new ChannelVersionRuleTestResult
+        public static ChannelVersionRuleTestResult Failed()
+        {
+            return new ChannelVersionRuleTestResult
             {
                 IsNull = false,
                 SatisfiesVersionRange = false,
                 SatisfiesPreReleaseTag = false
             };
+        }
 
         public static ChannelVersionRuleTestResult Null()
         {

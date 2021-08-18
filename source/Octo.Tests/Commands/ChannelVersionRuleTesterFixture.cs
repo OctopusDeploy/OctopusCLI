@@ -1,15 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 using Octopus.Cli.Commands.Releases;
 using Octopus.Cli.Model;
-using Octopus.Cli.Util;
 using Octopus.Client;
-using Octopus.Client.Exceptions;
 using Octopus.Client.Model;
 
 namespace Octo.Tests.Commands
@@ -58,7 +54,7 @@ namespace Octo.Tests.Commands
             var expectedTestResult = new ChannelVersionRuleTestResult
             {
                 SatisfiesVersionRange = true,
-                SatisfiesPreReleaseTag = true,
+                SatisfiesPreReleaseTag = true
             };
             var repo = Substitute.For<IOctopusAsyncRepository>();
             repo.Client.Post<object, ChannelVersionRuleTestResult>(Arg.Any<string>(), Arg.Any<object>())
@@ -77,6 +73,5 @@ namespace Octo.Tests.Commands
 
             await repo.Client.Received(1).Post<object, ChannelVersionRuleTestResult>(Arg.Any<string>(), Arg.Any<object>());
         }
-
     }
 }
