@@ -29,6 +29,8 @@ namespace Octo.Tests.Commands
 
             result.SatisfiesVersionRange.Should().BeTrue();
             result.SatisfiesPreReleaseTag.Should().BeTrue();
+
+            await repo.Client.DidNotReceive().Post<object, ChannelVersionRuleTestResult>(Arg.Any<string>(), Arg.Any<object>());
         }
 
         [Test]
@@ -36,7 +38,7 @@ namespace Octo.Tests.Commands
         {
             var repo = Substitute.For<IOctopusAsyncRepository>();
 
-            var rule = new ChannelVersionRuleResource()
+            var rule = new ChannelVersionRuleResource
             {
                 VersionRange = "[1.0,)",
                 Tag = "$^"
@@ -46,12 +48,14 @@ namespace Octo.Tests.Commands
 
             result.SatisfiesVersionRange.Should().BeFalse();
             result.SatisfiesPreReleaseTag.Should().BeFalse();
+
+            await repo.Client.DidNotReceive().Post<object, ChannelVersionRuleTestResult>(Arg.Any<string>(), Arg.Any<object>());
         }
 
         [Test]
         public async Task PackageVersionShouldReturnSuccessfulResult()
         {
-            var expectedTestResult = new ChannelVersionRuleTestResult()
+            var expectedTestResult = new ChannelVersionRuleTestResult
             {
                 SatisfiesVersionRange = true,
                 SatisfiesPreReleaseTag = true,
@@ -70,6 +74,8 @@ namespace Octo.Tests.Commands
 
             result.SatisfiesVersionRange.Should().BeTrue();
             result.SatisfiesPreReleaseTag.Should().BeTrue();
+
+            await repo.Client.Received(1).Post<object, ChannelVersionRuleTestResult>(Arg.Any<string>(), Arg.Any<object>());
         }
 
     }
