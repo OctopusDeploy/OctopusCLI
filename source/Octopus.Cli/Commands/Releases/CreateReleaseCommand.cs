@@ -382,9 +382,11 @@ namespace Octopus.Cli.Commands.Releases
         void ValidateProjectPersistenceRequirements()
         {
             var wasGitRefProvided = !string.IsNullOrEmpty(GitReference);
-            if (project.IsVersionControlled && !wasGitRefProvided)
-                throw new CommandException("Since the provided project is a version controlled project "
-                    + "you must provide the gitRef used for this release via the --gitRef argument.");
+            if (project.PersistenceSettings is VersionControlSettingsResource vcsResource && !wasGitRefProvided)
+            {
+                GitReference = vcsResource.DefaultBranch;
+                commandOutputProvider.Information("No gitRef parameter provided. Using Project Default Branch: {DefaultBranch:l}", vcsResource.DefaultBranch);
+            }
 
             if (!project.IsVersionControlled && wasGitRefProvided)
                 throw new CommandException("Since the provided project is not a version controlled project,"
