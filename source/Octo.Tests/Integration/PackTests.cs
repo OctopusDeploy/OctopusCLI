@@ -217,8 +217,7 @@ namespace Octo.Tests.Integration
         }
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool GetCPInfoEx([MarshalAs(UnmanagedType.U4)]
-            int CodePage,
+        static extern bool GetCPInfoEx([MarshalAs(UnmanagedType.U4)] int CodePage,
             [MarshalAs(UnmanagedType.U4)]
             int dwFlags,
             out CPINFOEX lpCPInfoEx);
