@@ -5,7 +5,7 @@ step "Upload OctopusTools to S3 public with hashes" {
             Octopus.Action.RunOnServer = "true"
             Octopus.Action.Template.Id = "ActionTemplates-864"
             Octopus.Action.Template.Version = "4"
-            PackageToUpload = "{\"PackageId\":\"OctopusTools.Zips\",\"FeedId\":\"Feeds-101\"}"
+            PackageToUpload = "{\"PackageId\":\"OctopusTools.Zips\",\"FeedId\":\"Octopus Server (built-in)\"}"
             S3BucketPath = "#{AwsBucket}/octopus-tools/#{Octopus.Action.Package[PackageToUpload].PackageVersion}/"
         }
 
@@ -367,7 +367,7 @@ step "Publish Homebrew" {
             Octopus.Action.RunOnServer = "true"
             Octopus.Action.Template.Id = "ActionTemplates-882"
             Octopus.Action.Template.Version = "18"
-            PackageToUpload = "{\"PackageId\":\"OctopusTools.Zips\",\"FeedId\":\"Feeds-101\"}"
+            PackageToUpload = "{\"PackageId\":\"OctopusTools.Zips\",\"FeedId\":\"Octopus Server (built-in)\"}"
             PubHomebrew-Email = "support@octopus.com"
             PubHomebrew-FileName = "octopuscli.rb"
             PubHomebrew-PersonalAccessToken = "#{HomeBrewKey}"
