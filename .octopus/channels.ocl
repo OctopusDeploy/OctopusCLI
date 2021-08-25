@@ -1,0 +1,24 @@
+channel "Default" {
+    is_default = true
+
+    rules {
+        tag = "^$"
+        version_range = ""
+
+        deployment_action_packages "Push Octopus.Cli to NuGet Gallery" "Octopus.Cli" {
+        }
+    }
+}
+
+channel "Pre-Release" {
+    description = ""
+    lifecycle_id = "Components Internal only"
+
+    rules {
+        tag = ".+"
+        version_range = ""
+
+        deployment_action_packages "Push Octopus.Cli to NuGet Gallery" "Octopus.Cli" {
+        }
+    }
+}
