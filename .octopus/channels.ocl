@@ -3,22 +3,25 @@ channel "Default" {
 
     rules {
         tag = "^$"
-        version_range = ""
-
-        deployment_action_packages "Push Octopus.Cli to NuGet Gallery" "Octopus.Cli" {
+       
+        deployment_action_packages {
+            step = "Push Octopus.Cli to NuGet Gallery"
+            package = "Octopus.Cli"
         }
     }
 }
 
 channel "Pre-Release" {
     description = ""
-    lifecycle_id = "Components Internal only"
+    lifecycle = "Components Internal only"
 
     rules {
         tag = ".+"
         version_range = ""
 
-        deployment_action_packages "Push Octopus.Cli to NuGet Gallery" "Octopus.Cli" {
+        deployment_action_packages {
+            step = "Push Octopus.Cli to NuGet Gallery"
+            package = "Octopus.Cli"
         }
     }
 }
