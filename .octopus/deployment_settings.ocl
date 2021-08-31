@@ -6,6 +6,8 @@ connectivity_policy {
 
 versioning_strategy {
 
-    donor_package "Push OctopusTools to NuGet Gallery" "OctopusTools" {
+    donor_package {
+        step = "Push OctopusTools to NuGet Gallery"
+        package = "OctopusTools"
     }
 }
