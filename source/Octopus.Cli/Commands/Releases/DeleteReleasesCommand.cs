@@ -51,6 +51,8 @@ namespace Octopus.Cli.Commands.Releases
             var max = OctopusVersionParser.Parse(MaxVersion);
 
             project = await GetProject().ConfigureAwait(false);
+            if (project.IsVersionControlled) throw new CommandException("The delete-releases command does not currently support version controlled projects. Please use the API directly instead");
+            
             var channelsTask = GetChannelIds(project);
             releases = await Repository.Projects.GetReleases(project).ConfigureAwait(false);
 

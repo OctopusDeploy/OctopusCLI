@@ -251,6 +251,32 @@ namespace Octopus.Cli.Util
             return repo.FindByNameOrIdOrFail(n => repo.FindByName(n), "Lifecycles", "lifecycle", nameOrId);
         }
 
+        
+        
+        public static async Task<ChannelResource> LoadChannelOrNull(this IChannelRepository repository, ProjectResource project, string channelId, string gitRef = null)
+        {
+            if (!string.IsNullOrEmpty(channelId))
+            {
+                if (project.IsVersionControlled)
+                {
+                    try
+                    {
+                        return await repository.Beta().Get(project, channelId, gitRef).ConfigureAwait(false);
+                    }
+                    catch (Exception)
+                    {
+                        // If the commit has been removed it's possible we can no longer load the channel details
+                    }
+                }
+                else
+                {
+                    return (await repository.Get(channelId).ConfigureAwait(false));
+                }
+            }
+
+            return null;
+        }
+        
         class FindResourceResult<T>
         {
             public T Resource { get; set; }

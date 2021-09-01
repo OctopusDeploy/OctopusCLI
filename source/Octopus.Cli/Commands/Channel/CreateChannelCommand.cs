@@ -48,6 +48,7 @@ namespace Octopus.Cli.Commands.Channel
 
             project = await Repository.Projects.FindByName(projectName).ConfigureAwait(false);
             if (project == null) throw new CouldNotFindException("project named", projectName);
+            if (project.IsVersionControlled) throw new CommandException("The create-channel command does not currently support version controlled projects. Please use the API directly instead");
 
             lifecycle = null;
             if (string.IsNullOrWhiteSpace(lifecycleName))
