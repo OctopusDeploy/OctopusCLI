@@ -70,7 +70,7 @@ namespace Octopus.Cli.Commands.Deployment
         static void LogDeploymentInfo(ICommandOutputProvider commandOutputProvider,
             DashboardItemResource dashboardItem,
             ReleaseResource release,
-            string channelName,
+            ChannelResource channel,
             IDictionary<string, string> environmentsById,
             IDictionary<string, ProjectResource> projectedById,
             IDictionary<string, string> tenantsById)
@@ -86,8 +86,8 @@ namespace Octopus.Cli.Commands.Deployment
                 commandOutputProvider.Information(" - Tenant: {Tenant:l}", nameOfDeploymentTenant);
             }
 
-            if (channelName != null)
-                commandOutputProvider.Information(" - Channel: {Channel:l}", channelName);
+            if (channel != null)
+                commandOutputProvider.Information(" - Channel: {Channel:l}", channel.Name);
 
             commandOutputProvider.Information("   Date: {$Date:l}", dashboardItem.QueueTime);
             commandOutputProvider.Information("   Duration: {Duration:l}", dashboardItem.Duration);
@@ -126,7 +126,7 @@ namespace Octopus.Cli.Commands.Deployment
                 dashboardRelatedResourceses[dashboardItem] = new DeploymentRelatedResources
                 {
                     ReleaseResource = release,
-                    ChannelName = channel?.Name
+                    ChannelResource = channel
                 };
             }
         }
@@ -142,7 +142,7 @@ namespace Octopus.Cli.Commands.Deployment
                     commandOutputProvider,
                     dashboardItem,
                     dashboardRelatedResourceses[dashboardItem].ReleaseResource,
-                    dashboardRelatedResourceses[dashboardItem].ChannelName,
+                    dashboardRelatedResourceses[dashboardItem].ChannelResource,
                     environmentsById,
                     projectsById,
                     tenantsById);
@@ -155,7 +155,7 @@ namespace Octopus.Cli.Commands.Deployment
                 {
                     dashboardItem,
                     release = dashboardRelatedResourceses[dashboardItem].ReleaseResource,
-                    dashboardRelatedResourceses[dashboardItem].ChannelName
+                    channel = dashboardRelatedResourceses[dashboardItem].ChannelResource
                 })
                 .Select(x => new
                 {
@@ -164,7 +164,7 @@ namespace Octopus.Cli.Commands.Deployment
                     Tenant = string.IsNullOrWhiteSpace(x.dashboardItem.TenantId)
                         ? null
                         : new { Id = x.dashboardItem.TenantId, Name = GetNameOfDeploymentTenant(tenantsById, x.dashboardItem.TenantId) },
-                    Channel = x.ChannelName == null ? null : new { x.release.ChannelId, Name = x.ChannelName },
+                    Channel = x.channel == null ? null : new { x.channel.Id, x.channel.Name },
                     Date = x.dashboardItem.QueueTime,
                     x.dashboardItem.Duration,
                     State = x.dashboardItem.State.ToString(),

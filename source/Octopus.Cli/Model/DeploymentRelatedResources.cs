@@ -5,7 +5,7 @@ namespace Octopus.Cli.Model
 {
     public class DeploymentRelatedResources
     {
-        public string ChannelName { get; set; }
+        public ChannelResource ChannelResource { get; set; }
         public ReleaseResource ReleaseResource { get; set; }
     }
 }

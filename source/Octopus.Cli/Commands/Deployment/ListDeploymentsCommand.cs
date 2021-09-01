@@ -78,10 +78,9 @@ namespace Octopus.Cli.Commands.Deployment
                 var release = await Repository.Releases.Get(item.ReleaseId).ConfigureAwait(false);
                 var channel = await Repository.Channels
                     .LoadChannelOrNull(projectsById[release.ProjectId], release.ChannelId, release.VersionControlReference?.GitCommit);
-                
-                var deployment = deploymentResources[item];
-                deployment.ReleaseResource = await Repository.Releases.Get(item.ReleaseId).ConfigureAwait(false);
-                deployment.ChannelName = channel?.Name;
+
+                deploymentResources[item].ReleaseResource = release;
+                deploymentResources[item].ChannelResource = channel;
             }
         }
 
@@ -97,7 +96,7 @@ namespace Octopus.Cli.Commands.Deployment
                 LogDeploymentInfo(commandOutputProvider,
                     item,
                     deploymentResources[item].ReleaseResource,
-                    deploymentResources[item].ChannelName,
+                    deploymentResources[item].ChannelResource,
                     environmentsById,
                     projectsById,
                     tenantsById);
@@ -117,7 +116,7 @@ namespace Octopus.Cli.Commands.Deployment
                     Tenant = string.IsNullOrWhiteSpace(dr.Key.TenantId)
                         ? null
                         : new { Id = dr.Key.TenantId, Name = tenantsById[dr.Key.TenantId] },
-                    Channel = dr.Value.ChannelName == null ? null : new { Id = dr.Key.ChannelId, Name = dr.Value.ChannelName },
+                    Channel = dr.Value.ChannelResource == null ? null : new { Id = dr.Key.ChannelId, dr.Value.ChannelResource.Name },
                     dr.Key.Created,
                     dr.Value.ReleaseResource.Version,
                     dr.Value.ReleaseResource.Assembled,
@@ -183,7 +182,7 @@ namespace Octopus.Cli.Commands.Deployment
         static void LogDeploymentInfo(ICommandOutputProvider outputProvider,
             DeploymentResource deploymentItem,
             ReleaseResource release,
-            string channelName,
+            ChannelResource channel,
             IDictionary<string, string> environmentsById,
             IDictionary<string, ProjectResource> projectsById,
             IDictionary<string, string> tenantsById)
@@ -200,8 +199,8 @@ namespace Octopus.Cli.Commands.Deployment
                 outputProvider.Information(" - Tenant: {Tenant:l}", nameOfDeploymentTenant);
             }
 
-            if (channelName != null)
-                outputProvider.Information(" - Channel: {Channel:l}", channelName);
+            if (channel != null)
+                outputProvider.Information(" - Channel: {Channel:l}", channel.Name);
 
             outputProvider.Information("\tCreated: {$Date:l}", deploymentItem.Created);
 
