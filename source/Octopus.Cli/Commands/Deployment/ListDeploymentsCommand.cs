@@ -40,7 +40,8 @@ namespace Octopus.Cli.Commands.Deployment
 
         public async Task Request()
         {
-            projectsById = await LoadProjects().ConfigureAwait(false);
+            var projectResourcesById = await LoadProjects().ConfigureAwait(false);
+            projectsById = projectResourcesById.Values.ToDictionary(p => p.Id, p => p.Name);
             projectsFilter = projectsById.Keys.ToArray();
             environmentsById = await LoadEnvironments().ConfigureAwait(false);
             environmentsFilter = environmentsById.Keys.ToArray();
@@ -78,7 +79,10 @@ namespace Octopus.Cli.Commands.Deployment
                 deploymentResources[item].ReleaseResource = await Repository.Releases.Get(item.ReleaseId).ConfigureAwait(false);
 
                 if (!string.IsNullOrEmpty(item.ChannelId))
-                    deploymentResources[item].ChannelResource = await Repository.Channels.Get(item.ChannelId).ConfigureAwait(false);
+                {
+                    var projectForDeployment = projectResourcesById[item.ProjectId];
+                    deploymentResources[item].ChannelResource = await Repository.Channels.Get(projectForDeployment, item.ChannelId).ConfigureAwait(false);
+                }
             }
         }
 
@@ -123,7 +127,7 @@ namespace Octopus.Cli.Commands.Deployment
                 }));
         }
 
-        async Task<IDictionary<string, string>> LoadProjects()
+        async Task<IDictionary<string, ProjectResource>> LoadProjects()
         {
             commandOutputProvider.Information("Loading projects...");
             var projectQuery = projects.Any()
@@ -137,7 +141,7 @@ namespace Octopus.Cli.Commands.Deployment
             if (missingProjects.Any())
                 throw new CommandException("Could not find projects: " + string.Join(",", missingProjects));
 
-            return projectResources.ToDictionary(p => p.Id, p => p.Name);
+            return projectResources.ToDictionary(p => p.Id, p => p);
         }
 
         async Task<IDictionary<string, string>> LoadEnvironments()
