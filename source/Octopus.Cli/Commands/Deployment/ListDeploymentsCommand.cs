@@ -81,7 +81,7 @@ namespace Octopus.Cli.Commands.Deployment
                 if (!string.IsNullOrEmpty(item.ChannelId))
                 {
                     var projectForDeployment = projectResourcesById[item.ProjectId];
-                    deploymentResources[item].ChannelResource = await Repository.Channels.Get(projectForDeployment, item.ChannelId).ConfigureAwait(false);
+                    deploymentResources[item].ChannelResource = await Repository.Channels.Beta().Get(projectForDeployment, item.ChannelId).ConfigureAwait(false);
                 }
             }
         }
