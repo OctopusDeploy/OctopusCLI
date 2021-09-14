@@ -135,19 +135,6 @@ class Build : NukeBuild
                 .SetOutput(OctoPublishDirectory / "netfx")
                 .SetVersion(OctoVersionInfo.FullSemVer));
 
-            var portablePublishDir = OctoPublishDirectory / "portable";
-            DotNetPublish(_ => _
-                .SetProject(Solution.Octo)
-                .SetFramework("netcoreapp2.0") /* For compatibility until we gently phase it out. We encourage upgrading to self-contained executable. */
-                .SetConfiguration(Configuration)
-                .SetOutput(portablePublishDir)
-                .SetVersion(OctoVersionInfo.FullSemVer));
-
-            SignBinaries(portablePublishDir);
-
-            CopyFileToDirectory(AssetDirectory / "octo", portablePublishDir, FileExistsPolicy.Overwrite);
-            CopyFileToDirectory(AssetDirectory / "octo.cmd", portablePublishDir, FileExistsPolicy.Overwrite);
-
             var doc = new XmlDocument();
             doc.Load(Solution.Octo.Path);
             var selectSingleNode = doc.SelectSingleNode("Project/PropertyGroup/RuntimeIdentifiers");
