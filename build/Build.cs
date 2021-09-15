@@ -146,7 +146,7 @@ class Build : NukeBuild
                 DotNetPublish(_ => _
                     .SetProject(Solution.Octo)
                     .SetConfiguration(Configuration)
-                    .SetFramework("netcoreapp3.1")
+                    .SetFramework("net5.0")
                     .SetRuntime(rid)
                     .EnableSelfContained()
                     .EnablePublishSingleFile()
