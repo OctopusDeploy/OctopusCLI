@@ -135,6 +135,18 @@ class Build : NukeBuild
                 .SetOutput(OctoPublishDirectory / "netfx")
                 .SetVersion(OctoVersionInfo.FullSemVer));
 
+            //used for docker containers
+            var portablePublishDir = OctoPublishDirectory / "portable";
+            DotNetPublish(_ => _
+                .SetProject(Solution.Octo)
+                .SetFramework("net5.0")
+                .SetConfiguration(Configuration)
+                .SetOutput(portablePublishDir)
+                .SetVersion(OctoVersionInfo.FullSemVer));
+            SignBinaries(portablePublishDir);
+            CopyFileToDirectory(AssetDirectory / "octo", portablePublishDir, FileExistsPolicy.Overwrite);
+            CopyFileToDirectory(AssetDirectory / "octo.cmd", portablePublishDir, FileExistsPolicy.Overwrite);
+
             var doc = new XmlDocument();
             doc.Load(Solution.Octo.Path);
             var selectSingleNode = doc.SelectSingleNode("Project/PropertyGroup/RuntimeIdentifiers");
