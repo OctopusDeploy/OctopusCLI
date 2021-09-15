@@ -60,7 +60,7 @@ namespace Octopus.Cli.Commands.Releases
             options.Add<string>("releaseNoteFile=|releaseNotesFile=", "[Optional] Path to a file that contains Release Notes for the new release. Supports Markdown files.", ReadReleaseNotesFromFile);
             options.Add<bool>("ignoreExisting", "[Optional, Flag] Don't create this release if there is already one with the same version number.", v => IgnoreIfAlreadyExists = true);
             options.Add<bool>("ignoreChannelRules", "[Optional, Flag] Create the release ignoring any version rules specified by the channel.", v => IgnoreChannelRules = true);
-            options.Add<string>("packagePrerelease=", "[Optional] Pre-release for latest version of all packages to use for this release.", v => VersionPreReleaseTag = v);
+            options.Add<string>("packagePrerelease=", "[Optional] Pre-release for latest version of all packages to use for this release. This argument supports regex patterns.", v => VersionPreReleaseTag = v);
             options.Add<bool>("whatIf", "[Optional, Flag] Perform a dry run but don't actually create/deploy release.", v => WhatIf = true);
 
             options = Options.For("Deployment");
