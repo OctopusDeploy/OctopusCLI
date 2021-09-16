@@ -135,16 +135,15 @@ class Build : NukeBuild
                 .SetOutput(OctoPublishDirectory / "netfx")
                 .SetVersion(OctoVersionInfo.FullSemVer));
 
+            //used for docker containers
             var portablePublishDir = OctoPublishDirectory / "portable";
             DotNetPublish(_ => _
                 .SetProject(Solution.Octo)
-                .SetFramework("netcoreapp2.0") /* For compatibility until we gently phase it out. We encourage upgrading to self-contained executable. */
+                .SetFramework("net5.0")
                 .SetConfiguration(Configuration)
                 .SetOutput(portablePublishDir)
                 .SetVersion(OctoVersionInfo.FullSemVer));
-
             SignBinaries(portablePublishDir);
-
             CopyFileToDirectory(AssetDirectory / "octo", portablePublishDir, FileExistsPolicy.Overwrite);
             CopyFileToDirectory(AssetDirectory / "octo.cmd", portablePublishDir, FileExistsPolicy.Overwrite);
 
@@ -159,7 +158,7 @@ class Build : NukeBuild
                 DotNetPublish(_ => _
                     .SetProject(Solution.Octo)
                     .SetConfiguration(Configuration)
-                    .SetFramework("netcoreapp3.1")
+                    .SetFramework("net5.0")
                     .SetRuntime(rid)
                     .EnableSelfContained()
                     .EnablePublishSingleFile()
