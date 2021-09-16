@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks Condition="!$([MSBuild]::IsOSUnixLike())">net452;netstandard2.0</TargetFrameworks>
-    <TargetFramework Condition="$([MSBuild]::IsOSUnixLike())">netstandard2.0</TargetFramework>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSUnixLike())">netstandard2.0</TargetFrameworks>
     <Authors>Octopus Deploy</Authors>
     <Copyright>Octopus Deploy Pty Ltd</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
