@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
@@ -143,21 +142,9 @@ namespace Octopus.Cli.Commands.Deployment
             await Repository.Environments.FindByNamesOrIdsOrFail(DeployToEnvironmentNamesOrIds).ConfigureAwait(false);
 
             // Make sure the machines are valid
-            await GetSpecificMachines();
+            await GetSpecificMachines().ConfigureAwait(false);
 
-            await base.ValidateParameters();
-        }
-
-        DateTimeOffset ParseDateTimeOffset(string v)
-        {
-            try
-            {
-                return DateTimeOffset.Parse(v, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal);
-            }
-            catch (FormatException fex)
-            {
-                throw new CommandException($"Could not convert '{v}' to a DateTimeOffset: {fex.Message}");
-            }
+            await base.ValidateParameters().ConfigureAwait(false);
         }
 
         async Task<IReadOnlyList<DeploymentResource>> DeployTenantedRelease(ProjectResource project, ReleaseResource release)
@@ -181,7 +168,9 @@ namespace Octopus.Cli.Commands.Deployment
                         .First(t => t.Id == tenant.Id)
                         .PromoteTo
                         .First(tt => tt.Name.Equals(environment.Name, StringComparison.OrdinalIgnoreCase));
+
                 promotionTargets.Add(promotion);
+
                 return CreateDeploymentTask(project,
                     release,
                     promotion,
@@ -294,11 +283,17 @@ namespace Octopus.Cli.Commands.Deployment
             var specificMachineIds = await GetSpecificMachines().ConfigureAwait(false);
             var excludedMachineIds = await GetExcludedMachines().ConfigureAwait(false);
 
-            var createTasks = promotingEnvironments.Select(promotion => CreateDeploymentTask(project,
-                release,
-                promotion.Promotion,
-                specificMachineIds,
-                excludedMachineIds));
+            var createTasks = promotingEnvironments.Select(promotion =>
+            {
+                promotionTargets.Add(promotion.Promotion);
+
+                return CreateDeploymentTask(project,
+                    release,
+                    promotion.Promotion,
+                    specificMachineIds,
+                    excludedMachineIds);
+            });
+
             return await Task.WhenAll(createTasks).ConfigureAwait(false);
         }
 
@@ -333,7 +328,7 @@ namespace Octopus.Cli.Commands.Deployment
             {
                 if (Tenants.Any())
                 {
-                    var tenantsByNameOrId = await Repository.Tenants.FindByNamesOrIdsOrFail(Tenants);
+                    var tenantsByNameOrId = await Repository.Tenants.FindByNamesOrIdsOrFail(Tenants).ConfigureAwait(false);
                     deployableTenants.AddRange(tenantsByNameOrId);
 
                     var unDeployableTenants =
@@ -446,7 +441,6 @@ namespace Octopus.Cli.Commands.Deployment
                     commandOutputProvider.Warning("Warning: there are no applicable machines roles used by step {Step:l}", previewStep.ActionName);
             }
 
-            promotionTargets.Add(promotionTarget);
             var deployment = await Repository.Deployments.Create(new DeploymentResource
                 {
                     TenantId = tenant?.Id,
