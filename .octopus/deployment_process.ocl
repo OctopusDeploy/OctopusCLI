@@ -345,7 +345,7 @@ step "Publish Homebrew" {
             Octopus.Action.Template.Id = "ActionTemplates-882"
             Octopus.Action.Template.Version = "18"
             PackageToUpload = "{\"PackageId\":\"OctopusTools.Zips\",\"FeedId\":\"Octopus Server (built-in)\"}"
-            PubHomebrew-Email = "support@octopusdeploy.com"
+            PubHomebrew-Email = "support@octopus.com"
             PubHomebrew-FileName = "octopuscli.rb"
             PubHomebrew-PersonalAccessToken = "#{HomeBrewKey}"
             PubHomebrew-RepoName = "homebrew-taps"
