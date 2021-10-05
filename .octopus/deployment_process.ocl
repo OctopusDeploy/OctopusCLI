@@ -8,7 +8,6 @@ step "Upload OctopusTools to S3 public with hashes" {
             PackageToUpload = "{\"PackageId\":\"OctopusTools.Zips\",\"FeedId\":\"Octopus Server (built-in)\"}"
             S3BucketPath = "#{AwsBucket}/octopus-tools/#{Octopus.Action.Package[PackageToUpload].PackageVersion}/"
         }
-
         worker_pool = "Hosted Windows 2019"
 
         packages "PackageToUpload" {
@@ -20,7 +19,6 @@ step "Upload OctopusTools to S3 public with hashes" {
                 PackageParameterName = "PackageToUpload"
                 SelectionMode = "deferred"
             }
-
         }
     }
 }
@@ -44,7 +42,6 @@ step "Push Octopus.Cli to feedz.io" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
-
         worker_pool = "Hosted Windows 2019"
 
         packages "NuGet.CommandLine" {
@@ -54,7 +51,6 @@ step "Push Octopus.Cli to feedz.io" {
             properties = {
                 Extract = "True"
             }
-
         }
 
         packages "Octopus.Cli" {
@@ -64,7 +60,6 @@ step "Push Octopus.Cli to feedz.io" {
             properties = {
                 Extract = "False"
             }
-
         }
     }
 }
@@ -88,7 +83,6 @@ step "Push Octopus.Cli to NuGet Gallery" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
-
         worker_pool = "Hosted Windows 2019"
 
         packages "NuGet.CommandLine" {
@@ -98,7 +92,6 @@ step "Push Octopus.Cli to NuGet Gallery" {
             properties = {
                 Extract = "True"
             }
-
         }
 
         packages "Octopus.Cli" {
@@ -108,7 +101,6 @@ step "Push Octopus.Cli to NuGet Gallery" {
             properties = {
                 Extract = "False"
             }
-
         }
     }
 }
@@ -132,7 +124,6 @@ step "Push Octopus.DotNet.Cli to feedz.io" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
-
         worker_pool = "Hosted Windows 2019"
 
         packages "NuGet.CommandLine" {
@@ -142,7 +133,6 @@ step "Push Octopus.DotNet.Cli to feedz.io" {
             properties = {
                 Extract = "True"
             }
-
         }
 
         packages "Octopus.DotNet.Cli" {
@@ -152,7 +142,6 @@ step "Push Octopus.DotNet.Cli to feedz.io" {
             properties = {
                 Extract = "False"
             }
-
         }
     }
 }
@@ -176,7 +165,6 @@ step "Push Octopus.DotNet.Cli to NuGet Gallery" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
-
         worker_pool = "Hosted Windows 2019"
 
         packages "NuGet.CommandLine" {
@@ -186,7 +174,6 @@ step "Push Octopus.DotNet.Cli to NuGet Gallery" {
             properties = {
                 Extract = "True"
             }
-
         }
 
         packages "Octopus.DotNet.Cli" {
@@ -196,7 +183,6 @@ step "Push Octopus.DotNet.Cli to NuGet Gallery" {
             properties = {
                 Extract = "False"
             }
-
         }
     }
 }
@@ -220,7 +206,6 @@ step "Push OctopusTools to feedz.io" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
-
         worker_pool = "Hosted Windows 2019"
 
         packages "NuGet.CommandLine" {
@@ -230,7 +215,6 @@ step "Push OctopusTools to feedz.io" {
             properties = {
                 Extract = "True"
             }
-
         }
 
         packages "OctopusTools" {
@@ -240,7 +224,6 @@ step "Push OctopusTools to feedz.io" {
             properties = {
                 Extract = "False"
             }
-
         }
     }
 }
@@ -276,7 +259,6 @@ step "Push OctopusTools to NuGet Gallery" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
-
         worker_pool = "Hosted Windows 2019"
 
         packages "NuGet.CommandLine" {
@@ -286,7 +268,6 @@ step "Push OctopusTools to NuGet Gallery" {
             properties = {
                 Extract = "True"
             }
-
         }
 
         packages "OctopusTools" {
@@ -296,7 +277,6 @@ step "Push OctopusTools to NuGet Gallery" {
             properties = {
                 Extract = "False"
             }
-
         }
     }
 }
@@ -332,7 +312,6 @@ step "Push OctopusTools to Chocolatey" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
-
         worker_pool = "Hosted Windows 2019"
 
         packages "OctopusTools" {
@@ -342,7 +321,6 @@ step "Push OctopusTools to Chocolatey" {
             properties = {
                 Extract = "False"
             }
-
         }
 
         packages "NuGet.CommandLine" {
@@ -352,7 +330,6 @@ step "Push OctopusTools to Chocolatey" {
             properties = {
                 Extract = "True"
             }
-
         }
     }
 }
@@ -368,13 +345,12 @@ step "Publish Homebrew" {
             Octopus.Action.Template.Id = "ActionTemplates-882"
             Octopus.Action.Template.Version = "18"
             PackageToUpload = "{\"PackageId\":\"OctopusTools.Zips\",\"FeedId\":\"Octopus Server (built-in)\"}"
-            PubHomebrew-Email = "support@octopus.com"
+            PubHomebrew-Email = "support@octopusdeploy.com"
             PubHomebrew-FileName = "octopuscli.rb"
             PubHomebrew-PersonalAccessToken = "#{HomeBrewKey}"
             PubHomebrew-RepoName = "homebrew-taps"
             PubHomebrew-Username = "OctoBob"
         }
-
         worker_pool = "Hosted Windows 2019"
 
         packages "PackageToUpload" {
@@ -386,7 +362,6 @@ step "Publish Homebrew" {
                 PackageParameterName = "PackageToUpload"
                 SelectionMode = "deferred"
             }
-
         }
     }
 }
@@ -414,7 +389,6 @@ step "Publish to APT repo" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "Bash"
         }
-
         worker_pool = "Hosted Ubuntu"
 
         packages "OctopusTools.Packages.linux-x64" {
@@ -425,7 +399,6 @@ step "Publish to APT repo" {
                 Extract = "True"
                 SelectionMode = "immediate"
             }
-
         }
     }
 }
@@ -453,7 +426,6 @@ step "Publish to RPM repo" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "Bash"
         }
-
         worker_pool = "Hosted Ubuntu"
 
         packages "OctopusTools.Packages.linux-x64" {
@@ -464,7 +436,6 @@ step "Publish to RPM repo" {
                 Extract = "True"
                 SelectionMode = "immediate"
             }
-
         }
     }
 }
@@ -485,7 +456,6 @@ step "Move Docker Images To Prod" {
             Octopus.Action.Template.Id = "ActionTemplates-883"
             Octopus.Action.Template.Version = "2"
         }
-
         worker_pool = "Hosted Ubuntu"
     }
 }
@@ -588,7 +558,6 @@ step "Upload OctopusTools Manifest to S3" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
-
         worker_pool = "Hosted Ubuntu"
 
         container {
@@ -603,7 +572,6 @@ step "Upload OctopusTools Manifest to S3" {
             properties = {
                 Extract = "True"
             }
-
         }
     }
 }
@@ -664,7 +632,6 @@ step "Create release in Octofront" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
-
         worker_pool = "Hosted Windows 2019"
 
         packages "OctopusTools" {
@@ -674,7 +641,6 @@ step "Create release in Octofront" {
             properties = {
                 Extract = "True"
             }
-
         }
     }
 }
@@ -690,7 +656,6 @@ step "Invalidate CloudFront Cache" {
             Octopus.Action.Template.Id = "ActionTemplates-962"
             Octopus.Action.Template.Version = "1"
         }
-
         worker_pool = "Hosted Windows 2019"
     }
 }
@@ -707,7 +672,6 @@ step "Invalidate CloudFlare cache of the OctopusTools Manifest" {
             Octopus.Action.Template.Id = "ActionTemplates-963"
             Octopus.Action.Template.Version = "6"
         }
-
         worker_pool = "Hosted Windows 2019"
     }
 }
