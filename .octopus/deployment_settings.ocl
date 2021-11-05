@@ -1,13 +1,5 @@
-default_guided_failure_mode = "On"
-release_notes_template = "#{OctopusReleaseNotesTemplate}"
-
 connectivity_policy {
 }
 
 versioning_strategy {
-
-    donor_package {
-        step = "Push OctopusTools to NuGet Gallery"
-        package = "OctopusTools"
-    }
 }
