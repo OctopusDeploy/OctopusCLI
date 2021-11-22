@@ -203,11 +203,7 @@ namespace Octopus.Cli.Commands.Releases
 
         async Task<ChannelResource> GetMatchingChannel(string channelNameOrId)
         {
-            if (!project.IsVersionControlled)
-                return await Repository.Channels.FindByNameOrIdOrFail(project, channelNameOrId)
-                    .ConfigureAwait(false);
-
-            return await Repository.FindGitRefChannelByNameOrIdOrFail(project, channelNameOrId, GitCommit ?? GitReference)
+            return await Repository.Channels.FindByNameOrIdOrFail(project, channelNameOrId)
                 .ConfigureAwait(false);
         }
 
