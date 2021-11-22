@@ -4,7 +4,7 @@ connectivity_policy {
 versioning_strategy {
 
     donor_package {
-        package = "NuGet.CommandLine"
-        step = "Push Octopus.Cli to feedz.io"
+        package = "PackageToUpload"
+        step = "Upload OctopusTools to S3 public with hashes"
     }
 }
