@@ -44,21 +44,23 @@ step "Push Octopus.Cli to feedz.io" {
         }
         worker_pool = "Hosted Windows 2019"
 
-        packages "NuGet.CommandLine" {
-            acquisition_location = "Server"
-            feed = "NuGet"
-            package_id = "NuGet.CommandLine"
-            properties = {
-                Extract = "True"
-            }
-        }
-
         packages "Octopus.Cli" {
             acquisition_location = "Server"
             feed = "Octopus Server (built-in)"
             package_id = "Octopus.Cli"
             properties = {
                 Extract = "False"
+            }
+        }
+
+        packages "NuGet.CommandLine" {
+            acquisition_location = "Server"
+            feed = "NuGet"
+            package_id = "NuGet.CommandLine"
+            properties = {
+                Extract = "True"
+                Purpose = ""
+                SelectionMode = "immediate"
             }
         }
     }
