@@ -2,4 +2,9 @@ connectivity_policy {
 }
 
 versioning_strategy {
+
+    donor_package {
+        package = "NuGet.CommandLine"
+        step = "Push Octopus.Cli to feedz.io"
+    }
 }
