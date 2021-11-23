@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
-using Octopus.Client;
 using Octopus.Client.Exceptions;
 using Octopus.Client.Extensibility;
 using Octopus.Client.Model;
