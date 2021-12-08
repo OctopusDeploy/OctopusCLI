@@ -1,4 +1,4 @@
-step "Upload OctopusTools to S3 public with hashesxxxx" {
+step "Upload OctopusTools to S3 public with hashes" {
 
     action {
         properties = {
@@ -546,11 +546,6 @@ step "Upload OctopusTools Manifest to S3" {
             Octopus.Action.Script.Syntax = "PowerShell"
         }
         worker_pool = "Hosted Ubuntu"
-
-        container {
-            feed = "docker.packages.octopushq.com"
-            image = "octopusdeploy/tool-containers/tool-aws-cli"
-        }
 
         packages "OctopusTools.Zips" {
             acquisition_location = "Server"
