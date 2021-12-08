@@ -1,4 +1,4 @@
-step "Upload OctopusTools to S3 public with hashes" {
+step "Upload OctopusTools to S3 public with hashesxxxx" {
 
     action {
         properties = {
