@@ -27,8 +27,8 @@ namespace Octopus.Cli.Util
         {
             TResource resourceById;
             if (!Regex.IsMatch(nameOrId,
-                $@"^{Regex.Escape(resourceTypeIdPrefix)}-\d+$",
-                RegexOptions.Compiled | RegexOptions.IgnoreCase))
+                    $@"^{Regex.Escape(resourceTypeIdPrefix)}-\d+$",
+                    RegexOptions.Compiled | RegexOptions.IgnoreCase))
                 resourceById = null;
             else
                 try
