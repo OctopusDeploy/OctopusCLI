@@ -7,8 +7,6 @@ using Autofac;
 using Octopus.Cli.Commands.Deployment;
 using Octopus.Cli.Commands.Releases;
 using Octopus.Cli.Diagnostics;
-using Octopus.Cli.Exporters;
-using Octopus.Cli.Importers;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
@@ -90,11 +88,6 @@ namespace Octopus.Cli
                 .WithParameter("applicationVersion", typeof(CliProgram).GetInformationalVersion())
                 .As<ICommandOutputProvider>()
                 .SingleInstance();
-
-            builder.RegisterAssemblyTypes(thisAssembly).As<IExporter>().AsSelf();
-            builder.RegisterAssemblyTypes(thisAssembly).As<IImporter>().AsSelf();
-            builder.RegisterType<ExporterLocator>().As<IExporterLocator>();
-            builder.RegisterType<ImporterLocator>().As<IImporterLocator>();
 
             builder.RegisterType<ReleasePlanBuilder>().As<IReleasePlanBuilder>().SingleInstance();
             builder.RegisterType<PackageVersionResolver>().As<IPackageVersionResolver>().SingleInstance();
