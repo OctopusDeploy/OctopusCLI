@@ -11,7 +11,7 @@ namespace Octopus.Cli.Commands
     {
         public override Task Execute(string[] commandLineArgs)
         {
-            throw new Exception($"The {AssemblyExtensions.GetExecutableName()} import/export commands have been deprecated. See https://g.octopushq.com/DataMigration for alternative options.");
+            throw new CommandException($"The {AssemblyExtensions.GetExecutableName()} import/export commands have been deprecated. See https://g.octopushq.com/DataMigration for alternative options.");
         }
 
         public ExportCommand(ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
