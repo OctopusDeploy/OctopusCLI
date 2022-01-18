@@ -104,7 +104,7 @@ class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            Logger.Info("Building OctopusCLI v{0}", OctoVersionInfo.FullSemVer);
+            Serilog.Log.Information("Building OctopusCLI v{0}", OctoVersionInfo.FullSemVer);
 
             DotNetBuild(_ => _
                 .SetProjectFile(Solution)
@@ -323,7 +323,7 @@ class Build : NukeBuild
                 .EnableRm());
 
             if (stdOut.FirstOrDefault().Text == OctoVersionInfo.FullSemVer)
-                Logger.Info($"Image successfully created - running 'docker run {tag} version --rm' returned '{string.Join('\n', stdOut.Select(x => x.Text))}'");
+                Serilog.Log.Information($"Image successfully created - running 'docker run {tag} version --rm' returned '{string.Join('\n', stdOut.Select(x => x.Text))}'");
             else
                 throw new Exception($"Built image did not return expected version {OctoVersionInfo.FullSemVer} - it returned {stdOut}");
 
@@ -407,7 +407,7 @@ class Build : NukeBuild
 
     void SignBinaries(string path)
     {
-        Logger.Info($"Signing binaries in {path}");
+        Serilog.Log.Information($"Signing binaries in {path}");
 
         var files = Directory.EnumerateFiles(path, "Octopus.*.dll", SearchOption.AllDirectories).ToList();
         files.AddRange(Directory.EnumerateFiles(path, "octo.dll", SearchOption.AllDirectories));
@@ -446,12 +446,12 @@ class Build : NukeBuild
 
         if (lastException != null)
             throw lastException;
-        Logger.Info($"Finished signing {distinctFiles.Count()} files.");
+        Serilog.Log.Information($"Finished signing {distinctFiles.Count()} files.");
     }
 
     void SignWithAzureSignTool(IEnumerable<string> files, string timestampUrl)
     {
-        Logger.Info("Signing files using azuresigntool and the production code signing certificate.");
+        Serilog.Log.Information("Signing files using azuresigntool and the production code signing certificate.");
 
         var arguments = "sign " +
             $"--azure-key-vault-url \"{AzureKeyVaultUrl}\" " +
@@ -472,7 +472,7 @@ class Build : NukeBuild
 
     void SignWithSignTool(IEnumerable<string> files, string url)
     {
-        Logger.Info("Signing files using signtool.");
+        Serilog.Log.Information("Signing files using signtool.");
         SignToolTasks.SignToolLogger = LogStdErrAsWarning;
 
         SignToolTasks.SignTool(_ => _
@@ -489,15 +489,15 @@ class Build : NukeBuild
     static void LogStdErrAsWarning(OutputType type, string message)
     {
         if (type == OutputType.Err)
-            Logger.Warn(message);
+            Serilog.Log.Warning(message);
         else
-            Logger.Normal(message);
+            Serilog.Log.Debug(message);
     }
 
     void TarGzip(string path, string outputFile, bool insertCapitalizedOctoWrapper = false, bool insertCapitalizedDotNetWrapper = false)
     {
         var outFile = $"{outputFile}.tar.gz";
-        Logger.Info("Creating TGZ file {0} from {1}", outFile, path);
+        Serilog.Log.Information("Creating TGZ file {0} from {1}", outFile, path);
         using (var tarMemStream = new MemoryStream())
         {
             using (var tar = WriterFactory.Open(tarMemStream, ArchiveType.Tar, new TarWriterOptions(CompressionType.None, true)))
@@ -521,7 +521,7 @@ class Build : NukeBuild
             }
         }
 
-        Logger.Info("Successfully created TGZ file: {0}", outFile);
+        Serilog.Log.Information("Successfully created TGZ file: {0}", outFile);
     }
 
     void UnTarGZip(string path, string destination)
