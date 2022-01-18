@@ -1,61 +1,24 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
-using Octopus.Cli.Importers;
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.CommandLine;
 using Octopus.CommandLine.Commands;
-using Serilog;
 
 namespace Octopus.Cli.Commands
 {
     [Command("import", Description = "Imports an Octopus object from an export file. Deprecated. Please see https://g.octopushq.com/DataMigration for alternative options.")]
-    public class ImportCommand : ApiCommand
+    public class ImportCommand : CommandBase
     {
-        readonly IImporterLocator importerLocator;
-
-        public ImportCommand(IImporterLocator importerLocator,
-            IOctopusFileSystem fileSystem,
-            IOctopusAsyncRepositoryFactory repositoryFactory,
-            ILogger log,
-            IOctopusClientFactory clientFactory,
-            ICommandOutputProvider commandOutputProvider)
-            : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
+        public override Task Execute(string[] commandLineArgs)
         {
-            this.importerLocator = importerLocator;
-
-            var options = Options.For("Import");
-            options.Add<string>("type=", "The Octopus object type to import.", v => Type = v);
-            options.Add<string>("filePath=", "The full path and name of the exported file.", v => FilePath = v);
-            options.Add<string>("project=", "[Optional] The name of the project.", v => Project = v);
-            options.Add<bool>("dryRun", "[Optional] Perform a dry run of the import.", v => DryRun = true);
+            throw new CommandException($"The {AssemblyExtensions.GetExecutableName()} import/export commands have been deprecated. See https://g.octopushq.com/DataMigration for alternative options.");
         }
 
-        public bool DryRun { get; set; }
-        public string Type { get; set; }
-        public string FilePath { get; set; }
-        public string Project { get; set; }
-
-        protected override async Task Execute()
+        public ImportCommand(ICommandOutputProvider commandOutputProvider) : base(commandOutputProvider)
         {
-            commandOutputProvider.Warning($"The {AssemblyExtensions.GetExecutableName()} import/export commands have been deprecated. See https://g.octopushq.com/DataMigration for alternative options.");
-
-            if (string.IsNullOrWhiteSpace(Type)) throw new CommandException("Please specify the type of object to import using the parameter: --type=XYZ");
-            if (string.IsNullOrWhiteSpace(FilePath)) throw new CommandException("Please specify the full path and name of the export file to import using the parameter: --filePath=XYZ");
-
-            commandOutputProvider.Debug("Finding importer '{Type:l}'", Type);
-            var importer = importerLocator.Find(Type, Repository, FileSystem, commandOutputProvider);
-            if (importer == null)
-                throw new CommandException("Error: Unrecognized importer '" + Type + "'");
-
-            commandOutputProvider.Debug("Validating the import");
-            var validationResult = await importer.Validate(string.Format("FilePath={0}", FilePath), string.Format("Project={0}", Project)).ConfigureAwait(false);
-            if (validationResult && !DryRun)
-            {
-                commandOutputProvider.Debug("Beginning the import");
-                await importer.Import(string.Format("FilePath={0}", FilePath), string.Format("Project={0}", Project)).ConfigureAwait(false);
-            }
         }
     }
 }
