@@ -12,16 +12,15 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tools.Docker;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Utilities.Collections;
-using OctoVersion.Core;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
-using Nuke.OctoVersion;
 using ILRepacking;
 using JetBrains.Annotations;
 using Nuke.Common.CI;
 using Nuke.Common.CI.TeamCity;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.NuGet;
+using Nuke.Common.Tools.OctoVersion;
 using Nuke.Common.Tools.SignTool;
 using SharpCompress.Common;
 using SharpCompress.Readers;
@@ -34,14 +33,19 @@ using SharpCompress.Writers.Tar;
 [UnsetVisualStudioEnvironmentVariables]
 class Build : NukeBuild
 {
+    const string CiBranchNameEnvVariable = "OCTOVERSION_CurrentBranch";
+    
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")] readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
     [Parameter("Pfx certificate to use for signing the files")] readonly AbsolutePath SigningCertificatePath = RootDirectory / "certificates" / "OctopusDevelopment.pfx";
     [Parameter("Password for the signing certificate")] readonly string SigningCertificatePassword = "Password01!";
-
+    [Parameter("Whether to auto-detect the branch name - this is okay for a local build, but should not be used under CI.")] readonly bool AutoDetectBranch = IsLocalBuild;
+    [Parameter("Branch name for OctoVersion to use to calculate the version number. Can be set via the environment variable " + CiBranchNameEnvVariable + ".", Name = CiBranchNameEnvVariable)]
+    string BranchName { get; set; }
+    
     [Solution(GenerateProjects = true)] readonly Solution Solution;
 
-    [NukeOctoVersion] readonly OctoVersionInfo OctoVersionInfo;
-
+    [OctoVersion(BranchParameter = nameof(BranchName), AutoDetectBranchParameter = nameof(AutoDetectBranch))] readonly OctoVersionInfo OctoVersionInfo;
+    
     [PackageExecutable(
         packageId: "azuresigntool",
         packageExecutable: "azuresigntool.dll")]
@@ -88,7 +92,7 @@ class Build : NukeBuild
     Target CalculateVersion => _ => _
         .Executes(() =>
         {
-            //all the magic happens inside `[NukeOctoVersion]` above. we just need a target for TeamCity to call
+            //all the magic happens inside `[OctoVersion]` above. we just need a target for TeamCity to call
         });
 
     Target Restore => _ => _
