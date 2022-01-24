@@ -279,13 +279,13 @@ class Build : NukeBuild
             if (EnvironmentInfo.IsWin)
             {
                 var file = ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.portable.zip";
-                if (!FileExists(file))
+                if (!file.FileExists())
                     throw new Exception($"This build requires the portable zip at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
             }
             else
             {
                 var file = ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.portable.tar.gz";
-                if (!FileExists(file))
+                if (!file.FileExists())
                     throw new Exception($"This build requires the portable tar.gz file at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
             }
         });
@@ -294,7 +294,7 @@ class Build : NukeBuild
         .Executes(() =>
         {
             var file = ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.linux-x64.tar.gz";
-            if (!FileExists(file))
+            if (!file.FileExists())
                 throw new Exception($"This build requires the linux self-contained tar.gz file at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
         });
 
@@ -340,7 +340,7 @@ class Build : NukeBuild
                 throw new Exception("This build requires environment variables `SIGN_PRIVATE_KEY` (in a format gpg1 can import)"
                     + " and `SIGN_PASSPHRASE`, which are used to sign the .rpm.");
 
-            if (!DirectoryExists(LinuxPackageFeedsDir))
+            if (!LinuxPackageFeedsDir.DirectoryExists())
                 throw new Exception($"This build requires `{LinuxPackageFeedsDir}` to contain scripts from https://github.com/OctopusDeploy/linux-package-feeds.\n"
                     + "They are usually added as an Artifact Dependency in TeamCity from 'Infrastructure / Linux Package Feeds' with the rule:\n"
                     + "  LinuxPackageFeedsTools.*.zip!*=>linux-package-feeds\n"
