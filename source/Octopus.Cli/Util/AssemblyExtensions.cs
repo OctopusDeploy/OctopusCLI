@@ -8,11 +8,19 @@ namespace Octopus.Cli.Util
     {
         public static string FullLocalPath(this Assembly assembly)
         {
+#if NETFRAMEWORK
+            //SYSLIB0012: 'Assembly.CodeBase' is obsolete: 'Assembly.CodeBase and Assembly.EscapedCodeBase are
+            ////only included for .NET Framework compatibility. Use Assembly.Location instead.'
+            
             var codeBase = assembly.CodeBase;
             var uri = new UriBuilder(codeBase);
             var root = Uri.UnescapeDataString(uri.Path);
             root = root.Replace('/', Path.DirectorySeparatorChar);
             return root;
+#else
+            return assembly.Location;
+#endif
+            
         }
 
         public static string GetInformationalVersion(this Type type)

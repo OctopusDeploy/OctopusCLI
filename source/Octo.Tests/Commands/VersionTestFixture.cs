@@ -46,11 +46,18 @@ namespace Octo.Tests.Commands
 
         static string AssemblyPath()
         {
+#if NETFRAMEWORK
+            //SYSLIB0012: 'Assembly.CodeBase' is obsolete: 'Assembly.CodeBase and Assembly.EscapedCodeBase are
+            ////only included for .NET Framework compatibility. Use Assembly.Location instead.'
+
             var codeBase = Assembly.GetExecutingAssembly().CodeBase;
             var uri = new UriBuilder(codeBase);
             var root = Uri.UnescapeDataString(uri.Path);
             root = root.Replace('/', Path.DirectorySeparatorChar);
             return root;
+#else
+            return Assembly.GetExecutingAssembly().Location;
+#endif
         }
 
         string GetVersionFromFile(string versionFilePath)
