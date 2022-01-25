@@ -16,7 +16,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' != 'net452' ">
-    <DefineConstants>$(DefineConstants);HTTP_CLIENT_SUPPORTS_SSL_OPTIONS</DefineConstants>
+    <DefineConstants>$(DefineConstants);HTTP_CLIENT_SUPPORTS_SSL_OPTIONS;HAS_APP_CONTEXT</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup>
