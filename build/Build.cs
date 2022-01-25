@@ -44,7 +44,7 @@ class Build : NukeBuild
     
     [Solution(GenerateProjects = true)] readonly Solution Solution;
 
-    [OctoVersion(BranchParameter = nameof(BranchName), AutoDetectBranchParameter = nameof(AutoDetectBranch))] readonly OctoVersionInfo OctoVersionInfo;
+    [OctoVersion(BranchParameter = nameof(BranchName), AutoDetectBranchParameter = nameof(AutoDetectBranch), Framework = "net6.0")] readonly OctoVersionInfo OctoVersionInfo;
     
     [PackageExecutable(
         packageId: "azuresigntool",
