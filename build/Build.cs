@@ -35,6 +35,9 @@ class Build : NukeBuild
 {
     const string CiBranchNameEnvVariable = "OCTOVERSION_CurrentBranch";
     
+    [Parameter(Name="DOCKER_REGISTRY_HOSTNAME")]string DockerHost;
+    [Parameter(Name="DOCKER_REGISTRY_USER")]string DockerUser;
+    [Parameter(Name="DOCKER_REGISTRY_PASSWORD")]string DockerPassword;
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")] readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
     [Parameter("Pfx certificate to use for signing the files")] readonly AbsolutePath SigningCertificatePath = RootDirectory / "certificates" / "OctopusDevelopment.pfx";
     [Parameter("Password for the signing certificate")] readonly string SigningCertificatePassword = "Password01!";
@@ -302,7 +305,15 @@ class Build : NukeBuild
                 throw new Exception($"This build requires the linux self-contained tar.gz file at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
         });
 
+    Target MuteLoudDockerCli => _ => _
+        .Executes(() =>
+        {
+            //docker sends lots to stderr
+            DockerTasks.DockerLogger = (_, s) => Serilog.Log.Information(s);
+        });
+    
     Target BuildDockerImage => _ => _
+        .DependsOn(MuteLoudDockerCli)
         .DependsOn(AssertPortableArtifactsExists)
         .Executes(() =>
         {
@@ -331,11 +342,16 @@ class Build : NukeBuild
             else
                 throw new Exception($"Built image did not return expected version {OctoVersionInfo.FullSemVer} - it returned {stdOut}");
 
+            DockerTasks.DockerLogin(_ =>
+                _.SetServer(DockerHost)
+                    .SetUsername(DockerUser)
+                    .SetPassword(DockerPassword));
             DockerTasks.DockerPush(_ => _.SetName(tag));
             DockerTasks.DockerPush(_ => _.SetName(latest));
         });
 
     Target CreateLinuxPackages => _ => _
+        .DependsOn(MuteLoudDockerCli)
         .DependsOn(AssertLinuxSelfContainedArtifactsExists)
         .Executes(() =>
         {
