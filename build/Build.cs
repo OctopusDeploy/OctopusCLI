@@ -35,7 +35,6 @@ class Build : NukeBuild
 {
     const string CiBranchNameEnvVariable = "OCTOVERSION_CurrentBranch";
     
-    [Parameter(Name="DOCKER_REGISTRY_HOSTNAME")]string DockerHost;
     [Parameter(Name="DOCKER_REGISTRY_USER")]string DockerUser;
     [Parameter(Name="DOCKER_REGISTRY_PASSWORD")]string DockerPassword;
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")] readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
@@ -343,8 +342,7 @@ class Build : NukeBuild
                 throw new Exception($"Built image did not return expected version {OctoVersionInfo.FullSemVer} - it returned {stdOut}");
 
             DockerTasks.DockerLogin(_ =>
-                _.SetServer(DockerHost)
-                    .SetUsername(DockerUser)
+                    _.SetUsername(DockerUser)
                     .SetPassword(DockerPassword));
             DockerTasks.DockerPush(_ => _.SetName(tag));
             DockerTasks.DockerPush(_ => _.SetName(latest));
