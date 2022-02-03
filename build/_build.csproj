@@ -3,22 +3,23 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>OctopusCli.Build</RootNamespace>
     <NoWarn>CS0649;CS0169</NoWarn>
     <NukeRootDirectory>..</NukeRootDirectory>
     <NukeScriptDirectory>..</NukeScriptDirectory>
+    <NukeTelemetryVersion>1</NukeTelemetryVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="ILRepack.Lib" Version="2.0.18" />
-    <PackageReference Include="Nuke.Common" Version="5.1.0" />
-    <PackageReference Include="Nuke.OctoVersion" Version="0.2.453" />
+    <PackageReference Include="Nuke.Common" Version="6.0.1" />
     <PackageReference Include="SharpCompress" Version="0.28.0" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageDownload Include="NuGet.CommandLine" Version="[5.8.1]" />
     <PackageDownload Include="AzureSignTool" Version="[2.0.17]" />
+    <PackageDownload Include="OctoVersion.Tool" Version="[0.2.951]" />
   </ItemGroup>
 
   <ItemGroup>

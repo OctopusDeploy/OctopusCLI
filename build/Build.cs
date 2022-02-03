@@ -12,16 +12,15 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tools.Docker;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Utilities.Collections;
-using OctoVersion.Core;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
-using Nuke.OctoVersion;
 using ILRepacking;
 using JetBrains.Annotations;
 using Nuke.Common.CI;
 using Nuke.Common.CI.TeamCity;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.NuGet;
+using Nuke.Common.Tools.OctoVersion;
 using Nuke.Common.Tools.SignTool;
 using SharpCompress.Common;
 using SharpCompress.Readers;
@@ -34,14 +33,21 @@ using SharpCompress.Writers.Tar;
 [UnsetVisualStudioEnvironmentVariables]
 class Build : NukeBuild
 {
+    const string CiBranchNameEnvVariable = "OCTOVERSION_CurrentBranch";
+    
+    [Parameter(Name="DOCKER_REGISTRY_USER")]string DockerUser;
+    [Parameter(Name="DOCKER_REGISTRY_PASSWORD")]string DockerPassword;
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")] readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
     [Parameter("Pfx certificate to use for signing the files")] readonly AbsolutePath SigningCertificatePath = RootDirectory / "certificates" / "OctopusDevelopment.pfx";
     [Parameter("Password for the signing certificate")] readonly string SigningCertificatePassword = "Password01!";
-
+    [Parameter("Whether to auto-detect the branch name - this is okay for a local build, but should not be used under CI.")] readonly bool AutoDetectBranch = IsLocalBuild;
+    [Parameter("Branch name for OctoVersion to use to calculate the version number. Can be set via the environment variable " + CiBranchNameEnvVariable + ".", Name = CiBranchNameEnvVariable)]
+    string BranchName { get; set; }
+    
     [Solution(GenerateProjects = true)] readonly Solution Solution;
 
-    [NukeOctoVersion] readonly OctoVersionInfo OctoVersionInfo;
-
+    [OctoVersion(BranchParameter = nameof(BranchName), AutoDetectBranchParameter = nameof(AutoDetectBranch), Framework = "net6.0")] readonly OctoVersionInfo OctoVersionInfo;
+    
     [PackageExecutable(
         packageId: "azuresigntool",
         packageExecutable: "azuresigntool.dll")]
@@ -88,7 +94,7 @@ class Build : NukeBuild
     Target CalculateVersion => _ => _
         .Executes(() =>
         {
-            //all the magic happens inside `[NukeOctoVersion]` above. we just need a target for TeamCity to call
+            //all the magic happens inside `[OctoVersion]` above. we just need a target for TeamCity to call
         });
 
     Target Restore => _ => _
@@ -104,7 +110,7 @@ class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            Logger.Info("Building OctopusCLI v{0}", OctoVersionInfo.FullSemVer);
+            Serilog.Log.Information("Building OctopusCLI v{0}", OctoVersionInfo.FullSemVer);
 
             DotNetBuild(_ => _
                 .SetProjectFile(Solution)
@@ -279,13 +285,13 @@ class Build : NukeBuild
             if (EnvironmentInfo.IsWin)
             {
                 var file = ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.portable.zip";
-                if (!FileExists(file))
+                if (!file.FileExists())
                     throw new Exception($"This build requires the portable zip at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
             }
             else
             {
                 var file = ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.portable.tar.gz";
-                if (!FileExists(file))
+                if (!file.FileExists())
                     throw new Exception($"This build requires the portable tar.gz file at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
             }
         });
@@ -294,11 +300,19 @@ class Build : NukeBuild
         .Executes(() =>
         {
             var file = ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.linux-x64.tar.gz";
-            if (!FileExists(file))
+            if (!file.FileExists())
                 throw new Exception($"This build requires the linux self-contained tar.gz file at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
         });
 
+    Target MuteLoudDockerCli => _ => _
+        .Executes(() =>
+        {
+            //docker sends lots to stderr
+            DockerTasks.DockerLogger = (_, s) => Serilog.Log.Information(s);
+        });
+    
     Target BuildDockerImage => _ => _
+        .DependsOn(MuteLoudDockerCli)
         .DependsOn(AssertPortableArtifactsExists)
         .Executes(() =>
         {
@@ -323,15 +337,19 @@ class Build : NukeBuild
                 .EnableRm());
 
             if (stdOut.FirstOrDefault().Text == OctoVersionInfo.FullSemVer)
-                Logger.Info($"Image successfully created - running 'docker run {tag} version --rm' returned '{string.Join('\n', stdOut.Select(x => x.Text))}'");
+                Serilog.Log.Information($"Image successfully created - running 'docker run {tag} version --rm' returned '{string.Join('\n', stdOut.Select(x => x.Text))}'");
             else
                 throw new Exception($"Built image did not return expected version {OctoVersionInfo.FullSemVer} - it returned {stdOut}");
 
+            DockerTasks.DockerLogin(_ =>
+                    _.SetUsername(DockerUser)
+                    .SetPassword(DockerPassword));
             DockerTasks.DockerPush(_ => _.SetName(tag));
             DockerTasks.DockerPush(_ => _.SetName(latest));
         });
 
     Target CreateLinuxPackages => _ => _
+        .DependsOn(MuteLoudDockerCli)
         .DependsOn(AssertLinuxSelfContainedArtifactsExists)
         .Executes(() =>
         {
@@ -340,7 +358,7 @@ class Build : NukeBuild
                 throw new Exception("This build requires environment variables `SIGN_PRIVATE_KEY` (in a format gpg1 can import)"
                     + " and `SIGN_PASSPHRASE`, which are used to sign the .rpm.");
 
-            if (!DirectoryExists(LinuxPackageFeedsDir))
+            if (!LinuxPackageFeedsDir.DirectoryExists())
                 throw new Exception($"This build requires `{LinuxPackageFeedsDir}` to contain scripts from https://github.com/OctopusDeploy/linux-package-feeds.\n"
                     + "They are usually added as an Artifact Dependency in TeamCity from 'Infrastructure / Linux Package Feeds' with the rule:\n"
                     + "  LinuxPackageFeedsTools.*.zip!*=>linux-package-feeds\n"
@@ -407,7 +425,7 @@ class Build : NukeBuild
 
     void SignBinaries(string path)
     {
-        Logger.Info($"Signing binaries in {path}");
+        Serilog.Log.Information($"Signing binaries in {path}");
 
         var files = Directory.EnumerateFiles(path, "Octopus.*.dll", SearchOption.AllDirectories).ToList();
         files.AddRange(Directory.EnumerateFiles(path, "octo.dll", SearchOption.AllDirectories));
@@ -446,12 +464,12 @@ class Build : NukeBuild
 
         if (lastException != null)
             throw lastException;
-        Logger.Info($"Finished signing {distinctFiles.Count()} files.");
+        Serilog.Log.Information($"Finished signing {distinctFiles.Count()} files.");
     }
 
     void SignWithAzureSignTool(IEnumerable<string> files, string timestampUrl)
     {
-        Logger.Info("Signing files using azuresigntool and the production code signing certificate.");
+        Serilog.Log.Information("Signing files using azuresigntool and the production code signing certificate.");
 
         var arguments = "sign " +
             $"--azure-key-vault-url \"{AzureKeyVaultUrl}\" " +
@@ -472,7 +490,7 @@ class Build : NukeBuild
 
     void SignWithSignTool(IEnumerable<string> files, string url)
     {
-        Logger.Info("Signing files using signtool.");
+        Serilog.Log.Information("Signing files using signtool.");
         SignToolTasks.SignToolLogger = LogStdErrAsWarning;
 
         SignToolTasks.SignTool(_ => _
@@ -489,15 +507,15 @@ class Build : NukeBuild
     static void LogStdErrAsWarning(OutputType type, string message)
     {
         if (type == OutputType.Err)
-            Logger.Warn(message);
+            Serilog.Log.Warning(message);
         else
-            Logger.Normal(message);
+            Serilog.Log.Debug(message);
     }
 
     void TarGzip(string path, string outputFile, bool insertCapitalizedOctoWrapper = false, bool insertCapitalizedDotNetWrapper = false)
     {
         var outFile = $"{outputFile}.tar.gz";
-        Logger.Info("Creating TGZ file {0} from {1}", outFile, path);
+        Serilog.Log.Information("Creating TGZ file {0} from {1}", outFile, path);
         using (var tarMemStream = new MemoryStream())
         {
             using (var tar = WriterFactory.Open(tarMemStream, ArchiveType.Tar, new TarWriterOptions(CompressionType.None, true)))
@@ -521,7 +539,7 @@ class Build : NukeBuild
             }
         }
 
-        Logger.Info("Successfully created TGZ file: {0}", outFile);
+        Serilog.Log.Information("Successfully created TGZ file: {0}", outFile);
     }
 
     void UnTarGZip(string path, string destination)
