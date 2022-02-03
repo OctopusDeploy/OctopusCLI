@@ -304,7 +304,7 @@ class Build : NukeBuild
         .Executes(() =>
         {
             //docker sends lots to stderr
-            DockerTasks.DockerLogger = (_, s) => Serilog.Log.Information(s);
+            DockerTasks.DockerLogger = (_, s) => Logger.Info(s);
         });
     
     Target BuildDockerImage => _ => _
