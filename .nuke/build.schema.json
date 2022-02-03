@@ -6,6 +6,10 @@
     "build": {
       "type": "object",
       "properties": {
+        "AutoDetectBranch": {
+          "type": "boolean",
+          "description": "Whether to auto-detect the branch name - this is okay for a local build, but should not be used under CI"
+        },
         "AzureKeyVaultAppId": {
           "type": "string"
         },
@@ -31,6 +35,12 @@
           "type": "boolean",
           "description": "Indicates to continue a previously failed build attempt"
         },
+        "DOCKER_REGISTRY_PASSWORD": {
+          "type": "string"
+        },
+        "DOCKER_REGISTRY_USER": {
+          "type": "string"
+        },
         "Help": {
           "type": "boolean",
           "description": "Shows the help text for this build assembly"
@@ -46,15 +56,26 @@
             "GitHubActions",
             "GitLab",
             "Jenkins",
+            "Rider",
             "SpaceAutomation",
             "TeamCity",
             "Terminal",
-            "TravisCI"
+            "TravisCI",
+            "VisualStudio",
+            "VSCode"
           ]
         },
         "NoLogo": {
           "type": "boolean",
           "description": "Disables displaying the NUKE logo"
+        },
+        "OCTOVERSION_CurrentBranch": {
+          "type": "string",
+          "description": "Branch name for OctoVersion to use to calculate the version number. Can be set via the environment variable OCTOVERSION_CurrentBranch"
+        },
+        "Partition": {
+          "type": "string",
+          "description": "Partition to use on CI"
         },
         "Plan": {
           "type": "boolean",
@@ -97,6 +118,7 @@
               "Default",
               "DotnetPublish",
               "MergeOctoExe",
+              "MuteLoudDockerCli",
               "PackDotNetOctoNuget",
               "PackOctopusToolsNuget",
               "Restore",
@@ -127,6 +149,7 @@
               "Default",
               "DotnetPublish",
               "MergeOctoExe",
+              "MuteLoudDockerCli",
               "PackDotNetOctoNuget",
               "PackOctopusToolsNuget",
               "Restore",
