@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-
+    name: Run nuke default task
     runs-on: windows-latest
 
     steps:
@@ -17,5 +17,8 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x
-    - name: Build
+    - name: Run Nuke Build 🏗
+      env:
+        OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
+        OCTOVERSION_Patch: ${{ github.run_number }}
       run: ./build.cmd

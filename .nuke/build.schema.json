@@ -120,7 +120,6 @@
               "MuteLoudDockerCli",
               "PackDotNetOctoNuget",
               "PackOctopusToolsNuget",
-              "Restore",
               "Test",
               "Zip"
             ]
@@ -150,7 +149,6 @@
               "MuteLoudDockerCli",
               "PackDotNetOctoNuget",
               "PackOctopusToolsNuget",
-              "Restore",
               "Test",
               "Zip"
             ]
