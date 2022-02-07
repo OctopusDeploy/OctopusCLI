@@ -1,23 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks Condition="!$([MSBuild]::IsOSUnixLike())">net452;net6.0</TargetFrameworks>
-    <TargetFramework Condition="$([MSBuild]::IsOSUnixLike())">net6.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>Octo.Tests</AssemblyName>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' != 'net452' ">
     <DefineConstants>$(DefineConstants);HAS_APP_CONTEXT</DefineConstants>
   </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net452' ">
-    <RuntimeIdentifier>win7-x86</RuntimeIdentifier> <!-- So that libuv is copied correctly -->
-    <BaseNuGetRuntimeIdentifier>win7-x86</BaseNuGetRuntimeIdentifier> <!-- So that libuv is copied correctly -->
-  </PropertyGroup>
-
 
   <ItemGroup>
     <ProjectReference Include="..\Octo\Octo.csproj" />

@@ -14,7 +14,6 @@ using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
-using ILRepacking;
 using JetBrains.Annotations;
 using Nuke.Common.CI;
 using Nuke.Common.CI.TeamCity;
@@ -134,17 +133,10 @@ class Build : NukeBuild
         .DependsOn(Test)
         .Executes(() =>
         {
-            DotNetPublish(_ => _
-                .SetProject(Solution.Octo)
-                .SetFramework("net452")
-                .SetConfiguration(Configuration)
-                .SetOutput(OctoPublishDirectory / "netfx")
-                .SetVersion(OctoVersionInfo.FullSemVer));
-
             var portablePublishDir = OctoPublishDirectory / "portable";
             DotNetPublish(_ => _
                 .SetProject(Solution.Octo)
-                .SetFramework("netcoreapp2.0") /* For compatibility until we gently phase it out. We encourage upgrading to self-contained executable. */
+                .SetFramework("netcoreapp3.1") 
                 .SetConfiguration(Configuration)
                 .SetOutput(portablePublishDir)
                 .SetVersion(OctoVersionInfo.FullSemVer));
@@ -178,34 +170,8 @@ class Build : NukeBuild
             }
         });
 
-    Target MergeOctoExe => _ => _
-        .DependsOn(DotnetPublish)
-        .Executes(() =>
-        {
-            var inputFolder = OctoPublishDirectory / "netfx";
-            var outputFolder = OctoPublishDirectory / "netfx-merged";
-            EnsureExistingDirectory(outputFolder);
-
-            var cliList = new List<string> { $"{inputFolder}/octo.exe" };
-            cliList.AddRange(Directory.EnumerateFiles(inputFolder, "*.dll")
-                .Union(Directory.EnumerateFiles(inputFolder, "octodiff.exe")));
-
-            var cliOptions = new RepackOptions
-            {
-                OutputFile = $"{outputFolder}/octo.exe",
-                InputAssemblies = cliList.ToArray(),
-                SearchDirectories = new[] { inputFolder.ToString() },
-                Internalize = true,
-                Parallel = true
-            };
-
-            new ILRepack(cliOptions).Repack();
-
-            SignBinaries(outputFolder);
-        });
 
     Target Zip => _ => _
-        .DependsOn(MergeOctoExe)
         .DependsOn(DotnetPublish)
         .Executes(() =>
         {
@@ -213,24 +179,14 @@ class Build : NukeBuild
             {
                 var dirName = Path.GetFileName(dir);
 
-                if (dirName == "netfx")
-                    continue;
+                var outFile = ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.{dirName}";
+                if (dirName == "portable" || dirName.Contains("win"))
+                    CompressionTasks.CompressZip(dir, outFile + ".zip");
 
-                if (dirName == "netfx-merged")
-                {
-                    CompressionTasks.CompressZip(dir, ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.zip");
-                }
-                else
-                {
-                    var outFile = ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.{dirName}";
-                    if (dirName == "portable" || dirName.Contains("win"))
-                        CompressionTasks.CompressZip(dir, outFile + ".zip");
-
-                    if (!dirName.Contains("win"))
-                        TarGzip(dir, outFile,
-                            dirName.Contains("linux"),
-                            dirName == "portable");
-                }
+                if (!dirName.Contains("win"))
+                    TarGzip(dir, outFile,
+                        dirName.Contains("linux"),
+                        dirName == "portable");
             }
         });
 
