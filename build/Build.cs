@@ -81,7 +81,6 @@ class Build : NukeBuild
     };
 
     Target Clean => _ => _
-        .Before(Restore)
         .Executes(() =>
         {
             SourceDirectory.GlobDirectories("**/bin", "**/obj", "**/TestResults").ForEach(DeleteDirectory);
@@ -96,17 +95,8 @@ class Build : NukeBuild
             //all the magic happens inside `[OctoVersion]` above. we just need a target for TeamCity to call
         });
 
-    Target Restore => _ => _
-        .DependsOn(Clean)
-        .Executes(() =>
-        {
-            DotNetRestore(_ => _
-                .SetProjectFile(Solution));
-        });
-
     Target Compile => _ => _
         .DependsOn(Clean)
-        .DependsOn(Restore)
         .Executes(() =>
         {
             Serilog.Log.Information("Building OctopusCLI v{0}", OctoVersionInfo.FullSemVer);
@@ -114,8 +104,7 @@ class Build : NukeBuild
             DotNetBuild(_ => _
                 .SetProjectFile(Solution)
                 .SetConfiguration(Configuration)
-                .SetVersion(OctoVersionInfo.FullSemVer)
-                .EnableNoRestore());
+                .SetVersion(OctoVersionInfo.FullSemVer));
         });
 
     Target Test => _ => _
