@@ -10,7 +10,6 @@ jobs:
   build:
     name: Run nuke default task
     runs-on: windows-latest
-
     steps:
     - uses: actions/checkout@v2
       with:
@@ -37,7 +36,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
-      with: 
+      with:
         dotnet-version: 6.0.x
     - name: Run Nuke Test 🧪
       env:
@@ -46,4 +45,17 @@ jobs:
         OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
         OCTOVERSION_Patch: ${{ github.run_number }}
       run: ./build.cmd Test
+  # docker:
+    # name: Create docker images
+    # needs: build
+    # runs-on: ubuntu-20.04
+    # steps:
+    # - name: Run Nuke CreateDockerContainerAndLinuxPackages 🛢
+    #   env:
+    #     DOTNET_CLI_TELEMETRY_OPTOUT: true
+    #     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+    #     OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
+    #     OCTOVERSION_Patch: ${{ github.run_number }}
+    #   run: ./build.cmd CreateDockerContainerAndLinuxPackages
+      
 
