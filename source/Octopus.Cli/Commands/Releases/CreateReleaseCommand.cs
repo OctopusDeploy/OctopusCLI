@@ -248,18 +248,10 @@ namespace Octopus.Cli.Commands.Releases
             return Repository.HasLink("Channels");
         }
 
-        async Task<ResourceCollection<ChannelResource>> GetChannel()
-        {
-            if (!project.IsVersionControlled)
-                return await Repository.Projects.GetChannels(project).ConfigureAwait(false);
-
-            return await Repository.Projects.Beta().GetChannels(project, GitCommit ?? GitReference).ConfigureAwait(false);
-        }
-
         async Task<ReleasePlan> AutoSelectBestReleasePlanOrThrow()
         {
             // Build a release plan for each channel to determine which channel is the best match for the provided options
-            var channels = await GetChannel().ConfigureAwait(false);
+            var channels = await Repository.Projects.GetChannels(project).ConfigureAwait(false);
             var candidateChannels = await channels.GetAllPages(Repository).ConfigureAwait(false);
             var releasePlans = new List<ReleasePlan>();
             foreach (var channel in candidateChannels)
@@ -324,7 +316,7 @@ namespace Octopus.Cli.Commands.Releases
 
             if (project.IsVersionControlled)
             {
-                var deploymentSettings = await Repository.DeploymentSettings.Beta()
+                var deploymentSettings = await Repository.DeploymentSettings
                     .Get(project, GitCommit ?? GitReference)
                     .ConfigureAwait(false);
                 projectReleaseNotes = deploymentSettings.ReleaseNotesTemplate;

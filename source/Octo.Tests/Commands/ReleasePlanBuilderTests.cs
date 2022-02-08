@@ -28,7 +28,6 @@ namespace Octo.Tests.Commands
         IChannelVersionRuleTester versionRuleTester;
         IOctopusAsyncRepository repository;
         IDeploymentProcessRepository deploymentProcessRepository;
-        IDeploymentProcessBetaRepository deploymentProcessRepositoryBeta;
         IReleaseRepository releaseRepository;
         IFeedRepository feedRepository;
         ICommandOutputProvider commandOutputProvider;
@@ -96,10 +95,6 @@ namespace Octo.Tests.Commands
                 .Test(Arg.Any<IOctopusAsyncRepository>(), Arg.Any<ChannelVersionRuleResource>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(channelVersionRuleTestResult));
 
-            deploymentProcessRepositoryBeta = Substitute.For<IDeploymentProcessBetaRepository>();
-            deploymentProcessRepositoryBeta.Get(projectResource, Arg.Any<string>())
-                .Returns(Task.FromResult(deploymentProcessResource));
-
             var feeds = new List<FeedResource>
             {
                 feedResource
@@ -111,7 +106,6 @@ namespace Octo.Tests.Commands
 
             repository = Substitute.For<IOctopusAsyncRepository>();
             repository.DeploymentProcesses.Returns(deploymentProcessRepository);
-            repository.DeploymentProcesses.Beta().Returns(deploymentProcessRepositoryBeta);
             repository.Releases.Returns(releaseRepository);
             repository.Feeds.Returns(feedRepository);
             repository.Client
