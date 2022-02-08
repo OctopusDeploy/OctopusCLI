@@ -283,8 +283,23 @@ class Build : NukeBuild
             else
                 throw new Exception($"Built image did not return expected version {OctoVersionInfo.FullSemVer} - it returned {stdOut}");
 
+
+        });
+
+    Target PublishDockerImage => _ => _
+        .DependsOn(MuteLoudDockerCli)
+        .DependsOn(AssertPortableArtifactsExists)
+        .Executes(() =>
+        {
+            var platform = "nanoserver";
+            if (EnvironmentInfo.IsLinux)
+                platform = "alpine";
+            
+            var tag = $"octopusdeploy/octo-prerelease:{OctoVersionInfo.FullSemVer}-{platform}";
+            var latest = $"octopusdeploy/octo-prerelease:latest-{platform}";
+            
             DockerTasks.DockerLogin(_ =>
-                    _.SetUsername(DockerUser)
+                _.SetUsername(DockerUser)
                     .SetPassword(DockerPassword));
             DockerTasks.DockerPush(_ => _.SetName(tag));
             DockerTasks.DockerPush(_ => _.SetName(latest));
@@ -326,7 +341,12 @@ class Build : NukeBuild
                 .SetArgs("/BuildAssets/create-octopuscli-linux-packages.sh"));
 
             DeleteDirectory(ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.linux-x64.extracted");
-
+        });
+    
+    Target PublishLinuxPackages => _ => _
+        .DependsOn(AssertPortableArtifactsExists)
+        .Executes(() =>
+        {
             var linuxPackagesDir = ArtifactsDirectory / "linuxpackages";
             EnsureExistingDirectory(linuxPackagesDir);
             ArtifactsDirectory.GlobFiles("*.deb").ForEach(path => MoveFile(path, linuxPackagesDir / new FileInfo(path).Name));
@@ -338,7 +358,7 @@ class Build : NukeBuild
             CopyFileToDirectory($"{LinuxPackageFeedsDir}/test-env-docker-images.conf", linuxPackagesDir);
             CopyFileToDirectory($"{LinuxPackageFeedsDir}/install-linux-feed-package.sh", linuxPackagesDir);
             CompressionTasks.CompressZip(linuxPackagesDir, ArtifactsDirectory / $"OctopusTools.Packages.linux-x64.{OctoVersionInfo.FullSemVer}.zip");
-            TeamCity.Instance.PublishArtifacts(ArtifactsDirectory / $"OctopusTools.Packages.linux-x64.{OctoVersionInfo.FullSemVer}.zip");
+            // TeamCity.Instance.PublishArtifacts(ArtifactsDirectory / $"OctopusTools.Packages.linux-x64.{OctoVersionInfo.FullSemVer}.zip");
             DeleteDirectory(linuxPackagesDir);
         });
 
