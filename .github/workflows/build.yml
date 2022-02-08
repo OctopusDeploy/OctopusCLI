@@ -42,6 +42,7 @@ jobs:
       env:
         DOTNET_CLI_TELEMETRY_OPTOUT: true
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+        OCTOVERSION_FullSemVer: 1.0.0 # This should skip version calculation
         OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
         OCTOVERSION_Patch: ${{ github.run_number }}
       run: ./build.cmd Test
