@@ -1,4 +1,4 @@
-name: Build and Run Tests
+name: Build, test and publish
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Run nuke default task
+    name: Build code
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
@@ -25,8 +25,12 @@ jobs:
         OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
         OCTOVERSION_Patch: ${{ github.run_number }}
       run: ./build.cmd
+    - uses: actions/upload-artifact@v2
+      with:
+        name: artifacts
+        path: artifacts/
   test:
-    name: Run tests
+    name: Run test matrix
     needs: build
     runs-on: ${{ matrix.os }}
     strategy:
@@ -46,17 +50,50 @@ jobs:
         OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
         OCTOVERSION_Patch: ${{ github.run_number }}
       run: ./build.cmd Test
-  # docker:
-    # name: Create docker images
-    # needs: build
-    # runs-on: ubuntu-20.04
-    # steps:
-    # - name: Run Nuke CreateDockerContainerAndLinuxPackages 🛢
-    #   env:
-    #     DOTNET_CLI_TELEMETRY_OPTOUT: true
-    #     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-    #     OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
-    #     OCTOVERSION_Patch: ${{ github.run_number }}
-    #   run: ./build.cmd CreateDockerContainerAndLinuxPackages
-      
+  docker:
+    name: Create and push Docker image
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: artifacts
+        path: artifacts
+    - name: Run Nuke 🛢
+      env:
+        OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
+        OCTOVERSION_Patch: ${{ github.run_number }}
+      run: ./build.cmd BuildDockerImageAndPush
+  packages:
+    name: Create Linux packages
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: artifacts
+        path: artifacts
+    - name: Run Nuke 🛢
+      env:
+        OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
+        OCTOVERSION_Patch: ${{ github.run_number }}
+      run: ./build.cmd CreateLinuxPackages
+    - uses: actions/upload-artifact@v2
+      with:
+        name: artifacts
+        path: artifacts/
+  # push-to-octopus:
+  #   name: Push artifacts to Octopus
+  #   needs: [docker-build, packages-build, test]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/download-artifact@v2
+  #     with:
+  #       name: artifacts
+  #       path: artifacts
+  #   - name: Run Nuke 🛢
+  #     env:
+  #       OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
+  #       OCTOVERSION_Patch: ${{ github.run_number }}
+  #     run: ./build.cmd Publish
 
