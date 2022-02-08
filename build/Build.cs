@@ -108,18 +108,15 @@ class Build : NukeBuild
         });
 
     Target Test => _ => _
-        .DependsOn(Compile)
         .Executes(() =>
         {
             DotNetTest(_ => _
                 .SetProjectFile(Solution)
-                .SetConfiguration(Configuration)
-                .EnableNoBuild()
-                .EnableNoRestore());
+                .SetConfiguration(Configuration));
         });
 
     Target DotnetPublish => _ => _
-        .DependsOn(Test)
+        .DependsOn(Compile)
         .Executes(() =>
         {
             var portablePublishDir = OctoPublishDirectory / "portable";
