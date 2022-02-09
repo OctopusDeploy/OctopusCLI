@@ -87,6 +87,8 @@ namespace Octo.Tests.Commands
             deploymentProcessRepository = Substitute.For<IDeploymentProcessRepository>();
             deploymentProcessRepository.Get(projectResource.DeploymentProcessId)
                 .Returns(Task.FromResult(deploymentProcessResource));
+            deploymentProcessRepository.Get(projectResource, Arg.Any<string>())
+                .Returns(Task.FromResult(deploymentProcessResource));
             deploymentProcessRepository
                 .GetTemplate(Arg.Is(deploymentProcessResource),
                     Arg.Is(channelResource))
