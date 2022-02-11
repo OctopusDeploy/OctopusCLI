@@ -565,7 +565,7 @@ step "Upload OctopusTools Manifest to S3" {
     }
 }
 
-step "Create release in Octofront" {
+step "Create release in Slipway" {
     start_trigger = "StartWithPrevious"
 
     action {
@@ -573,16 +573,16 @@ step "Create release in Octofront" {
         environments = ["Components - External"]
         properties = {
             Octopus.Action.Script.ScriptBody = <<-EOT
-                $octofrontToken = $OctopusParameters["OctofrontToken"]
-                $baseUrl = $OctopusParameters["OctofrontUrl"]
+                $slipwayToken = $OctopusParameters["SlipwayToken"]
+                $baseUrl = $OctopusParameters["SlipwayUrl"]
                 $version = $OctopusParameters["Octopus.Release.Number"]
                 $releaseNotes = $OctopusParameters["Octopus.Release.Notes"]
                 
-                $headers = @{ "Authorization" = "Bearer $octofrontToken" }
+                $headers = @{ "Authorization" = "Bearer $slipwayToken" }
                 
                 function ReleaseToWeb([string]$productName, $versionToRelease, [string]$releaseNotes)
                 {
-                    write-host "Publishing '$productName' '$versionToRelease' to Octofront at $baseUrl"
+                    write-host "Publishing '$productName' '$versionToRelease' to Slipway at $baseUrl"
                 
                     $isPreRelease = $versionToRelease -like "*-*"
                     $release = @{
@@ -606,10 +606,10 @@ step "Create release in Octofront" {
                                           -Headers $headers
                     }
                     catch {
-                        throw "An error occurred while publishing '$productName' release '$versionToRelease' to Octofront: $_"
+                        throw "An error occurred while publishing '$productName' release '$versionToRelease' to Slipway: $_"
                     }
                 
-                    $releaseUrl = "https://octopusdeploy.com/downloads/$($release.VersionNumber)"
+                    $releaseUrl = "https://octopusdeploy.com/downloads/$productName/$($release.VersionNumber)"
                     write-highlight "'$productName' '$versionToRelease' was published to '$releaseUrl'"
                 }
                 
