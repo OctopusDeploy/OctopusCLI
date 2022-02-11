@@ -2,7 +2,6 @@ step "Upload OctopusTools to S3 public with hashes" {
 
     action {
         properties = {
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Template.Id = "ActionTemplates-864"
             Octopus.Action.Template.Version = "4"
             PackageToUpload = "{\"PackageId\":\"OctopusTools.Zips\",\"FeedId\":\"Octopus Server (built-in)\"}"
@@ -30,7 +29,6 @@ step "Push Octopus.Cli to feedz.io" {
         action_type = "Octopus.Script"
         environments = ["Components - Internal"]
         properties = {
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Script.ScriptBody = <<-EOT
                 # Build the path to nuget.exe
                 $nugetPackagePath = $OctopusParameters["Octopus.Action.Package[NuGet.CommandLine].ExtractedPath"]
@@ -73,7 +71,6 @@ step "Push Octopus.Cli to NuGet Gallery" {
         action_type = "Octopus.Script"
         environments = ["Components - External"]
         properties = {
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Script.ScriptBody = <<-EOT
                 # Build the path to nuget.exe
                 $nugetPackagePath = $OctopusParameters["Octopus.Action.Package[NuGet.CommandLine].ExtractedPath"]
@@ -114,7 +111,6 @@ step "Push Octopus.DotNet.Cli to feedz.io" {
         action_type = "Octopus.Script"
         environments = ["Components - Internal"]
         properties = {
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Script.ScriptBody = <<-EOT
                 # Build the path to nuget.exe
                 $nugetPackagePath = $OctopusParameters["Octopus.Action.Package[NuGet.CommandLine].ExtractedPath"]
@@ -155,7 +151,6 @@ step "Push Octopus.DotNet.Cli to NuGet Gallery" {
         action_type = "Octopus.Script"
         environments = ["Components - External"]
         properties = {
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Script.ScriptBody = <<-EOT
                 # Build the path to nuget.exe
                 $nugetPackagePath = $OctopusParameters["Octopus.Action.Package[NuGet.CommandLine].ExtractedPath"]
@@ -196,7 +191,6 @@ step "Push OctopusTools to feedz.io" {
         action_type = "Octopus.Script"
         environments = ["Components - Internal"]
         properties = {
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Script.ScriptBody = <<-EOT
                 # Build the path to nuget.exe
                 $nugetPackagePath = $OctopusParameters["Octopus.Action.Package[NuGet.CommandLine].ExtractedPath"]
@@ -237,7 +231,6 @@ step "Push OctopusTools to NuGet Gallery" {
         action_type = "Octopus.Script"
         environments = ["Components - External"]
         properties = {
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Script.ScriptBody = <<-EOT
                 $nugetPackagePath = $OctopusParameters["Octopus.Action.Package[NuGet.CommandLine].ExtractedPath"]
                 $nugetExe = Join-Path -Path $nugetPackagePath -ChildPath "Tools\nuget.exe"
@@ -290,7 +283,6 @@ step "Push OctopusTools to Chocolatey" {
         action_type = "Octopus.Script"
         environments = ["Components - External"]
         properties = {
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Script.ScriptBody = <<-EOT
                 $nugetPackagePath = $OctopusParameters["Octopus.Action.Package[NuGet.CommandLine].ExtractedPath"]
                 $nugetExe = Join-Path -Path $nugetPackagePath -ChildPath "Tools\nuget.exe"
@@ -343,7 +335,6 @@ step "Publish Homebrew" {
         channels = ["Default"]
         environments = ["Components - External"]
         properties = {
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Template.Id = "ActionTemplates-882"
             Octopus.Action.Template.Version = "18"
             PackageToUpload = "{\"PackageId\":\"OctopusTools.Zips\",\"FeedId\":\"Octopus Server (built-in)\"}"
@@ -374,7 +365,6 @@ step "Publish to APT repo" {
     action {
         action_type = "Octopus.Script"
         properties = {
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Script.ScriptBody = <<-EOT
                 cd OctopusTools.Packages.linux-x64 || exit
                 
@@ -411,7 +401,6 @@ step "Publish to RPM repo" {
     action {
         action_type = "Octopus.Script"
         properties = {
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Script.ScriptBody = <<-EOT
                 cd OctopusTools.Packages.linux-x64 || exit
                 
@@ -454,7 +443,6 @@ step "Move Docker Images To Prod" {
             mditp_ImageTag = "#{Octopus.Release.Number}"
             mditp_PreReleaseImage = "octopusdeploy/octo-prerelease"
             mditp_ReleaseImage = "octopusdeploy/octo"
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Template.Id = "ActionTemplates-883"
             Octopus.Action.Template.Version = "2"
         }
@@ -468,7 +456,6 @@ step "Upload OctopusTools Manifest to S3" {
         action_type = "Octopus.Script"
         environments = ["Components - External"]
         properties = {
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Script.ScriptBody = <<-EOT
                 Import-Module AWSPowerShell.NetCore
                 $version = $OctopusParameters['Octopus.Action.Package[OctopusTools.Zips].PackageVersion']
@@ -585,7 +572,6 @@ step "Create release in Octofront" {
         action_type = "Octopus.Script"
         environments = ["Components - External"]
         properties = {
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Script.ScriptBody = <<-EOT
                 $octofrontToken = $OctopusParameters["OctofrontToken"]
                 $baseUrl = $OctopusParameters["OctofrontUrl"]
@@ -654,7 +640,6 @@ step "Invalidate CloudFront Cache" {
             icfc_awsaccount = "OctopusToolsAwsAccount"
             icfc_distributionid = "E1ZC8NX4KJYKDL"
             icfc_invalidationpaths = "/octopus-tools/latest.json"
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Template.Id = "ActionTemplates-962"
             Octopus.Action.Template.Version = "1"
         }
@@ -670,7 +655,6 @@ step "Invalidate CloudFlare cache of the OctopusTools Manifest" {
             icfc_hostname = "download.octopusdeploy.com"
             icfc_token = "#{CloudFlareKey}"
             icfc_zone = "ec51e468948315337a746fab4e064456"
-            Octopus.Action.RunOnServer = "true"
             Octopus.Action.Template.Id = "ActionTemplates-963"
             Octopus.Action.Template.Version = "6"
         }
