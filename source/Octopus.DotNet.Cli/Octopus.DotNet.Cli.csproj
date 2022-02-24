@@ -13,7 +13,7 @@
     <Authors>Octopus Deploy</Authors>
     <Copyright>Octopus Deploy Pty Ltd</Copyright>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageProjectUrl>http://octopusdeploy.com/</PackageProjectUrl>
+    <PackageProjectUrl>https://octopus.com/</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/OctopusDeploy/OctopusCli</RepositoryUrl>
