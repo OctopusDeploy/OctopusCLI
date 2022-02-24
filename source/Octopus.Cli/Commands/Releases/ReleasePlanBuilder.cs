@@ -66,7 +66,7 @@ namespace Octopus.Cli.Commands.Releases
                 throw new CommandException(GitReferenceSuppliedForDatabaseProjectErrorMessage(gitObjectName));
 
             commandOutputProvider.Debug($"Finding deployment process at git {gitObjectName}...");
-            var deploymentProcess = await repository.DeploymentProcesses.Beta().Get(project, gitObject);
+            var deploymentProcess = await repository.DeploymentProcesses.Get(project, gitObject);
             if (deploymentProcess == null)
                 throw new CouldNotFindException($"a deployment process for project {project.Name} and git {gitObjectName}");
 
