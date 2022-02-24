@@ -35,12 +35,6 @@
           "type": "boolean",
           "description": "Indicates to continue a previously failed build attempt"
         },
-        "DOCKER_REGISTRY_PASSWORD": {
-          "type": "string"
-        },
-        "DOCKER_REGISTRY_USER": {
-          "type": "string"
-        },
         "Help": {
           "type": "boolean",
           "description": "Shows the help text for this build assembly"
@@ -107,8 +101,7 @@
             "type": "string",
             "enum": [
               "AssertLinuxSelfContainedArtifactsExists",
-              "AssertPortableArtifactsExists",
-              "BuildDockerImageAndPush",
+              "BuildDockerImage",
               "CalculateVersion",
               "Clean",
               "Compile",
@@ -136,8 +129,7 @@
             "type": "string",
             "enum": [
               "AssertLinuxSelfContainedArtifactsExists",
-              "AssertPortableArtifactsExists",
-              "BuildDockerImageAndPush",
+              "BuildDockerImage",
               "CalculateVersion",
               "Clean",
               "Compile",

@@ -34,8 +34,6 @@ class Build : NukeBuild
 {
     const string CiBranchNameEnvVariable = "OCTOVERSION_CurrentBranch";
     
-    [Parameter(Name="DOCKER_REGISTRY_USER")]string DockerUser;
-    [Parameter(Name="DOCKER_REGISTRY_PASSWORD")]string DockerPassword;
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")] readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
     [Parameter("Pfx certificate to use for signing the files")] readonly AbsolutePath SigningCertificatePath = RootDirectory / "certificates" / "OctopusDevelopment.pfx";
     [Parameter("Password for the signing certificate")] readonly string SigningCertificatePassword = "Password01!";
@@ -171,9 +169,7 @@ class Build : NukeBuild
                     CompressionTasks.CompressZip(dir, outFile + ".zip");
 
                 if (!dirName.Contains("win"))
-                    TarGzip(dir, outFile,
-                        dirName.Contains("linux"),
-                        dirName == "portable");
+                    TarGzip(dir, outFile);
             }
         });
 
@@ -255,15 +251,12 @@ class Build : NukeBuild
         });
     
     [PublicAPI]
-    Target BuildDockerImageAndPush => _ => _
+    Target BuildDockerImage => _ => _
         .DependsOn(MuteLoudDockerCli)
         .DependsOn(AssertPortableArtifactsExists)
         .Executes(() =>
         {
-            var platform = "nanoserver";
-            if (EnvironmentInfo.IsLinux)
-                platform = "alpine";
-
+            var platform = "alpine";
             var tag = $"octopusdeploy/octo-prerelease:{OctoVersionInfo.FullSemVer}-{platform}";
             var latest = $"octopusdeploy/octo-prerelease:latest-{platform}";
 
@@ -280,16 +273,25 @@ class Build : NukeBuild
                 .SetCommand("version")
                 .EnableRm());
 
-            if (stdOut.FirstOrDefault().Text == OctoVersionInfo.FullSemVer)
+            var text = stdOut.FirstOrDefault().Text;
+            if (text == OctoVersionInfo.FullSemVer)
                 Serilog.Log.Information($"Image successfully created - running 'docker run {tag} version --rm' returned '{string.Join('\n', stdOut.Select(x => x.Text))}'");
             else
-                throw new Exception($"Built image did not return expected version {OctoVersionInfo.FullSemVer} - it returned {stdOut}");
+                throw new Exception($"Built image did not return expected version {OctoVersionInfo.FullSemVer} - it returned {text}");
 
-            DockerTasks.DockerLogin(_ =>
-                    _.SetUsername(DockerUser)
-                    .SetPassword(DockerPassword));
-            DockerTasks.DockerPush(_ => _.SetName(tag));
-            DockerTasks.DockerPush(_ => _.SetName(latest));
+            stdOut = DockerTasks.DockerImageLs(_ => _.SetRepository(latest).EnableQuiet());
+            var imageId = stdOut.FirstOrDefault().Text;
+            var tarFile = $"Octo.Docker.Image.{OctoVersionInfo.FullSemVer}.tar";
+            var gzipFile = $"{tarFile}.gz";
+
+            DockerTasks.DockerImageSave(_ => _.SetImages(imageId).SetOutput(ArtifactsDirectory / tarFile));
+
+            using Stream stream = File.Open(ArtifactsDirectory / gzipFile, FileMode.Create);
+            using var zip = WriterFactory.Open(stream, ArchiveType.GZip, CompressionType.GZip);
+            zip.Write(tarFile, ArtifactsDirectory / tarFile);
+            zip.Dispose();
+            
+            DeleteFile(ArtifactsDirectory / tarFile);
         });
 
     Target CreateLinuxPackages => _ => _
@@ -345,7 +347,7 @@ class Build : NukeBuild
 
     [PublicAPI]
     Target CreateDockerContainerAndLinuxPackages => _ => _
-        .DependsOn(BuildDockerImageAndPush)
+        .DependsOn(BuildDockerImage)
         .DependsOn(CreateLinuxPackages);
 
     [PublicAPI]
@@ -407,7 +409,7 @@ class Build : NukeBuild
 
         if (lastException != null)
             throw lastException;
-        Serilog.Log.Information($"Finished signing {distinctFiles.Count()} files.");
+        Serilog.Log.Information($"Finished signing {distinctFiles.Length} files.");
     }
 
     void SignWithAzureSignTool(IEnumerable<string> files, string timestampUrl)
@@ -455,7 +457,7 @@ class Build : NukeBuild
             Serilog.Log.Debug(message);
     }
 
-    void TarGzip(string path, string outputFile, bool insertCapitalizedOctoWrapper = false, bool insertCapitalizedDotNetWrapper = false)
+    void TarGzip(string path, string outputFile)
     {
         var outFile = $"{outputFile}.tar.gz";
         Serilog.Log.Information("Creating TGZ file {0} from {1}", outFile, path);
@@ -463,12 +465,6 @@ class Build : NukeBuild
         {
             using (var tar = WriterFactory.Open(tarMemStream, ArchiveType.Tar, new TarWriterOptions(CompressionType.None, true)))
             {
-                // If using a capitalized wrapper, insert it first so it wouldn't overwrite the main payload on a case-insensitive system.
-                if (insertCapitalizedOctoWrapper)
-                    tar.Write("Octo", AssetDirectory / "OctoWrapper.sh");
-                else if (insertCapitalizedDotNetWrapper)
-                    tar.Write("Octo", AssetDirectory / "octo");
-
                 // Add the remaining files
                 tar.WriteAll(path, "*", SearchOption.AllDirectories);
             }
