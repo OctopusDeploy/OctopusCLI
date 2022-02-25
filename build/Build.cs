@@ -54,6 +54,7 @@ class Build : NukeBuild
     [Parameter] readonly string AzureKeyVaultAppId = "";
     [Parameter] [Secret] readonly string AzureKeyVaultAppSecret = "";
     [Parameter] readonly string AzureKeyVaultCertificateName = "";
+    [Parameter] readonly string AzureKeyVaultTenantId = "";
 
     AbsolutePath SourceDirectory => RootDirectory / "source";
     AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
@@ -417,6 +418,7 @@ class Build : NukeBuild
         var arguments = "sign " +
             $"--azure-key-vault-url \"{AzureKeyVaultUrl}\" " +
             $"--azure-key-vault-client-id \"{AzureKeyVaultAppId}\" " +
+            $"--azure-key-vault-tenant-id \"{AzureKeyVaultTenantId}\" " +
             $"--azure-key-vault-client-secret \"{AzureKeyVaultAppSecret}\" " +
             $"--azure-key-vault-certificate \"{AzureKeyVaultCertificateName}\" " +
             "--file-digest sha256 " +
