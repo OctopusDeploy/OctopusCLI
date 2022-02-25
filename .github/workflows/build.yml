@@ -103,8 +103,7 @@ jobs:
         token: ${{ secrets.RENOVATE_GITHUB_TOKEN }}
         path: linux-package-feeds-repo
     - run: |
-        mkdir linux-package-feeds
-        cp linux-package-feeds-repo/source/*.* linux-package-feeds
+        ln linux-package-feeds-repo/source linux-package-feeds
     - uses: actions/download-artifact@v2
       with:
         name: artifacts
