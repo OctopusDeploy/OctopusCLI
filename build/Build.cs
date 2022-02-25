@@ -16,7 +16,6 @@ using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using JetBrains.Annotations;
 using Nuke.Common.CI;
-using Nuke.Common.CI.TeamCity;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.NuGet;
 using Nuke.Common.Tools.OctoVersion;
@@ -387,7 +386,7 @@ class Build : NukeBuild
         var lastException = default(Exception);
         foreach (var url in SigningTimestampUrls)
         {
-            TeamCity.Instance?.OpenBlock("Signing and timestamping with server " + url);
+            Serilog.Log.Information("Signing and timestamping with server {Url}", url);
             try
             {
                 if (useSignTool)
@@ -401,7 +400,6 @@ class Build : NukeBuild
                 lastException = ex;
             }
 
-            TeamCity.Instance?.CloseBlock("Signing and timestamping with server " + url);
             if (lastException == null)
                 break;
         }
