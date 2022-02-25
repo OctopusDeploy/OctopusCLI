@@ -146,5 +146,5 @@ jobs:
         VERSION=$(ls OctopusTools.*.linux-x64.tar.gz | tail -1 | sed -nE 's/^OctopusTools\.(.*)\.linux-x64.tar.gz$/\1/p')
         tar -xf OctopusTools.$VERSION.linux-x64.tar.gz
         zip OctopusTools.Zips.$VERSION.zip *.zip *.tar.gz
-        ./octo push --space "Integrations" --package Octopus.Cli.$VERSION.nupkg --package Octopus.DotNet.Cli.$VERSION.nupkg --package OctopusTools.$VERSION.nupkg --package Octo.Docker.Image.$VERSION.tar.gz --package OctopusTools.Packages.linux-x64.$VERSION.tar.gz --package OctopusTools.Zips.$VERSION.zip --overwrite-mode OverwriteExisting
+        ./octo push --space "Integrations" --package Octopus.Cli.$VERSION.nupkg --package Octopus.DotNet.Cli.$VERSION.nupkg --package OctopusTools.$VERSION.nupkg --package Octo.Docker.Image.$VERSION.tar.gz --package OctopusTools.Packages.linux-x64.$VERSION.zip --package OctopusTools.Zips.$VERSION.zip --overwrite-mode OverwriteExisting
         ./octo create-release --space "Integrations" --project "Octopus CLI" --packageversion "$VERSION" --package "*:NuGet.CommandLine:4.4.1" --getRef ${{ github.head_ref || github.ref }} --gitCommit ${{ github.sha }}
