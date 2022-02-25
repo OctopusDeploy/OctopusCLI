@@ -101,6 +101,7 @@
             "type": "string",
             "enum": [
               "AssertLinuxSelfContainedArtifactsExists",
+              "AssertPortableArtifactsExists",
               "BuildDockerImage",
               "CalculateVersion",
               "Clean",
@@ -129,6 +130,7 @@
             "type": "string",
             "enum": [
               "AssertLinuxSelfContainedArtifactsExists",
+              "AssertPortableArtifactsExists",
               "BuildDockerImage",
               "CalculateVersion",
               "Clean",

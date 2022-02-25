@@ -256,7 +256,7 @@ class Build : NukeBuild
         .DependsOn(AssertPortableArtifactsExists)
         .Executes(() =>
         {
-            var platform = "alpine";
+            const string platform = "alpine";
             var tag = $"octopusdeploy/octo-prerelease:{OctoVersionInfo.FullSemVer}-{platform}";
             var latest = $"octopusdeploy/octo-prerelease:latest-{platform}";
 
@@ -279,12 +279,10 @@ class Build : NukeBuild
             else
                 throw new Exception($"Built image did not return expected version {OctoVersionInfo.FullSemVer} - it returned {text}");
 
-            stdOut = DockerTasks.DockerImageLs(_ => _.SetRepository(latest).EnableQuiet());
-            var imageId = stdOut.FirstOrDefault().Text;
             var tarFile = $"Octo.Docker.Image.{OctoVersionInfo.FullSemVer}.tar";
             var gzipFile = $"{tarFile}.gz";
 
-            DockerTasks.DockerImageSave(_ => _.SetImages(imageId).SetOutput(ArtifactsDirectory / tarFile));
+            DockerTasks.DockerImageSave(_ => _.SetImages("octopusdeploy/octo-prerelease").SetOutput(ArtifactsDirectory / tarFile));
 
             using Stream stream = File.Open(ArtifactsDirectory / gzipFile, FileMode.Create);
             using var zip = WriterFactory.Open(stream, ArchiveType.GZip, CompressionType.GZip);
