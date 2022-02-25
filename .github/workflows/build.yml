@@ -85,6 +85,10 @@ jobs:
         OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
         OCTOVERSION_Patch: ${{ github.run_number }}
       run: ./build.sh --target BuildDockerImage
+    - uses: actions/upload-artifact@v2
+      with:
+        name: docker-image
+        path: artifacts/Octo.Docker.Image.*.tar.gz
   linux-distro-packages-build:
     name: Create Linux disto packages
     needs: build
@@ -114,8 +118,8 @@ jobs:
       run: ./build.sh --target CreateLinuxPackages
     - uses: actions/upload-artifact@v2
       with:
-        name: artifacts
-        path: artifacts/
+        name: packages-linux
+        path: artifacts/OctopusTools.Packages.linux-x64.*.zip
   push-to-octopus:
     name: Push artifacts to Octopus
     needs: [docker-build, linux-distro-packages-build, test]
@@ -124,6 +128,14 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: artifacts
+        path: artifacts
+    - uses: actions/download-artifact@v2
+      with:
+        name: packages-linux
+        path: artifacts
+    - uses: actions/download-artifact@v2
+      with:
+        name: docker-image
         path: artifacts
     - name: Talk to Octopus 
       env:
