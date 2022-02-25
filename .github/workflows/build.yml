@@ -97,7 +97,7 @@ jobs:
       with:
         repository: 'OctopusDeploy/linux-package-feeds'
         token: ${{ secrets.RENOVATE_GITHUB_TOKEN }}
-        path: 'linux-package-feeds'
+        path: '/opt/linux-package-feeds'
     - uses: actions/download-artifact@v2
       with:
         name: artifacts
