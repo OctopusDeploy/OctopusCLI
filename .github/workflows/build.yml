@@ -93,6 +93,11 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
+    - uses: actions/checkout@v2
+      with:
+        repository: 'OctopusDeploy/linux-package-feeds'
+        token: ${{ secrets.RENOVATE_GITHUB_TOKEN }}
+        path: 'linux-package-feeds'
     - uses: actions/download-artifact@v2
       with:
         name: artifacts
@@ -119,8 +124,8 @@ jobs:
         path: artifacts
     - name: Talk to Octopus 
       env:
-        OCTOPUS_CLI_SERVER: ${{ secrets.INTEGRATIONS_FEED_SOURCE }}
-        OCTOPUS_CLI_API_KEY: ${{ secrets.INTEGRATIONS_FEED_API_KEY }}
+        OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
+        OCTOPUS_CLI_API_KEY: ${{ secrets.INTEGRATIONS_API_KEY }}
       run: |
         cd artifacts
         VERSION=$(ls OctopusTools.*.linux-x64.tar.gz | tail -1 | sed -nE 's/^OctopusTools\.(.*)\.linux-x64.tar.gz$/\1/p')
