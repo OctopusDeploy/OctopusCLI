@@ -311,7 +311,7 @@ class Build : NukeBuild
                     .EnableTty()
                     .SetEnv(@"OCTOPUS_CLI_SERVER",
                         "OCTOPUS_CLI_API_KEY",
-                        "OCTOPUS_SPACE=Integration",
+                        "OCTOPUS_SPACE=Integrations",
                         "OCTOPUS_EXPECT_ENV=Components - Internal",
                         "PKG_PATH_PREFIX=octopuscli")
                     .SetVolume(packagesPath + ":/working",
