@@ -15,6 +15,7 @@ using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using JetBrains.Annotations;
+using Microsoft.Build.Tasks;
 using Nuke.Common.CI;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.NuGet;
@@ -292,6 +293,38 @@ class Build : NukeBuild
             DeleteFile(ArtifactsDirectory / tarFile);
         });
 
+    [PublicAPI]
+    Target TestLinuxPackages => _ => _
+        .DependsOn(MuteLoudDockerCli)
+        .DependsOn(AssertLinuxSelfContainedArtifactsExists)
+        .Executes(() =>
+        {
+            var packagesPath = ArtifactsDirectory / "OctopusTools.Packages";
+            CompressionTasks.UncompressZip(
+                ArtifactsDirectory / $"OctopusTools.Packages.linux-x64.{OctoVersionInfo.FullSemVer}.zip",
+                packagesPath);
+
+            var config = LinuxPackageFeedsDir / "test-env-docker-images.conf";
+            foreach (var dockerImage in File.ReadLines(config))
+            {
+                DockerTasks.DockerRun(_ => _
+                    .EnableRm()
+                    .EnableTty()
+                    .SetEnv(@"OCTOPUS_CLI_SERVER",
+                        "OCTOPUS_CLI_API_KEY",
+                        "OCTOPUS_SPACE=Integration",
+                        "OCTOPUS_EXPECT_ENV=Components - Internal",
+                        "PKG_PATH_PREFIX=octopuscli")
+                    .SetVolume(packagesPath + ":/working",
+                        LinuxPackageFeedsDir + ":/opt/linux-package-feeds",
+                        "/BuildAssets/test-linux-package.sh:/test-linux-package.sh")
+                    .SetImage(dockerImage)
+                    .SetCommand("bash")
+                    .SetArgs("cd /working && bash /test-linux-package.sh"));
+            }
+        });
+
+    [PublicAPI]
     Target CreateLinuxPackages => _ => _
         .DependsOn(MuteLoudDockerCli)
         .DependsOn(AssertLinuxSelfContainedArtifactsExists)

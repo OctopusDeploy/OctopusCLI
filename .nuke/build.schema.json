@@ -118,6 +118,7 @@
               "PackDotNetOctoNuget",
               "PackOctopusToolsNuget",
               "Test",
+              "TestLinuxPackages",
               "Zip"
             ]
           }
@@ -147,6 +148,7 @@
               "PackDotNetOctoNuget",
               "PackOctopusToolsNuget",
               "Test",
+              "TestLinuxPackages",
               "Zip"
             ]
           }
