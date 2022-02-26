@@ -316,7 +316,7 @@ class Build : NukeBuild
                         "PKG_PATH_PREFIX=octopuscli")
                     .SetVolume(packagesPath + ":/working",
                         LinuxPackageFeedsDir + ":/opt/linux-package-feeds",
-                        "/BuildAssets/test-linux-package.sh:/test-linux-package.sh")
+                        AssetDirectory / "test-linux-package.sh" + ":/test-linux-package.sh")
                     .SetImage(dockerImage)
                     .SetCommand("bash")
                     .SetArgs("cd /working && bash /test-linux-package.sh"));
