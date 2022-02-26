@@ -319,7 +319,7 @@ class Build : NukeBuild
                         AssetDirectory / "test-linux-package.sh" + ":/test-linux-package.sh")
                     .SetImage(dockerImage)
                     .SetCommand("bash")
-                    .SetArgs("cd /working && bash /test-linux-package.sh"));
+                    .SetArgs("-c", "cd /working && bash /test-linux-package.sh"));
             }
         });
 
