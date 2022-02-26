@@ -15,7 +15,6 @@ using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using JetBrains.Annotations;
-using Microsoft.Build.Tasks;
 using Nuke.Common.CI;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.NuGet;
