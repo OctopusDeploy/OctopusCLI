@@ -121,6 +121,8 @@ jobs:
         OCTOVERSION_Patch: ${{ github.run_number }}
         OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
         OCTOPUS_CLI_API_KEY: ${{ secrets.INTEGRATIONS_API_KEY }}
+        REDHAT_SUBSCRIPTION_USERNAME: ${{ secrets.REDHAT_SUBSCRIPTION_USERNAME }}
+        REDHAT_SUBSCRIPTION_PASSWORD: ${{ secrets.REDHAT_SUBSCRIPTION_PASSWORD }}
       run: ./build.sh --target TestLinuxPackages
     - uses: actions/upload-artifact@v2
       with:
