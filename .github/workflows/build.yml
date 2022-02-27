@@ -36,7 +36,6 @@ jobs:
         AzureKeyVaultTenantId: ${{ secrets.AZURE_KEYVAULT_TENANT_ID }}
         AzureKeyVaultAppSecret: ${{ secrets.AZURE_KEYVAULT_CLIENT_SECRET }}
         AzureKeyVaultCertificateName: ${{ secrets.AZURE_KEYVAULT_CERTIFICATE_NAME }}
-          
       run: ./build.cmd
     - uses: actions/upload-artifact@v2
       with:
