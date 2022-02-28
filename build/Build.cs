@@ -95,6 +95,8 @@ class Build : NukeBuild
     Target CalculateVersion => _ => _
         .Executes(() =>
         {
+            // We are calculating the version to use explicitly here so we can support nightly builds with an incrementing number as well as only have non pre-releases for tagged commits
+            
             var arguments = $"--CurrentBranch \"{BranchName ?? "local"}\" --NonPreReleaseTagsRegex \"refs/tags/*\" --OutputFormats Json";
 
             var jObject = OctoVersion(arguments, customLogger: LogStdErrAsWarning).StdToJson();
