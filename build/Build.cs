@@ -99,10 +99,15 @@ class Build : NukeBuild
             var octoVersionJson = RootDirectory / "octoversion.json";
             JObject jObject;
             
+            Serilog.Log.Information("Looking for existing octoversion.json in {Path}", octoVersionJson);
             if (octoVersionJson.FileExists())
             {
+                Serilog.Log.Information("Found existing octoversion.json in {Path}", octoVersionJson);
                 jObject = SerializationTasks.JsonDeserialize(File.ReadAllText(octoVersionJson));
                 fullSemVer = jObject.Value<string>("FullSemVer");
+                
+                Serilog.Log.Information("octoversion.json has {FullSemVer}", fullSemVer);
+
                 return;
             }
             
