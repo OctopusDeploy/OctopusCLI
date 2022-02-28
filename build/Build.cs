@@ -135,7 +135,12 @@ class Build : NukeBuild
         {
             DotNetTest(_ => _
                 .SetProjectFile(Solution)
-                .SetConfiguration(Configuration));
+                .SetConfiguration(Configuration)
+                .SetResultsDirectory(ArtifactsDirectory / "TestResults")
+                .AddLoggers(
+                    "console;verbosity=detailed",
+                    "trx"
+                ));
         });
 
     Target DotnetPublish => _ => _
