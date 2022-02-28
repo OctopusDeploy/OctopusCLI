@@ -435,6 +435,7 @@ step "Push Docker Images to Prod" {
 
     action {
         action_type = "Octopus.Script"
+        environments = ["Components - External"]
         properties = {
             Octopus.Action.Script.ScriptBody = <<-EOT
                 
