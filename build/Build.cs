@@ -15,6 +15,7 @@ using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using JetBrains.Annotations;
+using Newtonsoft.Json.Linq;
 using Nuke.Common.CI;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.NuGet;
@@ -96,17 +97,20 @@ class Build : NukeBuild
         .Executes(() =>
         {
             var octoVersionJson = RootDirectory / "octoversion.json";
-
+            JObject jObject;
+            
+            if (octoVersionJson.FileExists())
+            {
+                jObject = SerializationTasks.JsonDeserialize(File.ReadAllText(octoVersionJson));
+                fullSemVer = jObject.Value<string>("FullSemVer");
+                return;
+            }
+            
             // We are calculating the version to use explicitly here so we can support nightly builds with an incrementing number as well as only have non pre-releases for tagged commits
             var arguments = $"--CurrentBranch \"{BranchName ?? "local"}\" --NonPreReleaseTagsRegex \"refs/tags/[^-]*$\" --OutputFormats Json";
 
-            var jObject = OctoVersion(arguments, customLogger: LogStdErrAsWarning).StdToJson();
+            jObject = OctoVersion(arguments, customLogger: LogStdErrAsWarning).StdToJson();
             fullSemVer = jObject.Value<string>("FullSemVer");
-
-            if (octoVersionJson.FileExists())
-            {
-                return;
-            }
             
             if (!String.IsNullOrEmpty(jObject.Value<string>("PreReleaseTag")))
             {
