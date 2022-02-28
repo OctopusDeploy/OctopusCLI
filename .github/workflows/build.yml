@@ -41,6 +41,10 @@ jobs:
       with:
         name: artifacts
         path: artifacts/
+    - uses: actions/upload-artifact@v2
+      with:
+        name: octoversion
+        path: octoversion.json
   test:
     name: Run test matrix
     needs: build
@@ -60,13 +64,14 @@ jobs:
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: |
           ${{ runner.os }}-nuget-
+    - uses: actions/download-artifact@v2
+      with:
+        name: octoversion
+        path: octoversion.json
     - name: Run Nuke Test 🧪
       env:
         DOTNET_CLI_TELEMETRY_OPTOUT: true
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-        OCTOVERSION_FullSemVer: 1.0.0 # This should skip version calculation
-        OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
-        RunNumber: ${{ github.run_number }}
       run: ./build.cmd --target Test
   docker-build:
     name: Create Docker image
@@ -74,16 +79,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
     - uses: actions/download-artifact@v2
       with:
         name: artifacts
         path: artifacts
+    - uses: actions/download-artifact@v2
+      with:
+        name: octoversion
+        path: octoversion.json
     - name: Run Nuke 🛢
-      env:
-        OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
-        RunNumber: ${{ github.run_number }}
       run: ./build.sh --target BuildDockerImage
     - uses: actions/upload-artifact@v2
       with:
@@ -95,8 +99,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
     - uses: actions/checkout@v2
       with:
         repository: OctopusDeploy/linux-package-feeds
@@ -108,17 +110,17 @@ jobs:
       with:
         name: artifacts
         path: artifacts
+    - uses: actions/download-artifact@v2
+      with:
+        name: octoversion
+        path: octoversion.json
     - name: Create packages 🛢
       env:
-        OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
-        RunNumber: ${{ github.run_number }}
         SIGN_PRIVATE_KEY: ${{ secrets.SIGN_LINUX_DISTRO_PRIVATE_KEY }}
         SIGN_PASSPHRASE: ${{ secrets.SIGN_LINUX_DISTRO_PASSPHRASE }}
       run: ./build.sh --target CreateLinuxPackages
     - name: Test packages 🧪
       env:
-        OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
-        RunNumber: ${{ github.run_number }}
         OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
         OCTOPUS_CLI_API_KEY: ${{ secrets.INTEGRATIONS_API_KEY }}
         REDHAT_SUBSCRIPTION_USERNAME: ${{ secrets.REDHAT_SUBSCRIPTION_USERNAME }}
