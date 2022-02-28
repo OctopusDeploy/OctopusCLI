@@ -6,10 +6,6 @@
     "build": {
       "type": "object",
       "properties": {
-        "AutoDetectBranch": {
-          "type": "boolean",
-          "description": "Whether to auto-detect the branch name - this is okay for a local build, but should not be used under CI"
-        },
         "AzureKeyVaultAppId": {
           "type": "string"
         },
@@ -88,6 +84,9 @@
         "Root": {
           "type": "string",
           "description": "Root directory during build execution"
+        },
+        "RunNumber": {
+          "type": "string"
         },
         "SigningCertificatePassword": {
           "type": "string",

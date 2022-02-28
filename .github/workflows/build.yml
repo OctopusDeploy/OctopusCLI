@@ -30,7 +30,7 @@ jobs:
         DOTNET_CLI_TELEMETRY_OPTOUT: true
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
         OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
-        OCTOVERSION_Patch: ${{ github.run_number }}
+        RunNumber: ${{ github.run_number }}
         AzureKeyVaultUrl: ${{ secrets.AZURE_KEYVAULT_URL }}
         AzureKeyVaultAppId: ${{ secrets.AZURE_KEYVAULT_CLIENT_ID }}
         AzureKeyVaultTenantId: ${{ secrets.AZURE_KEYVAULT_TENANT_ID }}
@@ -66,7 +66,7 @@ jobs:
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
         OCTOVERSION_FullSemVer: 1.0.0 # This should skip version calculation
         OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
-        OCTOVERSION_Patch: ${{ github.run_number }}
+        RunNumber: ${{ github.run_number }}
       run: ./build.cmd --target Test
   docker-build:
     name: Create Docker image
@@ -83,7 +83,7 @@ jobs:
     - name: Run Nuke 🛢
       env:
         OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
-        OCTOVERSION_Patch: ${{ github.run_number }}
+        RunNumber: ${{ github.run_number }}
       run: ./build.sh --target BuildDockerImage
     - uses: actions/upload-artifact@v2
       with:
@@ -111,14 +111,14 @@ jobs:
     - name: Create packages 🛢
       env:
         OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
-        OCTOVERSION_Patch: ${{ github.run_number }}
+        RunNumber: ${{ github.run_number }}
         SIGN_PRIVATE_KEY: ${{ secrets.SIGN_LINUX_DISTRO_PRIVATE_KEY }}
         SIGN_PASSPHRASE: ${{ secrets.SIGN_LINUX_DISTRO_PASSPHRASE }}
       run: ./build.sh --target CreateLinuxPackages
     - name: Test packages 🧪
       env:
         OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
-        OCTOVERSION_Patch: ${{ github.run_number }}
+        RunNumber: ${{ github.run_number }}
         OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
         OCTOPUS_CLI_API_KEY: ${{ secrets.INTEGRATIONS_API_KEY }}
         REDHAT_SUBSCRIPTION_USERNAME: ${{ secrets.REDHAT_SUBSCRIPTION_USERNAME }}

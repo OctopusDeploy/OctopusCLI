@@ -18,7 +18,7 @@
   <ItemGroup>
     <PackageDownload Include="NuGet.CommandLine" Version="[5.8.1]" />
     <PackageDownload Include="AzureSignTool" Version="[3.0.0]" />
-    <PackageDownload Include="OctoVersion.Tool" Version="[0.2.982]" />
+    <PackageDownload Include="OctoVersion.Tool" Version="[0.2.1017]" />
   </ItemGroup>
 
   <ItemGroup>
