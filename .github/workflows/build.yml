@@ -49,6 +49,10 @@ jobs:
     name: Run test matrix
     needs: build
     runs-on: ${{ matrix.os }}
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
     strategy:
       matrix:
         os: [windows-2022, windows-2019, ubuntu-20.04, ubuntu-18.04, macos-11]
