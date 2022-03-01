@@ -15,7 +15,6 @@ using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using JetBrains.Annotations;
-using Newtonsoft.Json.Linq;
 using Nuke.Common.CI;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.NuGet;
@@ -96,17 +95,15 @@ class Build : NukeBuild
     Target CalculateVersion => _ => _
         .Executes(() =>
         {
-            var octoVersionJson = RootDirectory / "octoversion.json";
-            JObject jObject;
+            var octoVersionText = RootDirectory / "octoversion.txt";
             
-            Serilog.Log.Information("Looking for existing octoversion.json in {Path}", octoVersionJson);
-            if (octoVersionJson.FileExists())
+            Serilog.Log.Information("Looking for existing octoversion.txt in {Path}", octoVersionText);
+            if (octoVersionText.FileExists())
             {
-                Serilog.Log.Information("Found existing octoversion.json in {Path}", octoVersionJson);
-                jObject = SerializationTasks.JsonDeserialize(File.ReadAllText(octoVersionJson));
-                fullSemVer = jObject.Value<string>("FullSemVer");
+                Serilog.Log.Information("Found existing octoversion.txt in {Path}", octoVersionText);
+                fullSemVer = File.ReadAllText(octoVersionText);
                 
-                Serilog.Log.Information("octoversion.json has {FullSemVer}", fullSemVer);
+                Serilog.Log.Information("octoversion.txt has {FullSemVer}", fullSemVer);
 
                 return;
             }
@@ -114,7 +111,7 @@ class Build : NukeBuild
             // We are calculating the version to use explicitly here so we can support nightly builds with an incrementing number as well as only have non pre-releases for tagged commits
             var arguments = $"--CurrentBranch \"{BranchName ?? "local"}\" --NonPreReleaseTagsRegex \"refs/tags/[^-]*$\" --OutputFormats Json";
 
-            jObject = OctoVersion(arguments, customLogger: LogStdErrAsWarning).StdToJson();
+            var jObject = OctoVersion(arguments, customLogger: LogStdErrAsWarning).StdToJson();
             fullSemVer = jObject.Value<string>("FullSemVer");
             
             if (!String.IsNullOrEmpty(jObject.Value<string>("PreReleaseTag")))
@@ -122,7 +119,7 @@ class Build : NukeBuild
                 fullSemVer += RunNumber;
             }
                 
-            File.WriteAllText(octoVersionJson, $"{{ \"FullSemVer\": \"{fullSemVer}\" }}");
+            File.WriteAllText(octoVersionText, fullSemVer);
         });
 
     Target Compile => _ => _
