@@ -38,10 +38,6 @@ jobs:
         AzureKeyVaultCertificateName: ${{ secrets.AZURE_KEYVAULT_CERTIFICATE_NAME }}
       run: |
         ./build.cmd
-        FOR /F "tokens=* USEBACKQ" %%F IN (`more octoversion.txt`) DO (
-        SET VERSION=%%F
-        )
-        echo "::notice Release version number: %VERSION%"
     - uses: actions/upload-artifact@v2
       with:
         name: artifacts
