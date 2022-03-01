@@ -38,7 +38,6 @@ class Build : NukeBuild
     [Parameter("Password for the signing certificate")] readonly string SigningCertificatePassword = "Password01!";
     [Parameter("Branch name for OctoVersion to use to calculate the version number. Can be set via the environment variable " + CiBranchNameEnvVariable + ".", Name = CiBranchNameEnvVariable)]
     string BranchName { get; set; }
-    [Parameter] readonly string RunNumber = "";
     
     [Solution(GenerateProjects = true)] readonly Solution Solution;
 
@@ -114,11 +113,6 @@ class Build : NukeBuild
             var jObject = OctoVersion(arguments, customLogger: LogStdErrAsWarning).StdToJson();
             fullSemVer = jObject.Value<string>("FullSemVer");
             
-            if (!String.IsNullOrEmpty(jObject.Value<string>("PreReleaseTag")))
-            {
-                fullSemVer += RunNumber;
-            }
-                
             File.WriteAllText(octoVersionText, fullSemVer);
             Console.WriteLine($"##[notice]Release version number: {fullSemVer}");
         });

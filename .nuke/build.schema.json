@@ -85,9 +85,6 @@
           "type": "string",
           "description": "Root directory during build execution"
         },
-        "RunNumber": {
-          "type": "string"
-        },
         "SigningCertificatePassword": {
           "type": "string",
           "description": "Password for the signing certificate"

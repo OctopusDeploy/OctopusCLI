@@ -30,7 +30,7 @@ jobs:
         DOTNET_CLI_TELEMETRY_OPTOUT: true
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
         OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
-        RunNumber: ${{ github.run_number }}
+        OCTOVERSION_Build: ${{ github.run_number }}
         AzureKeyVaultUrl: ${{ secrets.AZURE_KEYVAULT_URL }}
         AzureKeyVaultAppId: ${{ secrets.AZURE_KEYVAULT_CLIENT_ID }}
         AzureKeyVaultTenantId: ${{ secrets.AZURE_KEYVAULT_TENANT_ID }}
