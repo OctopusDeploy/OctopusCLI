@@ -120,8 +120,7 @@ class Build : NukeBuild
             }
                 
             File.WriteAllText(octoVersionText, fullSemVer);
-
-            Console.WriteLine($"::notice Release version number: {fullSemVer}");
+            Console.WriteLine($"##[notice]Release version number: {fullSemVer}");
         });
 
     Target Compile => _ => _
