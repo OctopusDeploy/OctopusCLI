@@ -478,10 +478,10 @@ step "Push Docker Images to Prod" {
                     $ErrorActionPreference = $oldErrorActionPreference
                 
                     & docker image tag octopusdeploy/octo-prerelease:latest-alpine octopusdeploy/octo:latest-alpine 2>&1
-                    & docker push image octopusdeploy/octo:latest-alpine 2>&1
+                    & docker push octopusdeploy/octo:latest-alpine 2>&1
                     
                     & docker image tag octopusdeploy/octo-prerelease:$version-alpine octopusdeploy/octo:$version-alpine 2>&1
-                	& docker push image octopusdeploy/octo:$version-alpine 2>&1
+                	& docker push octopusdeploy/octo:$version-alpine 2>&1
                 
                     CreateManifest $version
                     CreateManifest "latest"
