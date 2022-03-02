@@ -286,14 +286,15 @@ step "Push OctopusTools to Chocolatey" {
             Octopus.Action.Script.ScriptBody = <<-EOT
                 $nugetPackagePath = $OctopusParameters["Octopus.Action.Package[NuGet.CommandLine].ExtractedPath"]
                 $nugetExe = Join-Path -Path $nugetPackagePath -ChildPath "Tools\nuget.exe"
+                $packagePath = $OctopusParameters["Octopus.Action.Package[OctopusTools].PackageFilePath"]
                 
                 $maxAttempts = 5
                 $currentAttempt = 1
                 
                 while ($currentAttempt -le $maxAttempts)
                 {
-                    write-host "Pushing package ($nugetPackagePath) to Chocolatey (attempt $currentAttempt)"
-                    . $nugetExe push "$($OctopusParameters["Octopus.Action.Package[OctopusTools].PackageFilePath"])" -source $ChocolateyFeedUrl -apikey $ChocolateyFeedApiKey -NonInteractive -Verbosity detailed
+                    write-host "Pushing package ($packagePath) to Chocolatey (attempt $currentAttempt)"
+                    . $nugetExe push "$($packagePath)" -source $ChocolateyFeedUrl -apikey $ChocolateyFeedApiKey -NonInteractive -Verbosity detailed
                     if ($LastExitCode -eq 0) {
                         exit 0
                     } else {
