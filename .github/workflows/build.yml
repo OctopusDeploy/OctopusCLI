@@ -21,7 +21,7 @@ jobs:
         OCTOPUS_CLI_API_KEY: ${{ secrets.INTEGRATIONS_API_KEY }}
       run: |
         echo "event.push.after = ${{ github.event.after }}"
-        echo "event.pull_request.head.sha = ${{ github.event.head.sha }}"
+        echo "event.pull_request.head.sha = ${{ github.event.pull_request.head.sha }}"
         echo "head_ref = ${{ github.head_ref }}"
         echo "github.ref = ${{ github.ref }}"
       
