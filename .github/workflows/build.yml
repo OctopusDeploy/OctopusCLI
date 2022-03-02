@@ -2,10 +2,10 @@ name: Build, test and publish
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     tags: [ '*' ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -166,4 +166,4 @@ jobs:
         tar -xf OctopusTools.$VERSION.linux-x64.tar.gz
         zip OctopusTools.Zips.$VERSION.zip *.zip *.tar.gz
         ./octo push --space "Integrations" --package Octopus.Cli.$VERSION.nupkg --package Octopus.DotNet.Cli.$VERSION.nupkg --package OctopusTools.$VERSION.nupkg --package Octo.Docker.Image.$VERSION.tar.gz --package OctopusTools.Packages.linux-x64.$VERSION.zip --package OctopusTools.Zips.$VERSION.zip --overwrite-mode OverwriteExisting
-        ./octo create-release --space "Integrations" --project "Octopus CLI" --packageVersion "$VERSION" --package "*:NuGet.CommandLine:4.4.1" --gitRef "${{ github.head_ref || github.ref }}" --gitCommit "${{ github.event.after || github.event.pull_request.head.sha }}"
+        ./octo create-release --space "Integrations" --project "Octopus CLI" --packageVersion "$VERSION" --package "*:NuGet.CommandLine:4.4.1" --gitRef "${{ (github.ref_type == 'tag' && 'main' ) || (github.head_ref || github.ref) }}" --gitCommit "${{ github.event.after || github.event.pull_request.head.sha }}"
