@@ -440,7 +440,7 @@ step "Push Docker Images to Prod" {
         properties = {
             Octopus.Action.Script.ScriptBody = <<-EOT
                 
-                $version=$OctopusParameters["Octopus.Release.Number"]
+                $version=$OctopusParameters["Octopus.Action.Package[Octo.Docker.Image].PackageVersion"]
                 $DockerHubUsername=$OctopusParameters["DockerUsername"]
                 $DockerHubPassword=$OctopusParameters["DockerPassword"]
                 
