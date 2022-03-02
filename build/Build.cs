@@ -14,10 +14,8 @@ using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
-using ILRepacking;
 using JetBrains.Annotations;
 using Nuke.Common.CI;
-using Nuke.Common.CI.TeamCity;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.NuGet;
 using Nuke.Common.Tools.OctoVersion;
@@ -35,18 +33,20 @@ class Build : NukeBuild
 {
     const string CiBranchNameEnvVariable = "OCTOVERSION_CurrentBranch";
     
-    [Parameter(Name="DOCKER_REGISTRY_USER")]string DockerUser;
-    [Parameter(Name="DOCKER_REGISTRY_PASSWORD")]string DockerPassword;
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")] readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
     [Parameter("Pfx certificate to use for signing the files")] readonly AbsolutePath SigningCertificatePath = RootDirectory / "certificates" / "OctopusDevelopment.pfx";
     [Parameter("Password for the signing certificate")] readonly string SigningCertificatePassword = "Password01!";
-    [Parameter("Whether to auto-detect the branch name - this is okay for a local build, but should not be used under CI.")] readonly bool AutoDetectBranch = IsLocalBuild;
     [Parameter("Branch name for OctoVersion to use to calculate the version number. Can be set via the environment variable " + CiBranchNameEnvVariable + ".", Name = CiBranchNameEnvVariable)]
     string BranchName { get; set; }
+    [Parameter] readonly string RunNumber = "";
     
     [Solution(GenerateProjects = true)] readonly Solution Solution;
 
-    [OctoVersion(BranchParameter = nameof(BranchName), AutoDetectBranchParameter = nameof(AutoDetectBranch), Framework = "net6.0")] readonly OctoVersionInfo OctoVersionInfo;
+    [PackageExecutable(
+        packageId: "OctoVersion.Tool",
+        packageExecutable: "OctoVersion.Tool.dll",
+        Framework = "net6.0")]
+    readonly Tool OctoVersion;
     
     [PackageExecutable(
         packageId: "azuresigntool",
@@ -57,6 +57,7 @@ class Build : NukeBuild
     [Parameter] readonly string AzureKeyVaultAppId = "";
     [Parameter] [Secret] readonly string AzureKeyVaultAppSecret = "";
     [Parameter] readonly string AzureKeyVaultCertificateName = "";
+    [Parameter] readonly string AzureKeyVaultTenantId = "";
 
     AbsolutePath SourceDirectory => RootDirectory / "source";
     AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
@@ -81,73 +82,85 @@ class Build : NukeBuild
         "https://rfc3161timestamp.globalsign.com/advanced"
     };
 
+    string fullSemVer;
+    
     Target Clean => _ => _
-        .Before(Restore)
         .Executes(() =>
         {
             SourceDirectory.GlobDirectories("**/bin", "**/obj", "**/TestResults").ForEach(DeleteDirectory);
             EnsureCleanDirectory(ArtifactsDirectory);
             EnsureCleanDirectory(PublishDirectory);
         });
-
-    [PublicAPI]
+    
     Target CalculateVersion => _ => _
         .Executes(() =>
         {
-            //all the magic happens inside `[OctoVersion]` above. we just need a target for TeamCity to call
-        });
+            var octoVersionText = RootDirectory / "octoversion.txt";
+            
+            Serilog.Log.Information("Looking for existing octoversion.txt in {Path}", octoVersionText);
+            if (octoVersionText.FileExists())
+            {
+                Serilog.Log.Information("Found existing octoversion.txt in {Path}", octoVersionText);
+                fullSemVer = File.ReadAllText(octoVersionText);
+                
+                Serilog.Log.Information("octoversion.txt has {FullSemVer}", fullSemVer);
 
-    Target Restore => _ => _
-        .DependsOn(Clean)
-        .Executes(() =>
-        {
-            DotNetRestore(_ => _
-                .SetProjectFile(Solution));
+                return;
+            }
+            
+            // We are calculating the version to use explicitly here so we can support nightly builds with an incrementing number as well as only have non pre-releases for tagged commits
+            var arguments = $"--CurrentBranch \"{BranchName ?? "local"}\" --NonPreReleaseTagsRegex \"refs/tags/[^-]*$\" --OutputFormats Json";
+
+            var jObject = OctoVersion(arguments, customLogger: LogStdErrAsWarning).StdToJson();
+            fullSemVer = jObject.Value<string>("FullSemVer");
+            
+            if (!String.IsNullOrEmpty(jObject.Value<string>("PreReleaseTag")))
+            {
+                fullSemVer += RunNumber;
+            }
+                
+            File.WriteAllText(octoVersionText, fullSemVer);
+            Console.WriteLine($"##[notice]Release version number: {fullSemVer}");
         });
 
     Target Compile => _ => _
         .DependsOn(Clean)
-        .DependsOn(Restore)
+        .DependsOn(CalculateVersion)
         .Executes(() =>
         {
-            Serilog.Log.Information("Building OctopusCLI v{0}", OctoVersionInfo.FullSemVer);
+            Serilog.Log.Information("Building OctopusCLI v{0}", fullSemVer);
 
             DotNetBuild(_ => _
                 .SetProjectFile(Solution)
                 .SetConfiguration(Configuration)
-                .SetVersion(OctoVersionInfo.FullSemVer)
-                .EnableNoRestore());
+                .SetVersion(fullSemVer));
         });
 
+    [PublicAPI]
     Target Test => _ => _
-        .DependsOn(Compile)
         .Executes(() =>
         {
             DotNetTest(_ => _
                 .SetProjectFile(Solution)
                 .SetConfiguration(Configuration)
-                .EnableNoBuild()
-                .EnableNoRestore());
+                .SetResultsDirectory(ArtifactsDirectory / "TestResults")
+                .AddLoggers(
+                    "console;verbosity=detailed",
+                    "trx"
+                ));
         });
 
     Target DotnetPublish => _ => _
-        .DependsOn(Test)
+        .DependsOn(Compile)
         .Executes(() =>
         {
-            DotNetPublish(_ => _
-                .SetProject(Solution.Octo)
-                .SetFramework("net452")
-                .SetConfiguration(Configuration)
-                .SetOutput(OctoPublishDirectory / "netfx")
-                .SetVersion(OctoVersionInfo.FullSemVer));
-
             var portablePublishDir = OctoPublishDirectory / "portable";
             DotNetPublish(_ => _
                 .SetProject(Solution.Octo)
-                .SetFramework("netcoreapp2.0") /* For compatibility until we gently phase it out. We encourage upgrading to self-contained executable. */
+                .SetFramework("netcoreapp3.1") 
                 .SetConfiguration(Configuration)
                 .SetOutput(portablePublishDir)
-                .SetVersion(OctoVersionInfo.FullSemVer));
+                .SetVersion(fullSemVer));
 
             SignBinaries(portablePublishDir);
 
@@ -165,12 +178,12 @@ class Build : NukeBuild
                 DotNetPublish(_ => _
                     .SetProject(Solution.Octo)
                     .SetConfiguration(Configuration)
-                    .SetFramework("netcoreapp3.1")
+                    .SetFramework("net6.0")
                     .SetRuntime(rid)
                     .EnableSelfContained()
                     .EnablePublishSingleFile()
                     .SetOutput(OctoPublishDirectory / rid)
-                    .SetVersion(OctoVersionInfo.FullSemVer));
+                    .SetVersion(fullSemVer));
 
                 if (!rid.StartsWith("linux-") && !rid.StartsWith("osx-"))
                     // Sign binaries, except linux which are verified at download, and osx which are signed on a mac
@@ -178,34 +191,8 @@ class Build : NukeBuild
             }
         });
 
-    Target MergeOctoExe => _ => _
-        .DependsOn(DotnetPublish)
-        .Executes(() =>
-        {
-            var inputFolder = OctoPublishDirectory / "netfx";
-            var outputFolder = OctoPublishDirectory / "netfx-merged";
-            EnsureExistingDirectory(outputFolder);
-
-            var cliList = new List<string> { $"{inputFolder}/octo.exe" };
-            cliList.AddRange(Directory.EnumerateFiles(inputFolder, "*.dll")
-                .Union(Directory.EnumerateFiles(inputFolder, "octodiff.exe")));
-
-            var cliOptions = new RepackOptions
-            {
-                OutputFile = $"{outputFolder}/octo.exe",
-                InputAssemblies = cliList.ToArray(),
-                SearchDirectories = new[] { inputFolder.ToString() },
-                Internalize = true,
-                Parallel = true
-            };
-
-            new ILRepack(cliOptions).Repack();
-
-            SignBinaries(outputFolder);
-        });
 
     Target Zip => _ => _
-        .DependsOn(MergeOctoExe)
         .DependsOn(DotnetPublish)
         .Executes(() =>
         {
@@ -213,24 +200,12 @@ class Build : NukeBuild
             {
                 var dirName = Path.GetFileName(dir);
 
-                if (dirName == "netfx")
-                    continue;
+                var outFile = ArtifactsDirectory / $"OctopusTools.{fullSemVer}.{dirName}";
+                if (dirName == "portable" || dirName.Contains("win"))
+                    CompressionTasks.CompressZip(dir, outFile + ".zip");
 
-                if (dirName == "netfx-merged")
-                {
-                    CompressionTasks.CompressZip(dir, ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.zip");
-                }
-                else
-                {
-                    var outFile = ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.{dirName}";
-                    if (dirName == "portable" || dirName.Contains("win"))
-                        CompressionTasks.CompressZip(dir, outFile + ".zip");
-
-                    if (!dirName.Contains("win"))
-                        TarGzip(dir, outFile,
-                            dirName.Contains("linux"),
-                            dirName == "portable");
-                }
+                if (!dirName.Contains("win"))
+                    TarGzip(dir, outFile);
             }
         });
 
@@ -250,7 +225,7 @@ class Build : NukeBuild
 
             NuGetTasks.NuGetPack(_ => _
                 .SetTargetPath(nugetPackDir / nuspecFile)
-                .SetVersion(OctoVersionInfo.FullSemVer)
+                .SetVersion(fullSemVer)
                 .SetOutputDirectory(ArtifactsDirectory));
         });
 
@@ -264,7 +239,7 @@ class Build : NukeBuild
                 .SetProject(OctopusCliDirectory)
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(ArtifactsDirectory)
-                .SetVersion(OctoVersionInfo.FullSemVer)
+                .SetVersion(fullSemVer)
                 .EnableNoBuild()
                 .DisableIncludeSymbols());
 
@@ -274,7 +249,7 @@ class Build : NukeBuild
                 .SetProject(DotNetOctoCliFolder)
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(ArtifactsDirectory)
-                .SetVersion(OctoVersionInfo.FullSemVer)
+                .SetVersion(fullSemVer)
                 .EnableNoBuild()
                 .DisableIncludeSymbols());
         });
@@ -284,13 +259,13 @@ class Build : NukeBuild
         {
             if (EnvironmentInfo.IsWin)
             {
-                var file = ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.portable.zip";
+                var file = ArtifactsDirectory / $"OctopusTools.{fullSemVer}.portable.zip";
                 if (!file.FileExists())
                     throw new Exception($"This build requires the portable zip at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
             }
             else
             {
-                var file = ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.portable.tar.gz";
+                var file = ArtifactsDirectory / $"OctopusTools.{fullSemVer}.portable.tar.gz";
                 if (!file.FileExists())
                     throw new Exception($"This build requires the portable tar.gz file at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
             }
@@ -299,7 +274,7 @@ class Build : NukeBuild
     Target AssertLinuxSelfContainedArtifactsExists => _ => _
         .Executes(() =>
         {
-            var file = ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.linux-x64.tar.gz";
+            var file = ArtifactsDirectory / $"OctopusTools.{fullSemVer}.linux-x64.tar.gz";
             if (!file.FileExists())
                 throw new Exception($"This build requires the linux self-contained tar.gz file at {file}. This either means the tools package wasn't build successfully, or the build artifacts were not put into the expected location.");
         });
@@ -311,22 +286,21 @@ class Build : NukeBuild
             DockerTasks.DockerLogger = (_, s) => Serilog.Log.Information(s);
         });
     
+    [PublicAPI]
     Target BuildDockerImage => _ => _
+        .DependsOn(CalculateVersion)
         .DependsOn(MuteLoudDockerCli)
         .DependsOn(AssertPortableArtifactsExists)
         .Executes(() =>
         {
-            var platform = "nanoserver";
-            if (EnvironmentInfo.IsLinux)
-                platform = "alpine";
-
-            var tag = $"octopusdeploy/octo-prerelease:{OctoVersionInfo.FullSemVer}-{platform}";
+            const string platform = "alpine";
+            var tag = $"octopusdeploy/octo-prerelease:{fullSemVer}-{platform}";
             var latest = $"octopusdeploy/octo-prerelease:latest-{platform}";
 
             DockerTasks.DockerBuild(_ => _
                 .SetFile(RootDirectory / "Dockerfiles" / platform / "Dockerfile")
                 .SetTag(tag, latest)
-                .SetBuildArg($"OCTO_TOOLS_VERSION={OctoVersionInfo.FullSemVer}")
+                .SetBuildArg($"OCTO_TOOLS_VERSION={fullSemVer}")
                 .SetPath(ArtifactsDirectory)
             );
 
@@ -336,19 +310,62 @@ class Build : NukeBuild
                 .SetCommand("version")
                 .EnableRm());
 
-            if (stdOut.FirstOrDefault().Text == OctoVersionInfo.FullSemVer)
+            var text = stdOut.FirstOrDefault().Text;
+            if (text == fullSemVer)
                 Serilog.Log.Information($"Image successfully created - running 'docker run {tag} version --rm' returned '{string.Join('\n', stdOut.Select(x => x.Text))}'");
             else
-                throw new Exception($"Built image did not return expected version {OctoVersionInfo.FullSemVer} - it returned {stdOut}");
+                throw new Exception($"Built image did not return expected version {fullSemVer} - it returned {text}");
 
-            DockerTasks.DockerLogin(_ =>
-                    _.SetUsername(DockerUser)
-                    .SetPassword(DockerPassword));
-            DockerTasks.DockerPush(_ => _.SetName(tag));
-            DockerTasks.DockerPush(_ => _.SetName(latest));
+            var tarFile = $"Octo.Docker.Image.{fullSemVer}.tar";
+            var gzipFile = $"{tarFile}.gz";
+
+            DockerTasks.DockerImageSave(_ => _.SetImages("octopusdeploy/octo-prerelease").SetOutput(ArtifactsDirectory / tarFile));
+
+            using Stream stream = File.Open(ArtifactsDirectory / gzipFile, FileMode.Create);
+            using var zip = WriterFactory.Open(stream, ArchiveType.GZip, CompressionType.GZip);
+            zip.Write(tarFile, ArtifactsDirectory / tarFile);
+            zip.Dispose();
+            
+            DeleteFile(ArtifactsDirectory / tarFile);
         });
 
+    [PublicAPI]
+    Target TestLinuxPackages => _ => _
+        .DependsOn(CalculateVersion)
+        .DependsOn(MuteLoudDockerCli)
+        .DependsOn(AssertLinuxSelfContainedArtifactsExists)
+        .Executes(() =>
+        {
+            var packagesPath = ArtifactsDirectory / "OctopusTools.Packages";
+            CompressionTasks.UncompressZip(
+                ArtifactsDirectory / $"OctopusTools.Packages.linux-x64.{fullSemVer}.zip",
+                packagesPath);
+
+            var config = LinuxPackageFeedsDir / "test-env-docker-images.conf";
+            foreach (var dockerImage in File.ReadLines(config))
+            {
+                DockerTasks.DockerRun(_ => _
+                    .EnableRm()
+                    .EnableTty()
+                    .SetEnv(@"OCTOPUS_CLI_SERVER",
+                        "OCTOPUS_CLI_API_KEY",
+                        "REDHAT_SUBSCRIPTION_USERNAME",
+                        "REDHAT_SUBSCRIPTION_PASSWORD",
+                        "OCTOPUS_SPACE=Integrations",
+                        "OCTOPUS_EXPECT_ENV=Components - Internal",
+                        "PKG_PATH_PREFIX=octopuscli")
+                    .SetVolume(packagesPath + ":/working",
+                        LinuxPackageFeedsDir + ":/opt/linux-package-feeds",
+                        AssetDirectory / "test-linux-package.sh" + ":/test-linux-package.sh")
+                    .SetImage(dockerImage)
+                    .SetCommand("bash")
+                    .SetArgs("-c", "cd /working && bash /test-linux-package.sh"));
+            }
+        });
+
+    [PublicAPI]
     Target CreateLinuxPackages => _ => _
+        .DependsOn(CalculateVersion)
         .DependsOn(MuteLoudDockerCli)
         .DependsOn(AssertLinuxSelfContainedArtifactsExists)
         .Executes(() =>
@@ -365,14 +382,14 @@ class Build : NukeBuild
                     + "See https://build.octopushq.com/admin/editDependencies.html?id=buildType:OctopusDeploy_OctopusCLI_BuildLinuxContainer");
 
             UnTarGZip(
-                ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.linux-x64.tar.gz",
-                ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.linux-x64.extracted");
+                ArtifactsDirectory / $"OctopusTools.{fullSemVer}.linux-x64.tar.gz",
+                ArtifactsDirectory / $"OctopusTools.{fullSemVer}.linux-x64.extracted");
 
             DockerTasks.DockerRun(_ => _
                 .EnableRm()
                 .EnableTty()
-                .SetEnv($"VERSION={OctoVersionInfo.FullSemVer}",
-                    $"BINARIES_PATH=/artifacts/OctopusTools.{OctoVersionInfo.FullSemVer}.linux-x64.extracted/",
+                .SetEnv($"VERSION={fullSemVer}",
+                    $"BINARIES_PATH=/artifacts/OctopusTools.{fullSemVer}.linux-x64.extracted/",
                     "PACKAGES_PATH=/artifacts",
                     "SIGN_PRIVATE_KEY",
                     "SIGN_PASSPHRASE")
@@ -383,8 +400,8 @@ class Build : NukeBuild
                 .SetCommand("bash")
                 .SetArgs("/BuildAssets/create-octopuscli-linux-packages.sh"));
 
-            DeleteDirectory(ArtifactsDirectory / $"OctopusTools.{OctoVersionInfo.FullSemVer}.linux-x64.extracted");
-
+            DeleteDirectory(ArtifactsDirectory / $"OctopusTools.{fullSemVer}.linux-x64.extracted");
+        
             var linuxPackagesDir = ArtifactsDirectory / "linuxpackages";
             EnsureExistingDirectory(linuxPackagesDir);
             ArtifactsDirectory.GlobFiles("*.deb").ForEach(path => MoveFile(path, linuxPackagesDir / new FileInfo(path).Name));
@@ -395,8 +412,7 @@ class Build : NukeBuild
             CopyFileToDirectory(AssetDirectory / "repos" / "test-linux-package-from-feed.sh", linuxPackagesDir);
             CopyFileToDirectory($"{LinuxPackageFeedsDir}/test-env-docker-images.conf", linuxPackagesDir);
             CopyFileToDirectory($"{LinuxPackageFeedsDir}/install-linux-feed-package.sh", linuxPackagesDir);
-            CompressionTasks.CompressZip(linuxPackagesDir, ArtifactsDirectory / $"OctopusTools.Packages.linux-x64.{OctoVersionInfo.FullSemVer}.zip");
-            TeamCity.Instance.PublishArtifacts(ArtifactsDirectory / $"OctopusTools.Packages.linux-x64.{OctoVersionInfo.FullSemVer}.zip");
+            CompressionTasks.CompressZip(linuxPackagesDir, ArtifactsDirectory / $"OctopusTools.Packages.linux-x64.{fullSemVer}.zip");
             DeleteDirectory(linuxPackagesDir);
         });
 
@@ -414,8 +430,8 @@ class Build : NukeBuild
         .Executes(() =>
         {
             EnsureExistingDirectory(LocalPackagesDirectory);
-            CopyFileToDirectory(ArtifactsDirectory / $"Octopus.Cli.{OctoVersionInfo.FullSemVer}.nupkg", LocalPackagesDirectory, FileExistsPolicy.Overwrite);
-            CopyFileToDirectory(ArtifactsDirectory / $"Octopus.DotNet.Cli.{OctoVersionInfo.FullSemVer}.nupkg", LocalPackagesDirectory, FileExistsPolicy.Overwrite);
+            CopyFileToDirectory(ArtifactsDirectory / $"Octopus.Cli.{fullSemVer}.nupkg", LocalPackagesDirectory, FileExistsPolicy.Overwrite);
+            CopyFileToDirectory(ArtifactsDirectory / $"Octopus.DotNet.Cli.{fullSemVer}.nupkg", LocalPackagesDirectory, FileExistsPolicy.Overwrite);
         });
 
     Target Default => _ => _
@@ -443,7 +459,7 @@ class Build : NukeBuild
         var lastException = default(Exception);
         foreach (var url in SigningTimestampUrls)
         {
-            TeamCity.Instance?.OpenBlock("Signing and timestamping with server " + url);
+            Serilog.Log.Information("Signing and timestamping with server {Url}", url);
             try
             {
                 if (useSignTool)
@@ -457,14 +473,13 @@ class Build : NukeBuild
                 lastException = ex;
             }
 
-            TeamCity.Instance?.CloseBlock("Signing and timestamping with server " + url);
             if (lastException == null)
                 break;
         }
 
         if (lastException != null)
             throw lastException;
-        Serilog.Log.Information($"Finished signing {distinctFiles.Count()} files.");
+        Serilog.Log.Information($"Finished signing {distinctFiles.Length} files.");
     }
 
     void SignWithAzureSignTool(IEnumerable<string> files, string timestampUrl)
@@ -474,6 +489,7 @@ class Build : NukeBuild
         var arguments = "sign " +
             $"--azure-key-vault-url \"{AzureKeyVaultUrl}\" " +
             $"--azure-key-vault-client-id \"{AzureKeyVaultAppId}\" " +
+            $"--azure-key-vault-tenant-id \"{AzureKeyVaultTenantId}\" " +
             $"--azure-key-vault-client-secret \"{AzureKeyVaultAppSecret}\" " +
             $"--azure-key-vault-certificate \"{AzureKeyVaultCertificateName}\" " +
             "--file-digest sha256 " +
@@ -512,7 +528,7 @@ class Build : NukeBuild
             Serilog.Log.Debug(message);
     }
 
-    void TarGzip(string path, string outputFile, bool insertCapitalizedOctoWrapper = false, bool insertCapitalizedDotNetWrapper = false)
+    void TarGzip(string path, string outputFile)
     {
         var outFile = $"{outputFile}.tar.gz";
         Serilog.Log.Information("Creating TGZ file {0} from {1}", outFile, path);
@@ -520,12 +536,6 @@ class Build : NukeBuild
         {
             using (var tar = WriterFactory.Open(tarMemStream, ArchiveType.Tar, new TarWriterOptions(CompressionType.None, true)))
             {
-                // If using a capitalized wrapper, insert it first so it wouldn't overwrite the main payload on a case-insensitive system.
-                if (insertCapitalizedOctoWrapper)
-                    tar.Write("Octo", AssetDirectory / "OctoWrapper.sh");
-                else if (insertCapitalizedDotNetWrapper)
-                    tar.Write("Octo", AssetDirectory / "octo");
-
                 // Add the remaining files
                 tar.WriteAll(path, "*", SearchOption.AllDirectories);
             }

@@ -6,14 +6,14 @@
     We include all possible targets here so that no matter what framework version
     the user has installed, there is an appropriate build in the tools package
     -->
-    <TargetFrameworks>netcoreapp2.1;netcoreapp2.2;netcoreapp3.0;netcoreapp3.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
     <PackAsTool>True</PackAsTool>
     <AssemblyName>dotnet-octo</AssemblyName>
     <PackageId>Octopus.DotNet.Cli</PackageId>
     <Authors>Octopus Deploy</Authors>
     <Copyright>Octopus Deploy Pty Ltd</Copyright>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageProjectUrl>http://octopusdeploy.com/</PackageProjectUrl>
+    <PackageProjectUrl>https://octopus.com/</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/OctopusDeploy/OctopusCli</RepositoryUrl>

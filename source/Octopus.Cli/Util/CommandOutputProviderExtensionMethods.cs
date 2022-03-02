@@ -110,7 +110,7 @@ namespace Octopus.Cli.Util
                 return;
             if (buildEnvironment == AutomationEnvironment.AzureDevOps || buildEnvironment == AutomationEnvironment.NoneOrUnknown)
             {
-                var workingDirectory = Environment.GetEnvironmentVariable("SYSTEM_DEFAULTWORKINGDIRECTORY") ?? new FileInfo(typeof(CommandOutputProviderExtensionMethods).GetTypeInfo().Assembly.Location).DirectoryName;
+                var workingDirectory = Environment.GetEnvironmentVariable("SYSTEM_DEFAULTWORKINGDIRECTORY") ?? AppContext.BaseDirectory;
                 var selflink = new Uri(new Uri(serverBaseUrl), release.Links["Web"].AsString());
                 var markdown = $"[Release {release.Version} created for '{project.Name}']({selflink})";
                 var markdownFile = Path.Combine(workingDirectory, Guid.NewGuid() + ".md");

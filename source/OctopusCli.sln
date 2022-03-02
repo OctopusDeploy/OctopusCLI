@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\BuildAssets\create-octopuscli-linux-packages.sh = ..\BuildAssets\create-octopuscli-linux-packages.sh
 		..\BuildAssets\test-linux-package.sh = ..\BuildAssets\test-linux-package.sh
 		..\BuildAssets\test-linux-package-in-dists.sh = ..\BuildAssets\test-linux-package-in-dists.sh
+		..\.github\workflows\build.yml = ..\.github\workflows\build.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Octo", "Octo\Octo.csproj", "{D1BFD88F-FB8E-49EC-968F-F4D9A8A52519}"
@@ -28,11 +29,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Alpine", "Alpine", "{32A3C564-207A-43DB-9588-27AFAF846C1A}"
 ProjectSection(SolutionItems) = preProject
 	..\Dockerfiles\alpine\Dockerfile = ..\Dockerfiles\alpine\Dockerfile
-EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NanoServer", "NanoServer", "{0E7214DA-B46B-4C56-A535-B5341080295E}"
-ProjectSection(SolutionItems) = preProject
-	..\Dockerfiles\nanoserver\Dockerfile = ..\Dockerfiles\nanoserver\Dockerfile
 EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "..\build\_build.csproj", "{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}"
@@ -106,6 +102,5 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{32A3C564-207A-43DB-9588-27AFAF846C1A} = {994AA337-0E3B-44C3-83F8-0E6C5D3AA007}
-		{0E7214DA-B46B-4C56-A535-B5341080295E} = {994AA337-0E3B-44C3-83F8-0E6C5D3AA007}
 	EndGlobalSection
 EndGlobal

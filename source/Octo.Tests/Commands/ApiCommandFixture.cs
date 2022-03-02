@@ -76,15 +76,6 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void ShouldSupportValidIntForKeepAlive()
-        {
-#if NETFRAMEWORK
-            CommandLineArgs.Add("--keepalive=10");
-            TestCommandExtensions.Execute(apiCommand, CommandLineArgs.ToArray());
-#endif
-        }
-
-        [Test]
         public void ShouldThrowNiceExceptionForInvalidKeepalive()
         {
             CommandLineArgs.Add("--keepalive=fred");

@@ -4,7 +4,6 @@ A docker wrapped version of the popular Octopus CLI, [octo](https://octopus.com/
 ## Platforms
 Images are currently available for
 - [linux/amd64](alpine/Dockerfile) - based on alpine
-- [windows/amd64](nanoserver/Dockerfile) - based on windows nanoserver
 
 
 ## Command Options

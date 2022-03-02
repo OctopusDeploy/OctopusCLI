@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/runtime:3.1-alpine
+FROM mcr.microsoft.com/dotnet/runtime:6.0-alpine
 
 # Alpine base image does not have ICU libraries available
 # https://github.com/dotnet/corefx/blob/master/Documentation/architecture/globalization-invariant-mode.md

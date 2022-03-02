@@ -1,0 +1,169 @@
+name: Build, test and publish
+
+on:
+  push:
+    branches: [ master ]
+    tags: [ '*' ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Build code
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+    - uses: actions/cache@v2
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+    - name: Run Nuke Build 🏗
+      env:
+        DOTNET_CLI_TELEMETRY_OPTOUT: true
+        DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+        OCTOVERSION_CurrentBranch: ${{ github.head_ref || github.ref }} # For pull_request events we override the /refs/pull/xx/merge branch to the PR's head branch
+        RunNumber: ${{ github.run_number }}
+        AzureKeyVaultUrl: ${{ secrets.AZURE_KEYVAULT_URL }}
+        AzureKeyVaultAppId: ${{ secrets.AZURE_KEYVAULT_CLIENT_ID }}
+        AzureKeyVaultTenantId: ${{ secrets.AZURE_KEYVAULT_TENANT_ID }}
+        AzureKeyVaultAppSecret: ${{ secrets.AZURE_KEYVAULT_CLIENT_SECRET }}
+        AzureKeyVaultCertificateName: ${{ secrets.AZURE_KEYVAULT_CERTIFICATE_NAME }}
+      run: |
+        ./build.cmd
+    - uses: actions/upload-artifact@v2
+      with:
+        name: artifacts
+        path: artifacts/
+    - uses: actions/upload-artifact@v2
+      with:
+        name: octoversion
+        path: octoversion.txt
+  test:
+    name: Run test matrix
+    needs: build
+    runs-on: ${{ matrix.os }}
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+    strategy:
+      matrix:
+        os: [windows-2022, windows-2019, ubuntu-20.04, ubuntu-18.04, macos-11]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+    - uses: actions/cache@v2
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+    - uses: actions/download-artifact@v2
+      with:
+        name: octoversion
+    - name: Run Nuke Test 🧪
+      env:
+        DOTNET_CLI_TELEMETRY_OPTOUT: true
+        DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+      run: ./build.cmd --target Test
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()    # run this step even if previous step failed
+      with:
+        name: Tests
+        path: artifacts/TestResults/*.trx
+        reporter: dotnet-trx
+  docker-build:
+    name: Create Docker image
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/download-artifact@v2
+      with:
+        name: artifacts
+        path: artifacts
+    - uses: actions/download-artifact@v2
+      with:
+        name: octoversion
+    - name: Run Nuke 🛢
+      run: ./build.sh --target BuildDockerImage
+    - uses: actions/upload-artifact@v2
+      with:
+        name: docker-image
+        path: artifacts/Octo.Docker.Image.*.tar.gz
+  linux-distro-packages-build:
+    name: Create Linux disto packages
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
+      with:
+        repository: OctopusDeploy/linux-package-feeds
+        token: ${{ secrets.RENOVATE_GITHUB_TOKEN }}
+        path: linux-package-feeds-repo
+    - run: |
+        ln -s linux-package-feeds-repo/source linux-package-feeds
+    - uses: actions/download-artifact@v2
+      with:
+        name: artifacts
+        path: artifacts
+    - uses: actions/download-artifact@v2
+      with:
+        name: octoversion
+    - name: Create packages 🛢
+      env:
+        SIGN_PRIVATE_KEY: ${{ secrets.SIGN_LINUX_DISTRO_PRIVATE_KEY }}
+        SIGN_PASSPHRASE: ${{ secrets.SIGN_LINUX_DISTRO_PASSPHRASE }}
+      run: ./build.sh --target CreateLinuxPackages
+    - name: Test packages 🧪
+      env:
+        OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
+        OCTOPUS_CLI_API_KEY: ${{ secrets.INTEGRATIONS_API_KEY }}
+        REDHAT_SUBSCRIPTION_USERNAME: ${{ secrets.REDHAT_SUBSCRIPTION_USERNAME }}
+        REDHAT_SUBSCRIPTION_PASSWORD: ${{ secrets.REDHAT_SUBSCRIPTION_PASSWORD }}
+      run: ./build.sh --target TestLinuxPackages
+    - uses: actions/upload-artifact@v2
+      with:
+        name: packages-linux
+        path: artifacts/OctopusTools.Packages.linux-x64.*.zip
+  push-to-octopus:
+    name: Push artifacts to Octopus
+    needs: [docker-build, linux-distro-packages-build, test]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: artifacts
+        path: artifacts
+    - uses: actions/download-artifact@v2
+      with:
+        name: packages-linux
+        path: artifacts
+    - uses: actions/download-artifact@v2
+      with:
+        name: docker-image
+        path: artifacts
+    - name: Talk to Octopus 
+      env:
+        OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
+        OCTOPUS_CLI_API_KEY: ${{ secrets.INTEGRATIONS_API_KEY }}
+      run: |
+        cd artifacts
+        VERSION=$(ls OctopusTools.*.linux-x64.tar.gz | tail -1 | sed -nE 's/^OctopusTools\.(.*)\.linux-x64.tar.gz$/\1/p')
+        tar -xf OctopusTools.$VERSION.linux-x64.tar.gz
+        zip OctopusTools.Zips.$VERSION.zip *.zip *.tar.gz
+        ./octo push --space "Integrations" --package Octopus.Cli.$VERSION.nupkg --package Octopus.DotNet.Cli.$VERSION.nupkg --package OctopusTools.$VERSION.nupkg --package Octo.Docker.Image.$VERSION.tar.gz --package OctopusTools.Packages.linux-x64.$VERSION.zip --package OctopusTools.Zips.$VERSION.zip --overwrite-mode OverwriteExisting
+        ./octo create-release --space "Integrations" --project "Octopus CLI" --packageVersion "$VERSION" --package "*:NuGet.CommandLine:4.4.1" --gitRef "${{ github.head_ref || github.ref }}" --gitCommit "${{ github.event.push.after || github.event.pull_request.head.sha }}"

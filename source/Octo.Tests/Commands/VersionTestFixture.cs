@@ -46,11 +46,7 @@ namespace Octo.Tests.Commands
 
         static string AssemblyPath()
         {
-            var codeBase = Assembly.GetExecutingAssembly().CodeBase;
-            var uri = new UriBuilder(codeBase);
-            var root = Uri.UnescapeDataString(uri.Path);
-            root = root.Replace('/', Path.DirectorySeparatorChar);
-            return root;
+            return Assembly.GetExecutingAssembly().Location;
         }
 
         string GetVersionFromFile(string versionFilePath)

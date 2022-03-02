@@ -431,22 +431,112 @@ step "Publish to RPM repo" {
     }
 }
 
-step "Move Docker Images To Prod" {
-    start_trigger = "StartWithPrevious"
+step "Push Docker Images to Prod" {
 
     action {
+        action_type = "Octopus.Script"
         environments = ["Components - External"]
         properties = {
-            mditp_DockerHubPassword = "#{DockerPassword}"
-            mditp_DockerHubUsername = "#{DockerUsername}"
-            mditp_DockerOsTypeRegex = "nanoserver|alpine"
-            mditp_ImageTag = "#{Octopus.Release.Number}"
-            mditp_PreReleaseImage = "octopusdeploy/octo-prerelease"
-            mditp_ReleaseImage = "octopusdeploy/octo"
-            Octopus.Action.Template.Id = "ActionTemplates-883"
-            Octopus.Action.Template.Version = "2"
+            Octopus.Action.Script.ScriptBody = <<-EOT
+                
+                $version=$OctopusParameters["Octopus.Release.Number"]
+                $DockerHubUsername=$OctopusParameters["DockerUsername"]
+                $DockerHubPassword=$OctopusParameters["DockerPassword"]
+                
+                $script:dockerHashes = @{}
+                
+                # we tried to configure a credential helper, oh how we tried.
+                # but if we did, it make "docker manifest push" fail with an authentication error
+                # it appears that docker manifest push doesn't respect the credstore
+                function Suppress-DockerLoginWarning {
+                    [CmdletBinding()]
+                    param(
+                        [Parameter(ValueFromPipeline)]
+                        [pscustomobject]$message
+                    )
+                    process {
+                        if (("$message" -eq "WARNING! Your password will be stored unencrypted in /home/ubuntu/.docker/config.json.") -or
+                            ("$message" -eq "Configure a credential helper to remove this warning. See") -or
+                            ("$message" -eq "https://docs.docker.com/engine/reference/commandline/login/#credentials-store") -or
+                            ("$message" -eq "System.Management.Automation.RemoteException")) {
+                            return
+                        } 
+                        else {
+                            $message
+                        }
+                    }
+                }
+                
+                function Run() {
+                    & docker load $OctopusParameters["Octopus.Action.Package[Octo.Docker.Image].PackageFilePath"] 2>&1
+                
+                	#redirecting stderr appears to throw a script terminating error - https://github.com/PowerShell/PowerShell/issues/4002
+                    $oldErrorActionPreference = $ErrorActionPreference
+                    $ErrorActionPreference = 'silentlycontinue'
+                    (echo $DockerHubPassword | & "docker" login -u $DockerHubUsername --password-stdin 2>&1)  | Suppress-DockerLoginWarning
+                    $ErrorActionPreference = $oldErrorActionPreference
+                
+                    & docker image tag octopusdeploy/octo-prerelease:latest-alpine octopusdeploy/octo:latest-alpine 2>&1
+                    & docker push image octopusdeploy/octo:latest-alpine 2>&1
+                    
+                    & docker image tag octopusdeploy/octo-prerelease:$version-alpine octopusdeploy/octo:$version-alpine 2>&1
+                	& docker push image octopusdeploy/octo:$version-alpine 2>&1
+                
+                    CreateManifest $version
+                    CreateManifest "latest"
+                
+                    docker logout
+                }
+                
+                function EnableExperimentalDockerCliFeatures {
+                    $currentConfig = "{}" | ConvertFrom-Json
+                    if (Test-Path "~/.docker/config.json") {
+                      $currentConfig = (Get-Content "~/.docker/config.json" | ConvertFrom-Json)
+                    }
+                
+                    if (-not ([bool]($currentConfig.PSobject.Properties.name -match "experimental"))) {
+                      $currentConfig | Add-Member -Name "experimental" -value "enabled" -MemberType NoteProperty
+                    } else {
+                      $currentConfig.experimental = "enabled"
+                    }
+                    Set-Content -Path "~/.docker/config.json" -Value ($currentConfig | ConvertTo-Json)
+                }
+                
+                function CreateManifest($tag) {
+                    echo "Creating Manifest $($release):$($tag)"
+                    $args = @('manifest', 'create', '--amend', "$($release):$($tag)", "$($release):$($version)-alpine")
+                       
+                    EnableExperimentalDockerCliFeatures
+                        
+                    echo "running docker $args"
+                    & docker $args 2>&1
+                    
+                    echo "Created Manifest $($release):$($tag)"
+                    
+                    echo "Pushing Manifest $($release):$($tag)"
+                    docker manifest push --purge "$($release):$($tag)"
+                    echo "Pushed Manifest $($release):$($tag)"
+                    echo "-----------------------"
+                }
+                
+                Run
+                
+            EOT
+            Octopus.Action.Script.ScriptSource = "Inline"
+            Octopus.Action.Script.Syntax = "PowerShell"
         }
         worker_pool = "Hosted Ubuntu"
+
+        packages "Octo.Docker.Image" {
+            acquisition_location = "Server"
+            feed = "Octopus Server (built-in)"
+            package_id = "Octo.Docker.Image"
+            properties = {
+                Extract = "False"
+                Purpose = ""
+                SelectionMode = "immediate"
+            }
+        }
     }
 }
 
