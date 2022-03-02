@@ -548,6 +548,7 @@ step "Upload OctopusTools Manifest to S3" {
     action {
         action_type = "Octopus.Script"
         environments = ["Components - External"]
+        is_disabled = true
         properties = {
             Octopus.Action.Script.ScriptBody = <<-EOT
                 Import-Module AWSPowerShell.NetCore
