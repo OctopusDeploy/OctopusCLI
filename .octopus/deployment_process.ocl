@@ -469,7 +469,7 @@ step "Push Docker Images to Prod" {
                 }
                 
                 function Run() {
-                    & docker load $OctopusParameters["Octopus.Action.Package[Octo.Docker.Image].PackageFilePath"] 2>&1
+                    & docker load -i $OctopusParameters["Octopus.Action.Package[Octo.Docker.Image].PackageFilePath"] 2>&1
                 
                 	#redirecting stderr appears to throw a script terminating error - https://github.com/PowerShell/PowerShell/issues/4002
                     $oldErrorActionPreference = $ErrorActionPreference
