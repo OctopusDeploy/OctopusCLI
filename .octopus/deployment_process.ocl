@@ -504,6 +504,8 @@ step "Push Docker Images to Prod" {
                 }
                 
                 function CreateManifest($tag) {
+                	$release = "octopusdeploy/octo"
+                    
                     echo "Creating Manifest $($release):$($tag)"
                     $args = @('manifest', 'create', '--amend', "$($release):$($tag)", "$($release):$($version)-alpine")
                        
