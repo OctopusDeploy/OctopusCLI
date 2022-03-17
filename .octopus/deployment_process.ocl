@@ -337,7 +337,7 @@ step "Publish Homebrew" {
         environments = ["Components - External"]
         properties = {
             Octopus.Action.Template.Id = "ActionTemplates-882"
-            Octopus.Action.Template.Version = "18"
+            Octopus.Action.Template.Version = "19"
             PackageToUpload = "{\"PackageId\":\"OctopusTools.Zips\",\"FeedId\":\"Octopus Server (built-in)\"}"
             PubHomebrew-Email = "support@octopus.com"
             PubHomebrew-FileName = "octopuscli.rb"
