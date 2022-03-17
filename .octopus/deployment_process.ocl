@@ -22,12 +22,11 @@ step "Upload OctopusTools to S3 public with hashes" {
     }
 }
 
-step "Push Octopus.Cli to feedz.io" {
+step "Push Octopus.Cli to NuGet style feed" {
     start_trigger = "StartWithPrevious"
 
     action {
         action_type = "Octopus.Script"
-        environments = ["Components - Internal"]
         properties = {
             Octopus.Action.Script.ScriptBody = <<-EOT
                 # Build the path to nuget.exe
@@ -35,7 +34,7 @@ step "Push Octopus.Cli to feedz.io" {
                 $nugetExe = Join-Path -Path $nugetPackagePath -ChildPath "Tools\nuget.exe"
                 
                 # nuget push
-                . $nugetExe push "$($OctopusParameters["Octopus.Action.Package[Octopus.Cli].PackageFilePath"])"	-source $InternalFeedUrl -apikey $InternalFeedApiKey
+                . $nugetExe push "$($OctopusParameters["Octopus.Action.Package[Octopus.Cli].PackageFilePath"])"	-source $FeedUrl -apikey $FeedApiKey
             EOT
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
@@ -64,12 +63,11 @@ step "Push Octopus.Cli to feedz.io" {
     }
 }
 
-step "Push Octopus.Cli to NuGet Gallery" {
+step "Push Octopus.DotNet.Cli to NuGet style feed" {
     start_trigger = "StartWithPrevious"
 
     action {
         action_type = "Octopus.Script"
-        environments = ["Components - External"]
         properties = {
             Octopus.Action.Script.ScriptBody = <<-EOT
                 # Build the path to nuget.exe
@@ -77,47 +75,7 @@ step "Push Octopus.Cli to NuGet Gallery" {
                 $nugetExe = Join-Path -Path $nugetPackagePath -ChildPath "Tools\nuget.exe"
                 
                 # nuget push
-                . $nugetExe push "$($OctopusParameters["Octopus.Action.Package[Octopus.Cli].PackageFilePath"])"	-source $ExternalFeedUrl -apikey $ExternalFeedApiKey
-            EOT
-            Octopus.Action.Script.ScriptSource = "Inline"
-            Octopus.Action.Script.Syntax = "PowerShell"
-        }
-        worker_pool = "Hosted Windows 2019"
-
-        packages "NuGet.CommandLine" {
-            acquisition_location = "Server"
-            feed = "NuGet"
-            package_id = "NuGet.CommandLine"
-            properties = {
-                Extract = "True"
-            }
-        }
-
-        packages "Octopus.Cli" {
-            acquisition_location = "Server"
-            feed = "Octopus Server (built-in)"
-            package_id = "Octopus.Cli"
-            properties = {
-                Extract = "False"
-            }
-        }
-    }
-}
-
-step "Push Octopus.DotNet.Cli to feedz.io" {
-    start_trigger = "StartWithPrevious"
-
-    action {
-        action_type = "Octopus.Script"
-        environments = ["Components - Internal"]
-        properties = {
-            Octopus.Action.Script.ScriptBody = <<-EOT
-                # Build the path to nuget.exe
-                $nugetPackagePath = $OctopusParameters["Octopus.Action.Package[NuGet.CommandLine].ExtractedPath"]
-                $nugetExe = Join-Path -Path $nugetPackagePath -ChildPath "Tools\nuget.exe"
-                
-                # nuget push
-                . $nugetExe push "$($OctopusParameters["Octopus.Action.Package[Octopus.DotNet.Cli].PackageFilePath"])"	-source $InternalFeedUrl -apikey $InternalFeedApiKey
+                . $nugetExe push "$($OctopusParameters["Octopus.Action.Package[Octopus.DotNet.Cli].PackageFilePath"])"	-source $FeedUrl -apikey $FeedApiKey
             EOT
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
@@ -144,92 +102,11 @@ step "Push Octopus.DotNet.Cli to feedz.io" {
     }
 }
 
-step "Push Octopus.DotNet.Cli to NuGet Gallery" {
+step "Push OctopusTools to NuGet style feed" {
     start_trigger = "StartWithPrevious"
 
     action {
         action_type = "Octopus.Script"
-        environments = ["Components - External"]
-        properties = {
-            Octopus.Action.Script.ScriptBody = <<-EOT
-                # Build the path to nuget.exe
-                $nugetPackagePath = $OctopusParameters["Octopus.Action.Package[NuGet.CommandLine].ExtractedPath"]
-                $nugetExe = Join-Path -Path $nugetPackagePath -ChildPath "Tools\nuget.exe"
-                
-                # nuget push
-                . $nugetExe push "$($OctopusParameters["Octopus.Action.Package[Octopus.DotNet.Cli].PackageFilePath"])"	-source $ExternalFeedUrl -apikey $ExternalFeedApiKey
-            EOT
-            Octopus.Action.Script.ScriptSource = "Inline"
-            Octopus.Action.Script.Syntax = "PowerShell"
-        }
-        worker_pool = "Hosted Windows 2019"
-
-        packages "NuGet.CommandLine" {
-            acquisition_location = "Server"
-            feed = "NuGet"
-            package_id = "NuGet.CommandLine"
-            properties = {
-                Extract = "True"
-            }
-        }
-
-        packages "Octopus.DotNet.Cli" {
-            acquisition_location = "Server"
-            feed = "Octopus Server (built-in)"
-            package_id = "Octopus.DotNet.Cli"
-            properties = {
-                Extract = "False"
-            }
-        }
-    }
-}
-
-step "Push OctopusTools to feedz.io" {
-    start_trigger = "StartWithPrevious"
-
-    action {
-        action_type = "Octopus.Script"
-        environments = ["Components - Internal"]
-        properties = {
-            Octopus.Action.Script.ScriptBody = <<-EOT
-                # Build the path to nuget.exe
-                $nugetPackagePath = $OctopusParameters["Octopus.Action.Package[NuGet.CommandLine].ExtractedPath"]
-                $nugetExe = Join-Path -Path $nugetPackagePath -ChildPath "Tools\nuget.exe"
-                
-                # nuget push
-                . $nugetExe push "$($OctopusParameters["Octopus.Action.Package[OctopusTools].PackageFilePath"])"	-source $InternalFeedUrl -apikey $InternalFeedApiKey
-            EOT
-            Octopus.Action.Script.ScriptSource = "Inline"
-            Octopus.Action.Script.Syntax = "PowerShell"
-        }
-        worker_pool = "Hosted Windows 2019"
-
-        packages "NuGet.CommandLine" {
-            acquisition_location = "Server"
-            feed = "NuGet"
-            package_id = "NuGet.CommandLine"
-            properties = {
-                Extract = "True"
-            }
-        }
-
-        packages "OctopusTools" {
-            acquisition_location = "Server"
-            feed = "Octopus Server (built-in)"
-            package_id = "OctopusTools"
-            properties = {
-                Extract = "False"
-            }
-        }
-    }
-}
-
-step "Push OctopusTools to NuGet Gallery" {
-    start_trigger = "StartWithPrevious"
-
-    action {
-        action_type = "Octopus.Script"
-        environments = ["Components - External"]
         properties = {
             Octopus.Action.Script.ScriptBody = <<-EOT
                 $nugetPackagePath = $OctopusParameters["Octopus.Action.Package[NuGet.CommandLine].ExtractedPath"]
@@ -241,7 +118,7 @@ step "Push OctopusTools to NuGet Gallery" {
                 while ($currentAttempt -le $maxAttempts)
                 {
                     write-host "Pushing package ($nugetPackagePath) to nuget (attempt $currentAttempt)"
-                    . $nugetExe push "$($OctopusParameters["Octopus.Action.Package[OctopusTools].PackageFilePath"])" -source $ExternalFeedUrl -apikey $ExternalFeedApiKey
+                    . $nugetExe push "$($OctopusParameters["Octopus.Action.Package[OctopusTools].PackageFilePath"])" -source $FeedUrl -apikey $FeedApiKey
                     if ($LastExitCode -eq 0) {
                         exit 0
                     } else {
