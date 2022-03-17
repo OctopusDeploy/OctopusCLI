@@ -43,8 +43,8 @@ namespace Octopus.Cli.Commands.Releases
             var options = Options.For("Release creation");
             options.Add<string>("project=", "Name or ID of the project.", v => ProjectNameOrId = v);
             options.Add<string>("defaultPackageVersion=|packageVersion=", "Default version number of all packages to use for this release. Override per-package using --package.", versionResolver.Default);
-            options.Add<string>("gitCommit=", "[Optional, Experimental] Git commit to use when creating the release. Use in conjunction with the --gitRef parameter to select any previous commit.", v => GitCommit = v);
-            options.Add<string>("ref=|gitRef=", "[Optional, Experimental] Git reference to use when creating the release.", v => GitReference = v);
+            options.Add<string>("gitCommit=", "[Optional] Git commit to use when creating the release. Use in conjunction with the --gitRef parameter to select any previous commit.", v => GitCommit = v);
+            options.Add<string>("ref=|gitRef=", "[Optional] Git reference to use when creating the release.", v => GitReference = v);
             options.Add<string>("version=|releaseNumber=", "[Optional] Release number to use for the new release.", v => VersionNumber = v);
             options.Add<string>("channel=", "[Optional] Name or ID of the channel to use for the new release. Omit this argument to automatically select the best channel.", v => ChannelNameOrId = v);
             options.Add<string>("package=", "[Optional] Version number to use for a package in the release. Format: StepName:Version or PackageID:Version or StepName:PackageName:Version. StepName, PackageID, and PackageName can be replaced with an asterisk. An asterisk will be assumed for StepName, PackageID, or PackageName if they are omitted.", v => versionResolver.Add(v), allowsMultiple: true);
@@ -370,10 +370,9 @@ namespace Octopus.Cli.Commands.Releases
         void ValidateProjectPersistenceRequirements()
         {
             var wasGitRefProvided = !string.IsNullOrEmpty(GitReference);
-            if (project.PersistenceSettings is GitPersistenceSettingsResource vcsResource && !wasGitRefProvided)
+            if (project.PersistenceSettings is GitPersistenceSettingsResource && !wasGitRefProvided)
             {
-                GitReference = vcsResource.DefaultBranch;
-                commandOutputProvider.Information("No gitRef parameter provided. Using Project Default Branch: {DefaultBranch:l}", vcsResource.DefaultBranch);
+                throw new CommandException("No gitRef value provided. Please provide the --gitRef argument passing the branch name or commit that contains the project details for this release.");
             }
 
             if (!project.IsVersionControlled && wasGitRefProvided)
