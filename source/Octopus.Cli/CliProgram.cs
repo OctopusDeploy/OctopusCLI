@@ -23,10 +23,6 @@ namespace Octopus.Cli
     {
         public int Execute(string[] args)
         {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls
-                | SecurityProtocolType.Tls11
-                | SecurityProtocolType.Tls12;
-
             ConfigureLogger();
             return Run(args);
         }
