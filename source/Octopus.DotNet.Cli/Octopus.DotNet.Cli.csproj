@@ -6,7 +6,7 @@
     We include all possible targets here so that no matter what framework version
     the user has installed, there is an appropriate build in the tools package
     -->
-    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net6.0</TargetFrameworks>
     <PackAsTool>True</PackAsTool>
     <AssemblyName>dotnet-octo</AssemblyName>
     <PackageId>Octopus.DotNet.Cli</PackageId>
