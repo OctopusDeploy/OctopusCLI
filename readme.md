@@ -11,9 +11,9 @@ Please see [Contributing](CONTRIBUTING.md)
 ## Development
 You need:
 - VSCode or Visual Studio 15.3 to compile the solution
-- dotnet core 2.1.302 SDK
+- dotnet core 6.1.101 SDK
 
-Run `Build.cmd` to build, test and package the project. Do this before pushing as it will run the surface area tests as well,
+Run `Build.cmd` or `build.sh` to build, test and package the project. Do this before pushing as it will run the surface area tests as well,
 which require approval on almost every change.
 
 To release to Nuget, tag `master` with the next major, minor or patch number, [TeamCity](https://build.octopushq.com/project.html?projectId=OctopusDeploy_OctopusCLI&tab=projectOverview) will do the rest. Kick off the `Release: Deploy OctopusCLI` build again if any of the dependencies fail.
