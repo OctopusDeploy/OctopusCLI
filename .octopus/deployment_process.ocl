@@ -27,6 +27,7 @@ step "Push Octopus.Cli to NuGet style feed" {
 
     action {
         action_type = "Octopus.Script"
+        is_disabled = true
         properties = {
             Octopus.Action.Script.ScriptBody = <<-EOT
                 # Build the path to nuget.exe
