@@ -18,7 +18,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Nancy" Version="2.0.0-clinteastwood" />
     <PackageReference Include="Octopus.Server.Client" Version="11.6.3644" />
     <PackageReference Include="Octopus.Server.MessageContracts.Base" Version="3.0.400" />
     <PackageReference Include="Serilog.Sinks.TextWriter" Version="2.0.0" />
