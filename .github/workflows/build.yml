@@ -2,7 +2,7 @@ name: Build, test and publish
 
 on:
   push:
-    branches: [ * ]
+    branches: [ '*' ]
     tags: [ '*' ]
   schedule:
     # Daily 5am australian/brisbane time
