@@ -176,7 +176,6 @@ jobs:
         tar -xf OctopusTools.$VERSION.linux-x64.tar.gz
         zip OctopusTools.Zips.$VERSION.zip *.zip *.tar.gz
         echo "::set-output name=version::$(echo $VERSION)"
-
     - uses: actions/checkout@v2
       - name: Install Octopus CLI 🐙
       uses: OctopusDeploy/install-octopus-cli-action@<version>
