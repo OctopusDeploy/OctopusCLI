@@ -116,7 +116,7 @@ class Build : NukeBuild
             
             if (!String.IsNullOrEmpty(jObject.Value<string>("PreReleaseTag")))
             {
-                fullSemVer += RunNumber;
+                fullSemVer += $"-{RunNumber}";
             }
                 
             File.WriteAllText(octoVersionText, fullSemVer);
