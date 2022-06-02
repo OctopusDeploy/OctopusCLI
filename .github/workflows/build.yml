@@ -2,10 +2,8 @@ name: Build, test and publish
 
 on:
   push:
-    branches: [ main ]
+    branches: [ * ]
     tags: [ '*' ]
-  pull_request:
-    branches: [ main ]
   schedule:
     # Daily 5am australian/brisbane time
     - cron: '15 0 * * *'
