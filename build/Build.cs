@@ -342,7 +342,7 @@ class Build : NukeBuild
                 packagesPath);
 
             var config = LinuxPackageFeedsDir / "test-env-docker-images.conf";
-            foreach (var dockerImage in File.ReadLines(config))
+            foreach (var dockerImage in File.ReadLines(config).OrderBy(x => x))
             {
                 DockerTasks.DockerRun(_ => _
                     .EnableRm()
