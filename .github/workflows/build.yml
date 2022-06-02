@@ -145,7 +145,7 @@ jobs:
         path: artifacts/OctopusTools.Packages.linux-x64.*.zip
 
   publish:
-    name: Compress the packages ready to push to Octopus
+    name: Publish the packages
     needs: [docker-build, linux-distro-packages-build, test]
     runs-on: ubuntu-latest
     env:
