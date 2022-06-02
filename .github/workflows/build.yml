@@ -167,23 +167,21 @@ jobs:
 
     - name: Compress packages
       id: compress-packages
-      outputs:
-        version:
-          description: The SemVer for this version
       run: |
         cd artifacts
         VERSION=$(ls OctopusTools.*.linux-x64.tar.gz | tail -1 | sed -nE 's/^OctopusTools\.(.*)\.linux-x64.tar.gz$/\1/p')
         tar -xf OctopusTools.$VERSION.linux-x64.tar.gz
         zip OctopusTools.Zips.$VERSION.zip *.zip *.tar.gz
-        echo "::set-output name=version::$VERSION"
+        echo "::set-output name=version::$(echo $VERSION)"
+
     - uses: actions/checkout@v2
       - name: Install Octopus CLI 🐙
-      uses: OctopusDeploy/install-octopus-cli-action@<version>
+      uses: OctopusDeploy/install-octopus-cli-action@v1
       with:
         version: latest
     
     - name: Push a package to Octopus Deploy 🐙
-      uses: OctopusDeploy/push-package-action@<version>
+      uses: OctopusDeploy/push-package-action@v1.1.2
       with:
         space: Integrations
         packages: |
@@ -193,7 +191,7 @@ jobs:
           OctopusTools.Zips.${{ steps.compress-packages.outputs.version }}.zip
 
     - name: Create a release in Octopus Deploy 🐙
-      uses: OctopusDeploy/create-release-action@v1
+      uses: OctopusDeploy/create-release-action@v1.1.3
       with:
         space: Integrations
         project: 'Octopus CLI'
