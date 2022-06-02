@@ -48,6 +48,7 @@ jobs:
       with:
         name: octoversion
         path: octoversion.txt
+
   test:
     name: Run test matrix
     needs: build
@@ -105,6 +106,7 @@ jobs:
       with:
         name: docker-image
         path: artifacts/Octo.Docker.Image.*.tar.gz
+
   linux-distro-packages-build:
     name: Create Linux disto packages
     needs: build
@@ -141,10 +143,14 @@ jobs:
       with:
         name: packages-linux
         path: artifacts/OctopusTools.Packages.linux-x64.*.zip
-  push-to-octopus:
-    name: Push artifacts to Octopus
+
+  publish:
+    name: Compress the packages ready to push to Octopus
     needs: [docker-build, linux-distro-packages-build, test]
     runs-on: ubuntu-latest
+    env:
+      OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
+      OCTOPUS_CLI_API_KEY: ${{ secrets.INTEGRATIONS_API_KEY }}
     steps:
     - uses: actions/download-artifact@v2
       with:
@@ -158,14 +164,41 @@ jobs:
       with:
         name: docker-image
         path: artifacts
-    - name: Talk to Octopus 
-      env:
-        OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
-        OCTOPUS_CLI_API_KEY: ${{ secrets.INTEGRATIONS_API_KEY }}
+
+    - name: Compress packages
+      id: compress-packages
+      outputs:
+        version:
+          description: The SemVer for this version
       run: |
         cd artifacts
         VERSION=$(ls OctopusTools.*.linux-x64.tar.gz | tail -1 | sed -nE 's/^OctopusTools\.(.*)\.linux-x64.tar.gz$/\1/p')
         tar -xf OctopusTools.$VERSION.linux-x64.tar.gz
         zip OctopusTools.Zips.$VERSION.zip *.zip *.tar.gz
-        ./octo push --space "Integrations" --package Octopus.Cli.$VERSION.nupkg --package Octopus.DotNet.Cli.$VERSION.nupkg --package OctopusTools.$VERSION.nupkg --package Octo.Docker.Image.$VERSION.tar.gz --package OctopusTools.Packages.linux-x64.$VERSION.zip --package OctopusTools.Zips.$VERSION.zip --overwrite-mode OverwriteExisting
-        ./octo create-release --space "Integrations" --project "Octopus CLI" --packageVersion "$VERSION" --package "*:NuGet.CommandLine:4.4.1" --gitRef "${{ (github.ref_type == 'tag' && 'main' ) || (github.head_ref || github.ref) }}" --gitCommit "${{ github.event.after || github.event.pull_request.head.sha }}"
+        echo "::set-output name=version::$(echo $VERSION)"
+
+    - uses: actions/checkout@v2
+      - name: Install Octopus CLI 🐙
+      uses: OctopusDeploy/install-octopus-cli-action@<version>
+      with:
+        version: latest
+    
+    - name: Push a package to Octopus Deploy 🐙
+      uses: OctopusDeploy/push-package-action@<version>
+      with:
+        space: Integrations
+        packages: |
+          Octopus.DotNet.Cli.${{ steps.compress-packages.outputs.version }}.nupkg
+          OctopusTools.${{ steps.compress-packages.outputs.version }}.nupkg
+          Octo.Docker.Image.${{ steps.compress-packages.outputs.version }}.tar.gz
+          OctopusTools.Zips.${{ steps.compress-packages.outputs.version }}.zip
+
+    - name: Create a release in Octopus Deploy 🐙
+      uses: OctopusDeploy/create-release-action@v1
+      with:
+        space: Integrations
+        project: 'Octopus CLI'
+        package_version: ${{ steps.compress-packages.outputs.version }}
+        package: '*:NuGet.CommandLine:4.4.1'
+        gitRef: ${{ (github.ref_type == 'tag' && 'main' ) || (github.head_ref || github.ref) }}
+        gitCommit: ${{ github.event.after || github.event.pull_request.head.sha }}
