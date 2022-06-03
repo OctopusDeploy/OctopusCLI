@@ -195,7 +195,7 @@ jobs:
 
   publish:
     name: Publish the packages
-    needs: [build, docker-build, linux-distro-packages-build, test]
+    needs: [build, docker-build, linux-distro-packages-test, test]
     runs-on: ubuntu-latest
     env:
       OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
