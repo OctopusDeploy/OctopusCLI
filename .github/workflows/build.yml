@@ -158,7 +158,7 @@ jobs:
           linux-package-feeds/install-linux-feed-package.sh \
           artifacts/linuxpackages
         tar -czvf artifacts/linuxpackages artifacts/OctopusTools.Packages.linux-x64.$VERSION.zip
-        echo "::set-output name=distros::$(cat linux-package-feeds/test-env-docker-images.conf | sed 'N;s/\n/,/')"
+        echo "::set-output name=distros::[$(cat linux-package-feeds/test-env-docker-images.conf | sed 'N;s/\n/,/')]"
         rm -rf artifacts/linuxpackages
     - uses: actions/upload-artifact@v2
       with:
@@ -171,7 +171,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        distro: [ ${{ jobs.linux-distro-packages-build.outputs.distros }} ]
+        distro: ${{ jobs.linux-distro-packages-build.outputs.distros }}
     steps:
     - uses: actions/download-artifact@v2
       with:
