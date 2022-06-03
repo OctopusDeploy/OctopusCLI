@@ -141,7 +141,7 @@ jobs:
         --volume ./linux-package-feeds:/opt/linux-package-feeds \
         --volume ./artifacts:/artifacts \
         --rm --tty \
-        --image octopusdeploy/package-linux-docker:latest \
+        octopusdeploy/package-linux-docker:latest \
         bash --c /BuildAssets/create-octopuscli-linux-packages.sh
     - name: Re-compress result
       run: |
@@ -192,7 +192,7 @@ jobs:
         --env REDHAT_SUBSCRIPTION_USERNAME --env REDHAT_SUBSCRIPTION_PASSWORD --env OCTOPUS_CLI_SERVER  --env OCTOPUS_CLI_API_KEY \
         --volume ./artifacts/OctopusTools.Packages:/working \
         --rm --tty \
-        --image ${{ matrix.distro }} \
+        ${{ matrix.distro }} \
         bash --c "cd /working && bash /test-linux-package.sh"
 
   publish:
