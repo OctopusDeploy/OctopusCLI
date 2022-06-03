@@ -138,6 +138,7 @@ class Build : NukeBuild
 
     [PublicAPI]
     Target Test => _ => _
+        .DependsOn(Compile)
         .Executes(() =>
         {
             DotNetTest(_ => _
@@ -151,7 +152,7 @@ class Build : NukeBuild
         });
 
     Target DotnetPublish => _ => _
-        .DependsOn(Compile)
+        .DependsOn(Test)
         .Executes(() =>
         {
             var portablePublishDir = OctoPublishDirectory / "portable";

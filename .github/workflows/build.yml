@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build code
+    name: Build and unit test code
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
@@ -132,6 +132,10 @@ jobs:
         SIGN_PRIVATE_KEY: ${{ secrets.SIGN_LINUX_DISTRO_PRIVATE_KEY }}
         SIGN_PASSPHRASE: ${{ secrets.SIGN_LINUX_DISTRO_PASSPHRASE }}
       run: ./build.sh --target CreateLinuxPackages
+    - uses: actions/upload-artifact@v2
+      with:
+        name: packages-linux
+        path: artifacts/OctopusTools.Packages.linux-x64.*.zip
     - name: Test packages 🧪
       env:
         OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
@@ -139,10 +143,6 @@ jobs:
         REDHAT_SUBSCRIPTION_USERNAME: ${{ secrets.REDHAT_SUBSCRIPTION_USERNAME }}
         REDHAT_SUBSCRIPTION_PASSWORD: ${{ secrets.REDHAT_SUBSCRIPTION_PASSWORD }}
       run: ./build.sh --target TestLinuxPackages
-    - uses: actions/upload-artifact@v2
-      with:
-        name: packages-linux
-        path: artifacts/OctopusTools.Packages.linux-x64.*.zip
 
   publish:
     name: Publish the packages
