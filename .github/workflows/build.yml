@@ -127,7 +127,9 @@ jobs:
         name: artifacts
         path: artifacts
     - name: Extract linux-x64 package
-      run: tar -xf artifacts/OctopusTools.$VERSION.linux-x64.tar.gz -C artifacts/OctopusTools.$VERSION.linux-x64.extracted
+      run: |
+        mkdir -p artifacts/OctopusTools.$VERSION.linux-x64.extracted
+        tar -xf artifacts/OctopusTools.$VERSION.linux-x64.tar.gz -C artifacts/OctopusTools.$VERSION.linux-x64.extracted
     - name: Build the distro images
       env:
         SIGN_PRIVATE_KEY: ${{ secrets.SIGN_LINUX_DISTRO_PRIVATE_KEY }}
