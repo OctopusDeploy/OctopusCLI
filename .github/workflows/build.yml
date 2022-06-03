@@ -184,10 +184,10 @@ jobs:
       with:
         space: Integrations
         packages: |
-          Octopus.DotNet.Cli.${{ steps.compress-packages.outputs.version }}.nupkg
-          OctopusTools.${{ steps.compress-packages.outputs.version }}.nupkg
-          Octo.Docker.Image.${{ steps.compress-packages.outputs.version }}.tar.gz
-          OctopusTools.Zips.${{ steps.compress-packages.outputs.version }}.zip
+          artifacts/Octopus.DotNet.Cli.${{ steps.compress-packages.outputs.version }}.nupkg
+          artifacts/OctopusTools.${{ steps.compress-packages.outputs.version }}.nupkg
+          artifacts/Octo.Docker.Image.${{ steps.compress-packages.outputs.version }}.tar.gz
+          artifacts/OctopusTools.Zips.${{ steps.compress-packages.outputs.version }}.zip
 
     - name: Create a release in Octopus Deploy 🐙
       uses: OctopusDeploy/create-release-action@v1.1.3
