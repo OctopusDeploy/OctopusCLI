@@ -121,6 +121,7 @@ class Build : NukeBuild
                 
             File.WriteAllText(octoVersionText, fullSemVer);
             Console.WriteLine($"##[notice]Release version number: {fullSemVer}");
+            Console.WriteLine($"::set-output name=version::{fullSemVer}");
         });
 
     Target Compile => _ => _
@@ -329,98 +330,6 @@ class Build : NukeBuild
             
             DeleteFile(ArtifactsDirectory / tarFile);
         });
-
-    [PublicAPI]
-    Target TestLinuxPackages => _ => _
-        .DependsOn(CalculateVersion)
-        .DependsOn(MuteLoudDockerCli)
-        .DependsOn(AssertLinuxSelfContainedArtifactsExists)
-        .Executes(() =>
-        {
-            var packagesPath = ArtifactsDirectory / "OctopusTools.Packages";
-            CompressionTasks.UncompressZip(
-                ArtifactsDirectory / $"OctopusTools.Packages.linux-x64.{fullSemVer}.zip",
-                packagesPath);
-
-            var config = LinuxPackageFeedsDir / "test-env-docker-images.conf";
-            foreach (var dockerImage in File.ReadLines(config).OrderBy(x => x))
-            {
-                DockerTasks.DockerRun(_ => _
-                    .EnableRm()
-                    .EnableTty()
-                    .SetEnv(@"OCTOPUS_CLI_SERVER",
-                        "OCTOPUS_CLI_API_KEY",
-                        "REDHAT_SUBSCRIPTION_USERNAME",
-                        "REDHAT_SUBSCRIPTION_PASSWORD",
-                        "OCTOPUS_SPACE=Integrations",
-                        "OCTOPUS_EXPECT_ENV=Components - Internal",
-                        "PKG_PATH_PREFIX=octopuscli")
-                    .SetVolume(packagesPath + ":/working",
-                        LinuxPackageFeedsDir + ":/opt/linux-package-feeds",
-                        AssetDirectory / "test-linux-package.sh" + ":/test-linux-package.sh")
-                    .SetImage(dockerImage)
-                    .SetCommand("bash")
-                    .SetArgs("-c", "cd /working && bash /test-linux-package.sh"));
-            }
-        });
-
-    [PublicAPI]
-    Target CreateLinuxPackages => _ => _
-        .DependsOn(CalculateVersion)
-        .DependsOn(MuteLoudDockerCli)
-        .DependsOn(AssertLinuxSelfContainedArtifactsExists)
-        .Executes(() =>
-        {
-            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SIGN_PRIVATE_KEY"))
-                || string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SIGN_PASSPHRASE")))
-                throw new Exception("This build requires environment variables `SIGN_PRIVATE_KEY` (in a format gpg1 can import)"
-                    + " and `SIGN_PASSPHRASE`, which are used to sign the .rpm.");
-
-            if (!LinuxPackageFeedsDir.DirectoryExists())
-                throw new Exception($"This build requires `{LinuxPackageFeedsDir}` to contain scripts from https://github.com/OctopusDeploy/linux-package-feeds.\n"
-                    + "They are usually added as an Artifact Dependency in TeamCity from 'Infrastructure / Linux Package Feeds' with the rule:\n"
-                    + "  LinuxPackageFeedsTools.*.zip!*=>linux-package-feeds\n"
-                    + "See https://build.octopushq.com/admin/editDependencies.html?id=buildType:OctopusDeploy_OctopusCLI_BuildLinuxContainer");
-
-            UnTarGZip(
-                ArtifactsDirectory / $"OctopusTools.{fullSemVer}.linux-x64.tar.gz",
-                ArtifactsDirectory / $"OctopusTools.{fullSemVer}.linux-x64.extracted");
-
-            DockerTasks.DockerRun(_ => _
-                .EnableRm()
-                .EnableTty()
-                .SetEnv($"VERSION={fullSemVer}",
-                    $"BINARIES_PATH=/artifacts/OctopusTools.{fullSemVer}.linux-x64.extracted/",
-                    "PACKAGES_PATH=/artifacts",
-                    "SIGN_PRIVATE_KEY",
-                    "SIGN_PASSPHRASE")
-                .SetVolume(AssetDirectory + ":/BuildAssets",
-                    LinuxPackageFeedsDir + ":/opt/linux-package-feeds",
-                    ArtifactsDirectory + ":/artifacts")
-                .SetImage("octopusdeploy/package-linux-docker:latest")
-                .SetCommand("bash")
-                .SetArgs("/BuildAssets/create-octopuscli-linux-packages.sh"));
-
-            DeleteDirectory(ArtifactsDirectory / $"OctopusTools.{fullSemVer}.linux-x64.extracted");
-        
-            var linuxPackagesDir = ArtifactsDirectory / "linuxpackages";
-            EnsureExistingDirectory(linuxPackagesDir);
-            ArtifactsDirectory.GlobFiles("*.deb").ForEach(path => MoveFile(path, linuxPackagesDir / new FileInfo(path).Name));
-            ArtifactsDirectory.GlobFiles("*.rpm").ForEach(path => MoveFile(path, linuxPackagesDir / new FileInfo(path).Name));
-            CopyFileToDirectory($"{LinuxPackageFeedsDir}/publish-apt.sh", linuxPackagesDir);
-            CopyFileToDirectory($"{LinuxPackageFeedsDir}/publish-rpm.sh", linuxPackagesDir);
-            CopyFileToDirectory(AssetDirectory / "repos" / "test-linux-package-from-feed-in-dists.sh", linuxPackagesDir);
-            CopyFileToDirectory(AssetDirectory / "repos" / "test-linux-package-from-feed.sh", linuxPackagesDir);
-            CopyFileToDirectory($"{LinuxPackageFeedsDir}/test-env-docker-images.conf", linuxPackagesDir);
-            CopyFileToDirectory($"{LinuxPackageFeedsDir}/install-linux-feed-package.sh", linuxPackagesDir);
-            CompressionTasks.CompressZip(linuxPackagesDir, ArtifactsDirectory / $"OctopusTools.Packages.linux-x64.{fullSemVer}.zip");
-            DeleteDirectory(linuxPackagesDir);
-        });
-
-    [PublicAPI]
-    Target CreateDockerContainerAndLinuxPackages => _ => _
-        .DependsOn(BuildDockerImage)
-        .DependsOn(CreateLinuxPackages);
 
     [PublicAPI]
     Target CopyToLocalPackages => _ => _
