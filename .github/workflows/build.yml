@@ -14,9 +14,7 @@ jobs:
     name: Build and unit test code
     runs-on: windows-latest
     outputs:
-      version:
-        description: Semver
-        value: ${{ steps.nuke-build.outputs.version }}
+      version: ${{ steps.nuke-build.outputs.version }}
     steps:
     - uses: actions/checkout@v2
       with:
