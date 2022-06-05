@@ -145,21 +145,21 @@ jobs:
         bash -c /BuildAssets/create-octopuscli-linux-packages.sh
     - name: Re-compress result
       run: |
-        rm -rf artifacts/OctopusTools.$VERSION.linux-x64.extracted
-        mkdir -p artifacts/linuxpackages
-        mv artifacts/*.deb artifacts/linuxpackages
-        mv artifacts/*.rpm artifacts/linuxpackages
-        cp linux-package-feeds/publish-apt.sh \
-          linux-package-feeds/publish-rpm.sh \
-          BuildAssets/repos/test-linux-package-from-feed-in-dists.sh \
-          BuildAssets/repos/test-linux-package-from-feed.sh \
-          BuildAssets/test-linux-package.sh \
-          linux-package-feeds/install-linux-package.sh \
-          linux-package-feeds/install-linux-feed-package.sh \
-          artifacts/linuxpackages
-        tar -czvf artifacts/linuxpackages artifacts/OctopusTools.Packages.linux-x64.$VERSION.zip
-        echo "::set-output name=distros::[$(cat linux-package-feeds/test-env-docker-images.conf | sed 'N;s/\n/,/')]"
-        rm -rf artifacts/linuxpackages
+        rm -rf ${{ github.workspace }}/artifacts/OctopusTools.$VERSION.linux-x64.extracted
+        mkdir -p ${{ github.workspace }}/artifacts/linuxpackages
+        mv ${{ github.workspace }}/artifacts/*.deb ${{ github.workspace }}/artifacts/linuxpackages
+        mv ${{ github.workspace }}/artifacts/*.rpm ${{ github.workspace }}/artifacts/linuxpackages
+        cp ${{ github.workspace }}/linux-package-feeds/publish-apt.sh \
+          ${{ github.workspace }}/linux-package-feeds/publish-rpm.sh \
+          ${{ github.workspace }}/BuildAssets/repos/test-linux-package-from-feed-in-dists.sh \
+          ${{ github.workspace }}/BuildAssets/repos/test-linux-package-from-feed.sh \
+          ${{ github.workspace }}/BuildAssets/test-linux-package.sh \
+          ${{ github.workspace }}/linux-package-feeds/install-linux-package.sh \
+          ${{ github.workspace }}/linux-package-feeds/install-linux-feed-package.sh \
+          ${{ github.workspace }}/artifacts/linuxpackages
+        tar -czvf ${{ github.workspace }}/artifacts/linuxpackages ${{ github.workspace }}/artifacts/OctopusTools.Packages.linux-x64.$VERSION.zip
+        echo "::set-output name=distros::[$(cat ${{ github.workspace }}/linux-package-feeds/test-env-docker-images.conf | sed 'N;s/\n/,/')]"
+        rm -rf ${{ github.workspace }}/artifacts/linuxpackages
     - uses: actions/upload-artifact@v2
       with:
         name: packages-linux
@@ -180,7 +180,7 @@ jobs:
         name: artifacts
         path: artifacts
     - name: Extract package
-      run: tar -xf artifacts/OctopusTools.Packages.linux-x64.$VERSION.zip -C artifacts/OctopusTools.Packages
+      run: tar -xf ${{ github.workspace }}/artifacts/OctopusTools.Packages.linux-x64.$VERSION.zip -C ${{ github.workspace }}/artifacts/OctopusTools.Packages
     - name: Test the distro image
       env:
         OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
