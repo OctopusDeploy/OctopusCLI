@@ -137,12 +137,12 @@ jobs:
       run: |
         docker run --env VERSION=$VERSION --env BINARIES_PATH=artifacts/OctopusTools.$VERSION.linux-x64.extracted/ \
         --env PACKAGES_PATH=/artifacts --env SIGN_PRIVATE_KEY  --env SIGN_PASSPHRASE \
-        --volume ./BuildAssets:/BuildAssets \
-        --volume ./linux-package-feeds:/opt/linux-package-feeds \
-        --volume ./artifacts:/artifacts \
+        --volume BuildAssets:/BuildAssets \
+        --volume linux-package-feeds:/opt/linux-package-feeds \
+        --volume artifacts:/artifacts \
         --rm --tty \
         octopusdeploy/package-linux-docker:latest \
-        bash --c /BuildAssets/create-octopuscli-linux-packages.sh
+        bash -c /BuildAssets/create-octopuscli-linux-packages.sh
     - name: Re-compress result
       run: |
         rm -rf artifacts/OctopusTools.$VERSION.linux-x64.extracted
@@ -190,10 +190,10 @@ jobs:
       run: |
         docker run --env OCTOPUS_SPACE=Integrations --env "OCTOPUS_EXPECT_ENV=Components - Internal" PKG_PATH_PREFIX=octopuscli \
         --env REDHAT_SUBSCRIPTION_USERNAME --env REDHAT_SUBSCRIPTION_PASSWORD --env OCTOPUS_CLI_SERVER  --env OCTOPUS_CLI_API_KEY \
-        --volume ./artifacts/OctopusTools.Packages:/working \
+        --volume artifacts/OctopusTools.Packages:/working \
         --rm --tty \
         ${{ matrix.distro }} \
-        bash --c "cd /working && bash /test-linux-package.sh"
+        bash -c "cd /working && bash /test-linux-package.sh"
 
   publish:
     name: Publish the packages
