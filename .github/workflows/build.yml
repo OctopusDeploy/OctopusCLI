@@ -214,6 +214,7 @@ jobs:
           artifacts/Octopus.DotNet.Cli.${{ needs.build.outputs.version }}.nupkg
           artifacts/OctopusTools.${{ needs.build.outputs.version }}.nupkg
           artifacts/Octo.Docker.Image.${{ needs.build.outputs.version }}.tar.gz
+          artifacts/OctopusTools.Packages.linux-x64.$VERSION.zip
           artifacts/OctopusTools.Zips.${{ needs.build.outputs.version }}.zip
 
     - name: Create a release in Octopus Deploy 🐙
