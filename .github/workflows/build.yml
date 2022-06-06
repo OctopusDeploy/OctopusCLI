@@ -103,7 +103,7 @@ jobs:
           --output "${{ github.workspace }}/artifacts/${tarFile}" \
           octopusdeploy/octo-prerelease
         
-        gzip "${{ github.workspace }}/artifacts/${tarFile}" > "${{ github.workspace }}/artifacts/${gzipFile}"
+        gzip -c "${{ github.workspace }}/artifacts/${tarFile}" > "${{ github.workspace }}/artifacts/${gzipFile}"
 
         rm "${{ github.workspace }}/artifacts/${tarFile}"
 
