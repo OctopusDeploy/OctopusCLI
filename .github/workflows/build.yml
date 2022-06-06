@@ -100,7 +100,7 @@ jobs:
         gzipFile="${tarFile}.gz"
 
         docker save \
-          --output "${{ github.worksapce }}/artifacts/${tarFile}" \
+          --output "${{ github.workspace }}/artifacts/${tarFile}" \
           octopusdeploy/octo-prerelease
         
         gzip "${{ github.workspace }}/artifacts/${tarFile}" > "${{ github.workspace }}/artifacts/${gzipFile}"
