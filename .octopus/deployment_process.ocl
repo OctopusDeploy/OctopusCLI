@@ -169,7 +169,6 @@ step "Publish Homebrew" {
     start_trigger = "StartWithPrevious"
 
     action {
-        channels = ["Default"]
         environments = ["Components - External"]
         properties = {
             Octopus.Action.Template.Id = "ActionTemplates-882"
