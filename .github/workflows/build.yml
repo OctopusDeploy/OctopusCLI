@@ -123,7 +123,6 @@ jobs:
           ${{ github.workspace }}/linux-package-feeds/install-linux-feed-package.sh \
           ${{ github.workspace }}/artifacts/linuxpackages
         zip -r ${{ github.workspace }}/artifacts/OctopusTools.Packages.linux-x64.$VERSION.zip ${{ github.workspace }}/artifacts/linuxpackages 
-        echo "::set-output name=distros::[$(cat ${{ github.workspace }}/linux-package-feeds/test-env-docker-images.conf | sed 'N;s/\n/,/')]"
         rm -rf ${{ github.workspace }}/artifacts/linuxpackages
     - uses: actions/upload-artifact@v2
       with:
@@ -138,7 +137,7 @@ jobs:
       VERSION: ${{ needs.build.outputs.version }}
     strategy:
       matrix:
-        distro: ${{ needs.linux-distro-packages-build.outputs.distros }}
+        distro: [debian:stable-slim,debian:oldstable-slim,debian:oldoldstable-slim,ubuntu:latest,ubuntu:focal,ubuntu:bionic,ubuntu:xenial,ubuntu:trusty,fedora:32,linuxmintd/mint19.3-amd64,roboxes/rhel8,roboxes/rhel7]
     steps:
     - uses: actions/download-artifact@v2
       with:
