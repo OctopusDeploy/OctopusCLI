@@ -122,7 +122,7 @@ jobs:
           ${{ github.workspace }}/linux-package-feeds/install-linux-package.sh \
           ${{ github.workspace }}/linux-package-feeds/install-linux-feed-package.sh \
           ${{ github.workspace }}/artifacts/linuxpackages
-        zip -r ${{ github.workspace }}/artifacts/OctopusTools.Packages.linux-x64.$VERSION.zip ${{ github.workspace }}/artifacts/linuxpackages 
+        zip ${{ github.workspace }}/artifacts/OctopusTools.Packages.linux-x64.$VERSION.zip ${{ github.workspace }}/artifacts/linuxpackages
         rm -rf ${{ github.workspace }}/artifacts/linuxpackages
     - uses: actions/upload-artifact@v2
       with:
