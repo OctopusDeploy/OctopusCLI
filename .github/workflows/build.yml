@@ -53,7 +53,7 @@ jobs:
         path: octoversion.txt
 
   docker-build:
-    name: Create Docker image
+    name: Create and test Docker image
     needs: build
     runs-on: ubuntu-latest
     env:
