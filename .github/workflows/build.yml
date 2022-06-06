@@ -170,7 +170,7 @@ jobs:
         --volume ${{ github.workspace }}/artifacts/OctopusTools.Packages:/working \
         --rm --tty \
         ${{ matrix.distro }} \
-        bash -c "cd /working && bash /test-linux-package.sh"
+        bash -c "cd /working && bash ./test-linux-package.sh"
 
   publish:
     name: Publish the packages
