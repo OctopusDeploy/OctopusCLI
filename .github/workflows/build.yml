@@ -137,7 +137,7 @@ jobs:
       VERSION: ${{ needs.build.outputs.version }}
     strategy:
       matrix:
-        distro: [debian:stable-slim,debian:oldstable-slim,debian:oldoldstable-slim,ubuntu:latest,ubuntu:focal,ubuntu:bionic,ubuntu:xenial,ubuntu:trusty,fedora:32,linuxmintd/mint19.3-amd64,roboxes/rhel8,roboxes/rhel7]
+        distro: ['debian:stable-slim','debian:oldstable-slim','debian:oldoldstable-slim','ubuntu:latest','ubuntu:focal','ubuntu:bionic','ubuntu:xenial','ubuntu:trusty','fedora:32','linuxmintd/mint19.3-amd64','roboxes/rhel8','roboxes/rhel7']
     steps:
     - uses: actions/download-artifact@v2
       with:
