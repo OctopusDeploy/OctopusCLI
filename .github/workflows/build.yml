@@ -56,6 +56,8 @@ jobs:
     name: Create Docker image
     needs: build
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
     steps:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@v2
@@ -65,8 +67,46 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: octoversion
-    - name: Run Nuke 🛢
-      run: ./build.sh --target BuildDockerImage
+    - name: Build Docker image
+      id: build-docker-image
+      run: |
+        PLATFORM="alpine"
+        TAG="octopusdeploy/octo-prerelease:${VERSION}-${PLATFORM}"
+        LATEST="octopusdeploy/octo-prerelease:latest-${PLATFORM}"
+
+        echo "::set-output name=DOCKER_IMAGE_TAG::${TAG}"
+        
+        docker build \
+          --build-arg OCTO_TOOLS_VERSION=${VERSION} \
+          --file "${{ github.workspace }}/Dockerfiles/${PLATFORM}/Dockerfile" \
+          --tag ${TAG} \
+          --tag ${LATEST} \
+          ${{ github.workspace }}/artifacts
+
+    - name: Test Docker image
+      run: |
+        OCTO_RESPONSE="$(docker run --rm ${{ steps.build-docker-image.outputs.DOCKER_IMAGE_TAG }} version)"
+
+        if [[ "$OCTO_RESPONSE" == "$VERSION" ]]
+        then
+          echo "Image successfully created - running 'docker run --rm ${DOCKER_IMAGE_TAG} version' returned ${OCTO_RESPONSE}"
+        else
+          echo "Built image did not return expected version ${VERSION} - it returned ${OCTO_RESPONSE}" >&2 && exit 1
+        fi
+
+    - name: Package Docker image
+      run: |
+        tarFile="Octo.Docker.Image.$VERSION.tar"
+        gzipFile="${tarFile}.gz"
+
+        docker save \
+          --output "${{ github.worksapce }}/artifacts/${tarFile}" \
+          octopusdeploy/octo-prerelease
+        
+        gzip "${{ github.workspace }}/artifacts/${tarFile}" > "${{ github.workspace }}/artifacts/${gzipFile}"
+
+        rm "${{ github.workspace }}/artifacts/${tarFile}"
+
     - uses: actions/upload-artifact@v2
       with:
         name: docker-image
