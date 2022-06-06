@@ -165,7 +165,7 @@ jobs:
         REDHAT_SUBSCRIPTION_USERNAME: ${{ secrets.REDHAT_SUBSCRIPTION_USERNAME }}
         REDHAT_SUBSCRIPTION_PASSWORD: ${{ secrets.REDHAT_SUBSCRIPTION_PASSWORD }}
       run: |
-        docker run --env OCTOPUS_SPACE=Integrations --env "OCTOPUS_EXPECT_ENV=Components - Internal" -env PKG_PATH_PREFIX=octopuscli \
+        docker run --env OCTOPUS_SPACE=Integrations --env "OCTOPUS_EXPECT_ENV=Components - Internal" --env PKG_PATH_PREFIX=octopuscli \
         --env REDHAT_SUBSCRIPTION_USERNAME --env REDHAT_SUBSCRIPTION_PASSWORD --env OCTOPUS_CLI_SERVER  --env OCTOPUS_CLI_API_KEY \
         --volume ${{ github.workspace }}/artifacts/OctopusTools.Packages:/working \
         --rm --tty \
