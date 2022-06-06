@@ -144,7 +144,7 @@ jobs:
         name: artifacts
         path: artifacts
     - name: Extract package
-      run: tar -xf ${{ github.workspace }}/artifacts/OctopusTools.Packages.linux-x64.$VERSION.zip -C ${{ github.workspace }}/artifacts/OctopusTools.Packages
+      run: unzip ${{ github.workspace }}/artifacts/OctopusTools.Packages.linux-x64.$VERSION.zip -d ${{ github.workspace }}/artifacts/OctopusTools.Packages
     - name: Test the distro image
       env:
         OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
