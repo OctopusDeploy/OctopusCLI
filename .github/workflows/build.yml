@@ -223,5 +223,5 @@ jobs:
         project: 'Octopus CLI'
         package_version: ${{ needs.build.outputs.version }}
         package: '*:NuGet.CommandLine:4.4.1'
-        git-ref: ${{ (github.ref_type == 'tag' && 'main' ) || (github.head_ref || github.ref) }}
-        git-commit: ${{ github.event.after || github.event.pull_request.head.sha }}
+        git_ref: ${{ (github.ref_type == 'tag' && 'main' ) || (github.head_ref || github.ref) }}
+        git_commit: ${{ github.event.after || github.event.pull_request.head.sha }}
