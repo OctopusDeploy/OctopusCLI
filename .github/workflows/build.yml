@@ -141,7 +141,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v2
       with:
-        name: artifacts
+        name: packages-linux
         path: artifacts
     - name: Extract package
       run: unzip ${{ github.workspace }}/artifacts/OctopusTools.Packages.linux-x64.$VERSION.zip -d ${{ github.workspace }}/artifacts/OctopusTools.Packages
