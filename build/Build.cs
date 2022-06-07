@@ -116,6 +116,9 @@ class Build : NukeBuild
             
             if (!String.IsNullOrEmpty(jObject.Value<string>("PreReleaseTag")))
             {
+                // Without the dash would cause issues in Net6 for things like dependabot branches where the branch could end up looking like `9.0.0-SomeLib-1.1.0`. 
+                // In this case the version the script would come up with here would be `9.0.0-SomeLib-1.1.023` (if the run number was `23`). 
+                // SemVer does not like that leading `0` on `023`
                 fullSemVer += $"-{RunNumber}";
             }
                 
