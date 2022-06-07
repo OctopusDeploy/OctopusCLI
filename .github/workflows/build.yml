@@ -171,7 +171,7 @@ jobs:
 
   linux-distro-packages-test:
     name: Test Linux distro packages
-    needs: [build, linux-distro-packages-build]
+    needs: [build, linux-distro-packages-build, docker-build]
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.build.outputs.version }}
