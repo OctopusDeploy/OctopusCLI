@@ -16,7 +16,7 @@ jobs:
     outputs:
       version: ${{ steps.nuke-build.outputs.version }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - name: Setup .NET
@@ -43,11 +43,11 @@ jobs:
         AzureKeyVaultCertificateName: ${{ secrets.AZURE_KEYVAULT_CERTIFICATE_NAME }}
       run: |
         ./build.cmd
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: artifacts
         path: artifacts/
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: octoversion
         path: octoversion.txt
@@ -59,12 +59,12 @@ jobs:
     env:
       VERSION: ${{ needs.build.outputs.version }}
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/download-artifact@v2
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
       with:
         name: artifacts
         path: artifacts
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: octoversion
     - name: Build Docker image
@@ -107,7 +107,7 @@ jobs:
 
         rm "${{ github.workspace }}/artifacts/${tarFile}"
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: docker-image
         path: artifacts/Octo.Docker.Image.*.tar.gz
@@ -119,15 +119,15 @@ jobs:
     env:
       VERSION: ${{ needs.build.outputs.version }}
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+    - uses: actions/checkout@v3
       with:
         repository: OctopusDeploy/linux-package-feeds
         token: ${{ secrets.RENOVATE_GITHUB_TOKEN }}
         path: linux-package-feeds-repo
     - run: |
         ln -s linux-package-feeds-repo/source linux-package-feeds
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: artifacts
         path: artifacts
@@ -164,7 +164,7 @@ jobs:
           ${{ github.workspace }}/artifacts/linuxpackages
         zip -rj ${{ github.workspace }}/artifacts/OctopusTools.Packages.linux-x64.$VERSION.zip ${{ github.workspace }}/artifacts/linuxpackages
         rm -rf ${{ github.workspace }}/artifacts/linuxpackages
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: packages-linux
         path: artifacts/OctopusTools.Packages.linux-x64.${{ needs.build.outputs.version }}.zip
@@ -192,7 +192,7 @@ jobs:
           'roboxes/rhel7'
         ]
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: packages-linux
         path: artifacts
@@ -221,15 +221,15 @@ jobs:
       OCTOPUS_CLI_API_KEY: ${{ secrets.INTEGRATIONS_API_KEY }}
       VERSION: ${{ needs.build.outputs.version }}
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: artifacts
         path: artifacts
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: packages-linux
         path: artifacts
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: docker-image
         path: artifacts
