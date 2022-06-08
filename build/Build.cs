@@ -32,14 +32,14 @@ using SharpCompress.Writers.Tar;
 class Build : NukeBuild
 {
     const string CiBranchNameEnvVariable = "OCTOVERSION_CurrentBranch";
-    
+
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")] readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
     [Parameter("Pfx certificate to use for signing the files")] readonly AbsolutePath SigningCertificatePath = RootDirectory / "certificates" / "OctopusDevelopment.pfx";
     [Parameter("Password for the signing certificate")] readonly string SigningCertificatePassword = "Password01!";
     [Parameter("Branch name for OctoVersion to use to calculate the version number. Can be set via the environment variable " + CiBranchNameEnvVariable + ".", Name = CiBranchNameEnvVariable)]
     string BranchName { get; set; }
     [Parameter] readonly string RunNumber = "";
-    
+
     [Solution(GenerateProjects = true)] readonly Solution Solution;
 
     [PackageExecutable(
@@ -47,7 +47,7 @@ class Build : NukeBuild
         packageExecutable: "OctoVersion.Tool.dll",
         Framework = "net6.0")]
     readonly Tool OctoVersion;
-    
+
     [PackageExecutable(
         packageId: "azuresigntool",
         packageExecutable: "azuresigntool.dll")]
@@ -83,7 +83,7 @@ class Build : NukeBuild
     };
 
     string fullSemVer;
-    
+
     Target Clean => _ => _
         .Executes(() =>
         {
@@ -91,37 +91,37 @@ class Build : NukeBuild
             EnsureCleanDirectory(ArtifactsDirectory);
             EnsureCleanDirectory(PublishDirectory);
         });
-    
+
     Target CalculateVersion => _ => _
         .Executes(() =>
         {
             var octoVersionText = RootDirectory / "octoversion.txt";
-            
+
             Serilog.Log.Information("Looking for existing octoversion.txt in {Path}", octoVersionText);
             if (octoVersionText.FileExists())
             {
                 Serilog.Log.Information("Found existing octoversion.txt in {Path}", octoVersionText);
                 fullSemVer = File.ReadAllText(octoVersionText);
-                
+
                 Serilog.Log.Information("octoversion.txt has {FullSemVer}", fullSemVer);
 
                 return;
             }
-            
+
             // We are calculating the version to use explicitly here so we can support nightly builds with an incrementing number as well as only have non pre-releases for tagged commits
             var arguments = $"--CurrentBranch \"{BranchName ?? "local"}\" --NonPreReleaseTagsRegex \"refs/tags/[^-]*$\" --OutputFormats Json";
 
             var jObject = OctoVersion(arguments, customLogger: LogStdErrAsWarning).StdToJson();
             fullSemVer = jObject.Value<string>("FullSemVer");
-            
-            if (!String.IsNullOrEmpty(jObject.Value<string>("PreReleaseTag")))
+
+            if (!IsLocalBuild && !string.IsNullOrEmpty(jObject.Value<string>("PreReleaseTag")))
             {
-                // Without the dash would cause issues in Net6 for things like dependabot branches where the branch could end up looking like `9.0.0-SomeLib-1.1.0`. 
-                // In this case the version the script would come up with here would be `9.0.0-SomeLib-1.1.023` (if the run number was `23`). 
+                // Without the dash would cause issues in Net6 for things like dependabot branches where the branch could end up looking like `9.0.0-SomeLib-1.1.0`.
+                // In this case the version the script would come up with here would be `9.0.0-SomeLib-1.1.023` (if the run number was `23`).
                 // SemVer does not like that leading `0` on `023`
                 fullSemVer += $"-{RunNumber}";
             }
-                
+
             File.WriteAllText(octoVersionText, fullSemVer);
             Console.WriteLine($"##[notice]Release version number: {fullSemVer}");
             Console.WriteLine($"::set-output name=version::{fullSemVer}");
@@ -148,6 +148,7 @@ class Build : NukeBuild
             DotNetTest(_ => _
                 .SetProjectFile(Solution)
                 .SetConfiguration(Configuration)
+                .EnableNoBuild()
                 .SetResultsDirectory(ArtifactsDirectory / "TestResults")
                 .AddLoggers(
                     "console;verbosity=detailed",
@@ -162,7 +163,7 @@ class Build : NukeBuild
             var portablePublishDir = OctoPublishDirectory / "portable";
             DotNetPublish(_ => _
                 .SetProject(Solution.Octo)
-                .SetFramework("netcoreapp3.1") 
+                .SetFramework("netcoreapp3.1")
                 .SetConfiguration(Configuration)
                 .SetOutput(portablePublishDir)
                 .SetVersion(fullSemVer));
@@ -267,6 +268,8 @@ class Build : NukeBuild
 
     void SignBinaries(string path)
     {
+        if(IsLocalBuild) return;
+
         Serilog.Log.Information($"Signing binaries in {path}");
 
         var files = Directory.EnumerateFiles(path, "Octopus.*.dll", SearchOption.AllDirectories).ToList();
