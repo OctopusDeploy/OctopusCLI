@@ -69,7 +69,7 @@ jobs:
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: |
           ${{ runner.os }}-nuget-
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: octoversion
     - name: Run Nuke Test 🧪
@@ -90,11 +90,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: artifacts
         path: artifacts
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: octoversion
     - name: Run Nuke 🛢
@@ -116,11 +116,11 @@ jobs:
         path: linux-package-feeds-repo
     - run: |
         ln -s linux-package-feeds-repo/source linux-package-feeds
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: artifacts
         path: artifacts
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: octoversion
     - name: Create packages 🛢
@@ -144,15 +144,15 @@ jobs:
     needs: [docker-build, linux-distro-packages-build, test]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: artifacts
         path: artifacts
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: packages-linux
         path: artifacts
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: docker-image
         path: artifacts
