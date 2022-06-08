@@ -10,3 +10,16 @@ jobs:
       - uses: google-github-actions/release-please-action@v3
         with:
           release-type: simple
+      - uses: slackapi/slack-github-action@v1
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.INTEGRATIONS_FNM_SLACK_WEBHOOK_URL }}
+        if: ${{ steps.release-please.release_created }}
+        with:
+          payload: |
+            {
+              "project_name": "${{ github.repository.full_name }}",
+              "version_string": "${{ steps.release-please.major }}.${{ steps.release-please.minor }}.${{ steps.release-please.patch }}",
+              "description": "${{ github.repository.description }",
+              "link": "${{ github.repository.html_url }}"
+            }
+        
