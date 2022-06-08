@@ -216,6 +216,7 @@ class Build : NukeBuild
 
     Target PackOctopusToolsNuget => _ => _
         .DependsOn(DotnetPublish)
+        .OnlyWhenStatic(() => EnvironmentInfo.IsWin)
         .Executes(() =>
         {
             var nugetPackDir = PublishDirectory / "nuget";
