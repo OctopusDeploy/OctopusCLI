@@ -38,11 +38,11 @@ jobs:
         AzureKeyVaultCertificateName: ${{ secrets.AZURE_KEYVAULT_CERTIFICATE_NAME }}
       run: |
         ./build.cmd
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: artifacts
         path: artifacts/
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: octoversion
         path: octoversion.txt
@@ -99,7 +99,7 @@ jobs:
         name: octoversion
     - name: Run Nuke 🛢
       run: ./build.sh --target BuildDockerImage
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: docker-image
         path: artifacts/Octo.Docker.Image.*.tar.gz
@@ -135,7 +135,7 @@ jobs:
         REDHAT_SUBSCRIPTION_USERNAME: ${{ secrets.REDHAT_SUBSCRIPTION_USERNAME }}
         REDHAT_SUBSCRIPTION_PASSWORD: ${{ secrets.REDHAT_SUBSCRIPTION_PASSWORD }}
       run: ./build.sh --target TestLinuxPackages
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: packages-linux
         path: artifacts/OctopusTools.Packages.linux-x64.*.zip
