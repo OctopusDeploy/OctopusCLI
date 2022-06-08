@@ -76,3 +76,5 @@ TestResults/
 **/launchSettings.json
 
 .DS_Store
+
+octoversion.txt
