@@ -13,7 +13,7 @@ namespace Octopus.Cli.Commands.Project
     public class DeleteProjectCommand : ApiCommand, ISupportFormattedOutput
     {
         ProjectResource project;
-        bool ProjectDeleted = true;
+        bool ProjectDeleted;
 
         public DeleteProjectCommand(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider)
