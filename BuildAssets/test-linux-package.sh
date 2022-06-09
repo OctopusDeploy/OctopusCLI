@@ -15,16 +15,9 @@ if [[ "$OSRELID" == "rhel" && ( -z "$REDHAT_SUBSCRIPTION_USERNAME" || -z "$REDHA
   exit 1
 fi
 
-if [[ ! -e /opt/linux-package-feeds ]]; then
-  echo "This script requires 'linux-package-feeds' scripts, installed in '/opt/linux-package-feeds'." >&2
-  echo "They come from https://github.com/OctopusDeploy/linux-package-feeds, distributed in TeamCity" >&2
-  echo "  via 'Infrastructure / Linux Package Feeds'. If running inside a Docker container, supply them using a volume mount." >&2
-  exit 1
-fi
-
 # Install the package (with any needed docker config, system registration, dependencies) using a script from 'linux-package-feeds'.
 
-bash /opt/linux-package-feeds/install-linux-package.sh || exit
+bash ./install-linux-package.sh || exit
 
 if command -v dpkg > /dev/null; then
   echo Detected dpkg. Installing ca-certificates to support octo HTTPS communication.

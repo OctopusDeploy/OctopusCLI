@@ -9,7 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\.gitignore = ..\.gitignore
 		..\BuildAssets\create-octopuscli-linux-packages.sh = ..\BuildAssets\create-octopuscli-linux-packages.sh
 		..\BuildAssets\test-linux-package.sh = ..\BuildAssets\test-linux-package.sh
-		..\BuildAssets\test-linux-package-in-dists.sh = ..\BuildAssets\test-linux-package-in-dists.sh
 		..\.github\workflows\build.yml = ..\.github\workflows\build.yml
 	EndProjectSection
 EndProject
