@@ -168,7 +168,7 @@ class Build : NukeBuild
                 .SetOutput(portablePublishDir)
                 .SetVersion(fullSemVer));
 
-            SignBinaries(portablePublishDir);
+            //SignBinaries(portablePublishDir);
 
             CopyFileToDirectory(AssetDirectory / "octo", portablePublishDir, FileExistsPolicy.Overwrite);
             CopyFileToDirectory(AssetDirectory / "octo.cmd", portablePublishDir, FileExistsPolicy.Overwrite);
@@ -191,15 +191,24 @@ class Build : NukeBuild
                     .SetOutput(OctoPublishDirectory / rid)
                     .SetVersion(fullSemVer));
 
-                if (!rid.StartsWith("linux-") && !rid.StartsWith("osx-"))
-                    // Sign binaries, except linux which are verified at download, and osx which are signed on a mac
-                    SignBinaries(OctoPublishDirectory / rid);
+                // if (!rid.StartsWith("linux-") && !rid.StartsWith("osx-"))
+                //     // Sign binaries, except linux which are verified at download, and osx which are signed on a mac
+                //     SignBinaries(OctoPublishDirectory / rid);
             }
         });
 
+    Target CodeSign => _ => _
+        .DependsOn(DotnetPublish)
+        .Executes(() =>
+        {
+            SignBinaries(OctopusCliDirectory / "bin" / Configuration);
+            SignBinaries(DotNetOctoCliFolder / "bin" / Configuration);
+            foreach (var publishedCodeDir in Directory.EnumerateDirectories(OctoPublishDirectory).Where(d => !Path.GetFileName(d).StartsWith("linux-") && !Path.GetFileName(d).StartsWith("osx-")))
+                SignBinaries(publishedCodeDir);
+        });
 
     Target Zip => _ => _
-        .DependsOn(DotnetPublish)
+        .DependsOn(CodeSign)
         .Executes(() =>
         {
             foreach (var dir in Directory.EnumerateDirectories(OctoPublishDirectory))
@@ -216,7 +225,7 @@ class Build : NukeBuild
         });
 
     Target PackOctopusToolsNuget => _ => _
-        .DependsOn(DotnetPublish)
+        .DependsOn(CodeSign)
         .OnlyWhenStatic(() => EnvironmentInfo.IsWin)
         .Executes(() =>
         {
@@ -237,10 +246,10 @@ class Build : NukeBuild
         });
 
     Target PackDotNetOctoNuget => _ => _
-        .DependsOn(DotnetPublish)
+        .DependsOn(CodeSign)
         .Executes(() =>
         {
-            SignBinaries(OctopusCliDirectory / "bin" / Configuration);
+            //SignBinaries(OctopusCliDirectory / "bin" / Configuration);
 
             DotNetPack(_ => _
                 .SetProject(OctopusCliDirectory)
@@ -250,7 +259,7 @@ class Build : NukeBuild
                 .EnableNoBuild()
                 .DisableIncludeSymbols());
 
-            SignBinaries(DotNetOctoCliFolder / "bin" / Configuration);
+            //SignBinaries(DotNetOctoCliFolder / "bin" / Configuration);
 
             DotNetPack(_ => _
                 .SetProject(DotNetOctoCliFolder)
