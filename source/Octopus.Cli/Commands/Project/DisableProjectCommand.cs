@@ -35,10 +35,7 @@ namespace Octopus.Cli.Commands.Project
             // Check that is project exists and isn't already disabled
             if (project == null)
             {
-                commandOutputProvider.Information("The project {Project:l} does not exist.", project.Name);
-                return;
-
-                throw new CommandException($"The project {project.Name} does not exist.");
+                throw new CouldNotFindException("project");
             }
             else if (project.IsDisabled == true)
             {
