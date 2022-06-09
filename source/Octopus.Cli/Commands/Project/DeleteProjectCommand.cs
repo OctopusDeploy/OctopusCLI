@@ -46,7 +46,6 @@ namespace Octopus.Cli.Commands.Project
             }
             catch (Exception ex)
             {
-                ProjectDeleted = false;
                 commandOutputProvider.Error("Error deleting project {Project:l}: {Exception:l}", project.Name, ex.Message);
             }
 
