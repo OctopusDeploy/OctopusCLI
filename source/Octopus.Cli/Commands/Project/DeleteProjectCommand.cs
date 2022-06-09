@@ -6,6 +6,7 @@ using Octopus.Client;
 using Octopus.Client.Model;
 using Octopus.CommandLine;
 using Octopus.CommandLine.Commands;
+using Octopus.Cli.Infrastructure;
 
 namespace Octopus.Cli.Commands.Project
 {
