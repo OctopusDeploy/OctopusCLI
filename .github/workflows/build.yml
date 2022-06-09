@@ -5,8 +5,8 @@ on:
     branches: '**'
     tags: [ '*' ]
   schedule:
-    # Daily 5am australian/brisbane time
-    - cron: '15 0 * * *'
+    # Daily 5am australian/brisbane time (7pm UTC)
+    - cron: '0 19 * * *'
   workflow_dispatch:
 
 jobs:
