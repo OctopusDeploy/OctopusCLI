@@ -200,6 +200,7 @@ step "Publish to APT repo" {
 
     action {
         action_type = "Octopus.Script"
+        environments = ["Components - External"]
         properties = {
             Octopus.Action.Script.ScriptBody = <<-EOT
                 cd OctopusTools.Packages.linux-x64 || exit
@@ -236,6 +237,7 @@ step "Publish to RPM repo" {
 
     action {
         action_type = "Octopus.Script"
+        environments = ["Components - External"]
         properties = {
             Octopus.Action.Script.ScriptBody = <<-EOT
                 cd OctopusTools.Packages.linux-x64 || exit
