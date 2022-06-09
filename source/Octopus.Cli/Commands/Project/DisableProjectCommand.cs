@@ -75,7 +75,7 @@ namespace Octopus.Cli.Commands.Project
                 {
                     project.Id,
                     project.Name,
-                    IsDisabled = project.IsDisabled
+                    project.IsDisabled
                 }
             });
         }
