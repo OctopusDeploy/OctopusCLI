@@ -35,10 +35,7 @@ namespace Octopus.Cli.Commands.Project
             project = await Repository.Projects.FindByName(ProjectName).ConfigureAwait(false);
             if (project == null)
             {
-                commandOutputProvider.Information("The project {Project:l} does not exist", project.Name);
-                return;
-
-                throw new CommandException($"The project {project.Name} does not exist.");
+                throw new CouldNotFindException("project");
             }
 
             commandOutputProvider.Information("Deleting project: {Project:l}", ProjectName);
