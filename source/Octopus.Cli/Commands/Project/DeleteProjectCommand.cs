@@ -23,8 +23,6 @@ namespace Octopus.Cli.Commands.Project
         }
 
         public string ProjectName { get; set; }
-        public string ProjectGroupName { get; set; }
-        public bool ProjectExists { get; set; }
 
         public async Task Request()
         {
