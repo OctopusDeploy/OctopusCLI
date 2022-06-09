@@ -41,8 +41,6 @@ namespace Octopus.Cli.Commands.Project
             {
                 commandOutputProvider.Information("The project {Project:l} is already disabled.", project.Name);
                 return;
-
-                throw new CommandException($"The project {project.Name} is already disabled.");
             }
 
             // Disable project
