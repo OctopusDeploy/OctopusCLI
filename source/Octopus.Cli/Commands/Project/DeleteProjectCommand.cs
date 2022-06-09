@@ -68,7 +68,7 @@ namespace Octopus.Cli.Commands.Project
                 {
                     project.Id,
                     project.Name,
-                    ProjectDeleted = ProjectDeleted
+                    ProjectDeleted
                 }
             });
         }
