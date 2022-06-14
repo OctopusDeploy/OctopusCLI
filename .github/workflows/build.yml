@@ -188,7 +188,7 @@ jobs:
     - name: Test the distro image
       env:
         OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
-        OCTOPUS_CLI_API_KEY: ${{ secrets.INTEGRATIONS_API_KEY }}
+        OCTOPUS_CLI_API_KEY: ${{ secrets.OCTOPUS_API_KEY }}
         REDHAT_SUBSCRIPTION_USERNAME: ${{ secrets.REDHAT_SUBSCRIPTION_USERNAME }}
         REDHAT_SUBSCRIPTION_PASSWORD: ${{ secrets.REDHAT_SUBSCRIPTION_PASSWORD }}
       run: |
@@ -205,7 +205,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
-      OCTOPUS_CLI_API_KEY: ${{ secrets.INTEGRATIONS_API_KEY }}
+      OCTOPUS_CLI_API_KEY: ${{ secrets.OCTOPUS_API_KEY }}
       VERSION: ${{ needs.build.outputs.version }}
     steps:
     - uses: actions/download-artifact@v3
