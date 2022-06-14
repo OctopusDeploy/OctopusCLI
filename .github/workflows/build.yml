@@ -23,12 +23,6 @@ jobs:
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
-    - uses: actions/cache@v2
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
     - name: Run Nuke Build 🏗
       id: nuke-build
       env:
@@ -47,10 +41,6 @@ jobs:
       with:
         name: artifacts
         path: artifacts/
-    - uses: actions/upload-artifact@v3
-      with:
-        name: octoversion
-        path: octoversion.txt
 
   docker-build:
     name: Create and test Docker image
@@ -64,9 +54,6 @@ jobs:
       with:
         name: artifacts
         path: artifacts
-    - uses: actions/download-artifact@v3
-      with:
-        name: octoversion
     - name: Build Docker image
       id: build-docker-image
       run: |
@@ -245,7 +232,7 @@ jobs:
       uses: OctopusDeploy/install-octopus-cli-action@v1
       with:
         version: latest
-    
+
     - name: Push a package to Octopus Deploy 🐙
       uses: OctopusDeploy/push-package-action@v1.1.2
       with:
