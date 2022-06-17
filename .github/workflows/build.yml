@@ -3,7 +3,8 @@ name: Build, test and publish
 on:
   push:
     branches: '**'
-    tags: [ '*' ]
+  release:
+    types: [published, edited]
   schedule:
     # Daily 5am australian/brisbane time (7pm UTC)
     - cron: '0 19 * * *'
