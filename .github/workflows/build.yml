@@ -235,7 +235,7 @@ jobs:
         version: latest
 
     - name: Push a package to Octopus Deploy 🐙
-      uses: OctopusDeploy/push-package-action@v1.1.2
+      uses: OctopusDeploy/push-package-action@v1
       with:
         space: Integrations
         packages: |
@@ -246,7 +246,7 @@ jobs:
           artifacts/OctopusTools.Zips.${{ needs.build.outputs.version }}.zip
 
     - name: Create a release in Octopus Deploy 🐙
-      uses: OctopusDeploy/create-release-action@v1.1.3
+      uses: OctopusDeploy/create-release-action@v1
       with:
         space: Integrations
         project: 'Octopus CLI'
