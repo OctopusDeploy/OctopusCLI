@@ -246,7 +246,7 @@ jobs:
           artifacts/OctopusTools.Zips.${{ needs.build.outputs.version }}.zip
 
     - name: Create a release in Octopus Deploy 🐙
-      uses: OctopusDeploy/create-release-action@v1.1.3
+      uses: OctopusDeploy/create-release-action@v1.2.0
       with:
         space: Integrations
         project: 'Octopus CLI'
