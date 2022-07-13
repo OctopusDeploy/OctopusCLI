@@ -201,7 +201,7 @@ namespace Octopus.Cli.Commands.Releases
         async Task<Dictionary<string, FeedResource>> LoadFeedsForSteps(IOctopusAsyncRepository repository, ProjectResource project, IEnumerable<ReleasePlanItem> steps)
         {
             // PackageFeedId can be an id or a name
-            var allRelevantFeedIdOrName = steps.Select(step => step.PackageFeedId).ToArray();
+            var allRelevantFeedIds = steps.Select(step => step.PackageFeedId).Distinct().ToArray();
 
             var isVersionControlled = project.IsVersionControlled;
             var useIdsForConfigAsCode = (await repository.LoadRootDocument().ConfigureAwait(false)).UseIdsForConfigAsCode();
@@ -213,8 +213,8 @@ namespace Octopus.Cli.Commands.Releases
             }
             
             var allRelevantFeeds = lookupByName
-                ? (await repository.Feeds.FindByNames(allRelevantFeedIdOrName).ConfigureAwait(false)).ToDictionary(feed => feed.Name)
-                : (await repository.Feeds.Get(allRelevantFeedIdOrName).ConfigureAwait(false)).ToDictionary(feed => feed.Id);
+                ? (await repository.Feeds.FindByNames(allRelevantFeedIds).ConfigureAwait(false)).ToDictionary(feed => feed.Name)
+                : (await repository.Feeds.Get(allRelevantFeedIds).ConfigureAwait(false)).ToDictionary(feed => feed.Id);
                 
             return allRelevantFeeds;
         }
