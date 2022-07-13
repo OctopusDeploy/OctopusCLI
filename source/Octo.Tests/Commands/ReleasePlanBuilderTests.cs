@@ -333,10 +333,36 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void VersionControlledProject_ResolvableUsingFeed_ShouldBeViablePlan()
+        public void VersionControlledProject_ResolvableUsingFeedId_ShouldBeViablePlan()
         {
             // arrange
             gitReference = "main";
+            repository.LoadRootDocument().Returns(new RootResource
+            {
+                Version = "2022.3.4517"
+            });
+
+            projectResource.IsVersionControlled = true;
+            releaseTemplateResource.Packages.Add(GetReleaseTemplatePackage().WithPackage().IsResolvable());
+            packages.Add(new PackageResource { Version = "1.0.0" });
+
+            // act
+            var plan = ExecuteBuild();
+
+            // assert
+            plan.IsViableReleasePlan().Should().BeTrue();
+        }
+
+        [Test]
+        public void VersionControlledProject_ResolvableUsingFeedName_ShouldBeViablePlan()
+        {
+            // arrange
+            gitReference = "main";
+            repository.LoadRootDocument().Returns(new RootResource
+            {
+                Version = "2022.2"
+            });
+
             projectResource.IsVersionControlled = true;
             releaseTemplateResource.Packages.Add(GetReleaseTemplatePackage().WithPackage(ResourceBuilderHelpers.KeyedBy.Name).IsResolvable());
             packages.Add(new PackageResource { Version = "1.0.0" });
