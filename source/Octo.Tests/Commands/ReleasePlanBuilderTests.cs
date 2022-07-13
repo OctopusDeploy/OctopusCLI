@@ -338,7 +338,7 @@ namespace Octo.Tests.Commands
             // arrange
             gitReference = "main";
             projectResource.IsVersionControlled = true;
-            releaseTemplateResource.Packages.Add(GetReleaseTemplatePackage().WithPackage(ResourceBuilderHelpers.KeyedBy.Name).IsResolvable());
+            releaseTemplateResource.Packages.Add(GetReleaseTemplatePackage().WithPackage().IsResolvable());
             packages.Add(new PackageResource { Version = "1.0.0" });
 
             // act
@@ -384,12 +384,6 @@ namespace Octo.Tests.Commands
 
     public static class ResourceBuilderHelpers
     {
-        public enum KeyedBy
-        {
-            Id,
-            Name
-        }
-
         public static DeploymentActionResource WithPackage(this DeploymentActionResource action)
         {
             action.Properties["Octopus.Action.Package.PackageId"] = TestHelpers.GetId("package");
@@ -408,10 +402,10 @@ namespace Octo.Tests.Commands
             return action;
         }
 
-        public static ReleaseTemplatePackage WithPackage(this ReleaseTemplatePackage releaseTemplatePackage, KeyedBy keyedBy = KeyedBy.Id)
+        public static ReleaseTemplatePackage WithPackage(this ReleaseTemplatePackage releaseTemplatePackage)
         {
             releaseTemplatePackage.PackageId = TestHelpers.GetId("package");
-            var feedKey = keyedBy == KeyedBy.Id ? ReleasePlanBuilderTests.BuiltInFeedId : "Built in feed";
+            var feedKey = ReleasePlanBuilderTests.BuiltInFeedId;
             releaseTemplatePackage.FeedId = feedKey;
             return releaseTemplatePackage;
         }
