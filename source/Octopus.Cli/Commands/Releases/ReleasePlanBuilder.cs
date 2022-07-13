@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Octopus.Cli.Infrastructure;
+using Octopus.Cli.Util;
 using Octopus.Client;
+using Octopus.Client.Logging;
 using Octopus.Client.Model;
 using Octopus.CommandLine;
 using Octopus.CommandLine.Commands;
@@ -19,12 +21,14 @@ namespace Octopus.Cli.Commands.Releases
         readonly IPackageVersionResolver versionResolver;
         readonly IChannelVersionRuleTester versionRuleTester;
         readonly ICommandOutputProvider commandOutputProvider;
+        readonly ILogger logger;
 
         public ReleasePlanBuilder(ILogger log, IPackageVersionResolver versionResolver, IChannelVersionRuleTester versionRuleTester, ICommandOutputProvider commandOutputProvider)
         {
             this.versionResolver = versionResolver;
             this.versionRuleTester = versionRuleTester;
             this.commandOutputProvider = commandOutputProvider;
+            logger = log;
         }
 
         public static string GitReferenceSuppliedForDatabaseProjectErrorMessage(string gitObjectName)
@@ -194,14 +198,24 @@ namespace Octopus.Cli.Commands.Releases
             return plan;
         }
 
-        static async Task<Dictionary<string, FeedResource>> LoadFeedsForSteps(IOctopusAsyncRepository repository, ProjectResource project, IEnumerable<ReleasePlanItem> steps)
+        async Task<Dictionary<string, FeedResource>> LoadFeedsForSteps(IOctopusAsyncRepository repository, ProjectResource project, IEnumerable<ReleasePlanItem> steps)
         {
             // PackageFeedId can be an id or a name
-            var allRelevantFeedIdOrName = steps.Select(step => step.PackageFeedId).ToArray();
-            var allRelevantFeeds = project.IsVersionControlled
-                ? (await repository.Feeds.FindByNames(allRelevantFeedIdOrName).ConfigureAwait(false)).ToDictionary(feed => feed.Name)
-                : (await repository.Feeds.Get(allRelevantFeedIdOrName).ConfigureAwait(false)).ToDictionary(feed => feed.Id);
+            var allRelevantFeedIds = steps.Select(step => step.PackageFeedId).Distinct().ToArray();
 
+            var isVersionControlled = project.IsVersionControlled;
+            var useIdsForConfigAsCode = (await repository.LoadRootDocument().ConfigureAwait(false)).UseIdsForConfigAsCode();
+            var lookupByName = isVersionControlled && !useIdsForConfigAsCode;
+
+            if (lookupByName)
+            {
+                logger.Warning("Using names to reference shared resources from version-controlled projects will be deprecated from 2022.3.4517");
+            }
+            
+            var allRelevantFeeds = lookupByName
+                ? (await repository.Feeds.FindByNames(allRelevantFeedIds).ConfigureAwait(false)).ToDictionary(feed => feed.Name)
+                : (await repository.Feeds.Get(allRelevantFeedIds).ConfigureAwait(false)).ToDictionary(feed => feed.Id);
+                
             return allRelevantFeeds;
         }
 
