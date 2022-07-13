@@ -42,5 +42,13 @@ namespace Octopus.Cli.Util
                 !SemanticVersion.TryParse(source.Version, out var octopusServerVersion) ||
                 octopusServerVersion >= new SemanticVersion("2021.2");
         }
+
+        public static bool UseIdsForConfigAsCode(this RootResource source)
+        {
+            // The separation of Projects from DeploymentSettings was exposed from 2021.2 onwards
+            return source == null ||
+                !SemanticVersion.TryParse(source.Version, out var octopusServerVersion) ||
+                octopusServerVersion >= new SemanticVersion("2022.3.4517");
+        }
     }
 }
