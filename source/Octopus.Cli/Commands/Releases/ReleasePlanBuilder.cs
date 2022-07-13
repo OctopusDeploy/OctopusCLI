@@ -198,7 +198,9 @@ namespace Octopus.Cli.Commands.Releases
         {
             // PackageFeedId can be an id or a name
             var allRelevantFeedIdOrName = steps.Select(step => step.PackageFeedId).ToArray();
-            var allRelevantFeeds = (await repository.Feeds.Get(allRelevantFeedIdOrName).ConfigureAwait(false)).ToDictionary(feed => feed.Id);
+            var allRelevantFeeds = project.IsVersionControlled
+                ? (await repository.Feeds.FindByNames(allRelevantFeedIdOrName).ConfigureAwait(false)).ToDictionary(feed => feed.Name)
+                : (await repository.Feeds.Get(allRelevantFeedIdOrName).ConfigureAwait(false)).ToDictionary(feed => feed.Id);
 
             return allRelevantFeeds;
         }
