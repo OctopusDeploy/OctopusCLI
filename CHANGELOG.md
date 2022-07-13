@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.1.2](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.1...v9.1.2) (2022-07-13)
+
+
+### Bug Fixes
+
+* [7660](https://github.com/OctopusDeploy/Issues/issues/7660) Update release plan builder to use IDs in new versions of Octopus ([#208](https://github.com/OctopusDeploy/OctopusCLI/pull/208)) ([28dbe04](https://github.com/OctopusDeploy/OctopusCLI/commit/28dbe04c6c2718d95089314d49dc1b2d2bcdacbc))
+
 ## [9.1.1](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.0...v9.1.1) (2022-06-17)
 
 
