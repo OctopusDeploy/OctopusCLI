@@ -1,5 +1,13 @@
 # Changelog
 
+## [9.1.3](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.2...v9.1.3) (2022-07-14)
+
+
+### Bug Fixes
+
+* Corrected the release-please setup for managing releases ([3707e96](https://github.com/OctopusDeploy/OctopusCLI/commit/3707e96fab360565c082ec8f13f0eda474f6a077))
+* Update deployment process to use different user for homebrew publish ([#212](https://github.com/OctopusDeploy/OctopusCLI/issues/212)) ([3707e96](https://github.com/OctopusDeploy/OctopusCLI/commit/3707e96fab360565c082ec8f13f0eda474f6a077))
+
 ## [9.1.2](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.1...v9.1.2) (2022-07-13)
 
 
