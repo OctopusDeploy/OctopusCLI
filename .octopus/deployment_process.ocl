@@ -183,7 +183,7 @@ step "publish-homebrew" {
             PubHomebrew-FileName = "octopuscli.rb"
             PubHomebrew-PersonalAccessToken = "#{HomeBrewKey}"
             PubHomebrew-RepoName = "homebrew-taps"
-            PubHomebrew-Username = "OctoBob"
+            PubHomebrew-Username = "#{HomeBrewGitUsername}"
         }
         worker_pool = "hosted-windows-2019"
 
