@@ -4,7 +4,7 @@ on:
   push:
     branches: '**'
   release:
-    types: [published, edited]
+    types: [published]
   schedule:
     # Daily 5am australian/brisbane time (7pm UTC)
     - cron: '0 19 * * *'
