@@ -235,7 +235,7 @@ jobs:
         version: latest
 
     - name: Push a package to Octopus Deploy 🐙
-      uses: OctopusDeploy/push-package-action@v1.1.2
+      uses: OctopusDeploy/push-package-action@v2.0.0
       with:
         space: Integrations
         packages: |
