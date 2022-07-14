@@ -5,6 +5,6 @@ versioning_strategy {
 
     donor_package {
         package = "PackageToUpload"
-        step = "Upload OctopusTools to S3 public with hashes"
+        step = "upload-octopustools-to-s3-public-with-hashes"
     }
 }
