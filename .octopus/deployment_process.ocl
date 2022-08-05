@@ -169,12 +169,68 @@ step "push-octopustools-to-chocolatey" {
     }
 }
 
+step "push-changes-to-homebrew-repo" {
+    name = "Push Changes To Homebrew Repo"
+
+    action {
+        action_type = "Octopus.Script"
+        properties = {
+            Octopus.Action.Script.ScriptBody = <<-EOT
+                packageVersion=$(get_octopusvariable 'Octopus.Action.Package[OctopusTools.Zips].PackageVersion')
+                extractedPath=$(get_octopusvariable 'Octopus.Action.Package[OctopusTools.Zips].ExtractedPath')
+                username=$(get_octopusvariable 'HomeBrewGitUsername')
+                personalAccessToken=$(get_octopusvariable 'HomeBrewKey')
+                
+                repoName='homebrew-taps'
+                fileName='octopuscli.rb'
+                branchName="releases/$packageVersion"
+                repoUrl="https://$username:$personalAccessToken@github.com/OctopusDeploy/$repoName.git"
+                
+                git clone $repoUrl
+                
+                cd "$repoName"
+                
+                # Update version property
+                sed -i "s/\(^.*version \"\).*\(\".*$\)/\1$packageVersion\2/g" $fileName
+                
+                # Update download URL
+                sed -i "s/\(^.*url.*octopus-tools\/\).*\(\/.*Tools\.\).*\(\.osx.*$\)/\1$packageVersion\2$packageVersion\3/g" $fileName
+                
+                newSha=$(sha256sum "$extractedPath/OctopusTools.$packageVersion.osx-x64.tar.gz" | awk '{ print $1 }')
+                # Update sha256 property
+                sed -i "s/\(^.*sha256 \"\).*\(\".*$\)/\1$newSha\2/g" $fileName
+                
+                git config user.email 'team-integrations-fnm-bot@octopus.com';
+                git config user.name $username;
+                
+                git checkout -b $branchName
+                git add $fileName
+                
+                git diff-index --quiet HEAD || (git commit -m "Update for release $packageVersion" \
+                    && git push --repo $repoUrl --set-upstream origin $branchName \
+                )
+                
+            EOT
+            Octopus.Action.Script.ScriptSource = "Inline"
+            Octopus.Action.Script.Syntax = "Bash"
+            OctopusUseBundledTooling = "False"
+        }
+        worker_pool = "hosted-ubuntu"
+
+        container {
+            feed = "docker-hub"
+            image = "octopusdeploy/worker-tools:3.3.2-ubuntu.18.04"
+        }
+    }
+}
+
 step "publish-homebrew" {
     name = "Publish Homebrew"
     start_trigger = "StartWithPrevious"
 
     action {
         environments = ["components-external"]
+        is_disabled = true
         properties = {
             Octopus.Action.Template.Id = "ActionTemplates-882"
             Octopus.Action.Template.Version = "19"
