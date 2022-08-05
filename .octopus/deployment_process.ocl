@@ -174,12 +174,14 @@ step "push-changes-to-homebrew-repo" {
 
     action {
         action_type = "Octopus.Script"
+        environments = ["components-external"]
         properties = {
             Octopus.Action.Script.ScriptBody = <<-EOT
-                packageVersion=$(get_octopusvariable 'Octopus.Action.Package[OctopusTools.Zips].PackageVersion')
-                extractedPath=$(get_octopusvariable 'Octopus.Action.Package[OctopusTools.Zips].ExtractedPath')
-                username=$(get_octopusvariable 'HomeBrewGitUsername')
-                personalAccessToken=$(get_octopusvariable 'HomeBrewKey')
+                packageVersion="$(get_octopusvariable 'Octopus.Action.Package[OctopusTools.Zips].PackageVersion')"
+                extractedPath="$(get_octopusvariable 'Octopus.Action.Package[OctopusTools.Zips].ExtractedPath')"
+                username="$(get_octopusvariable 'HomeBrewGitUsername')"
+                email="$(get_octopusvariable 'HomeBrewGitUserEmail')"
+                personalAccessToken="$(get_octopusvariable 'HomeBrewKey')"
                 
                 repoName='homebrew-taps'
                 fileName='octopuscli.rb'
@@ -200,8 +202,8 @@ step "push-changes-to-homebrew-repo" {
                 # Update sha256 property
                 sed -i "s/\(^.*sha256 \"\).*\(\".*$\)/\1$newSha\2/g" $fileName
                 
-                git config user.email 'team-integrations-fnm-bot@octopus.com';
-                git config user.name $username;
+                git config user.email $email
+                git config user.name $username
                 
                 git checkout -b $branchName
                 git add $fileName
@@ -220,6 +222,17 @@ step "push-changes-to-homebrew-repo" {
         container {
             feed = "docker-hub"
             image = "octopusdeploy/worker-tools:3.3.2-ubuntu.18.04"
+        }
+
+        packages "OctopusTools.Zips" {
+            acquisition_location = "Server"
+            feed = "octopus-server-built-in"
+            package_id = "OctopusTools.Zips"
+            properties = {
+                Extract = "True"
+                Purpose = ""
+                SelectionMode = "immediate"
+            }
         }
     }
 }
