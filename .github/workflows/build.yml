@@ -15,7 +15,7 @@ jobs:
     name: Build and unit test code
     runs-on: windows-latest
     # conditionally skip build on PR merge of release-please, because the release creation is going to trigger the real build
-    if: ${{ github.ref_name != default-branch || github.event.head_commit.author.username != 'team-integrations-fnm-bot' }}
+    if: ${{ github.ref_name != github.event.repository.default_branch || github.event.head_commit.author.username != 'team-integrations-fnm-bot' }}
     outputs:
       version: ${{ steps.nuke-build.outputs.version }}
     steps:
@@ -264,5 +264,5 @@ jobs:
         package_version: ${{ needs.build.outputs.version }}
         packages: '*:NuGet.CommandLine:4.4.1'
         release_notes_file: ${{ (github.event_name == 'release' && steps.fetch-release-notes.outputs.release-note-file) || ''}}
-        git_ref: ${{ (github.ref_type == 'tag' && default-branch ) || (github.head_ref || github.ref) }}
+        git_ref: ${{ (github.ref_type == 'tag' && github.event.repository.default_branch ) || (github.head_ref || github.ref) }}
         git_commit: ${{ github.event.after || github.event.pull_request.head.sha }}
