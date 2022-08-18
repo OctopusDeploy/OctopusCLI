@@ -400,7 +400,7 @@ step "create-release-in-slipway" {
                 $slipwayToken = $OctopusParameters["SlipwayToken"]
                 $baseUrl = $OctopusParameters["SlipwayUrl"]
                 $version = $OctopusParameters["Octopus.Release.Number"]
-                $releaseNotes = $OctopusParameters["Octopus.Release.Notes"]
+                $releaseNotes = $OctopusParameters["Octopus.Deployment.ChangesMarkdown"]
                 
                 $headers = @{ "Authorization" = "Bearer $slipwayToken" }
                 
@@ -416,7 +416,7 @@ step "create-release-in-slipway" {
                         "IsPrerelease" = $isPreRelease;
                         "IsPublic" = $true;
                         "ReleaseNotes" = $releaseNotes;
-                        "ReleaseNotesMethod" = "GitRevisionGraph";
+                        "ReleaseNotesMethod" = "Milestones";
                     }
                 
                     write-verbose "POSTing the following JSON to $baseUrl/api/releases/create"

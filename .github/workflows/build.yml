@@ -4,7 +4,7 @@ on:
   push:
     branches: '**'
   release:
-    types: [published]
+    types: [created]
   schedule:
     # Daily 5am australian/brisbane time (7pm UTC)
     - cron: '0 19 * * *'
@@ -14,6 +14,8 @@ jobs:
   build:
     name: Build and unit test code
     runs-on: windows-latest
+    # conditionally skip build on PR merge of release-please, because the release creation is going to trigger the real build
+    if: ${{ github.ref_name != github.event.repository.default_branch || github.event.head_commit.author.username != 'team-integrations-fnm-bot' }}
     outputs:
       version: ${{ steps.nuke-build.outputs.version }}
     steps:
@@ -245,6 +247,15 @@ jobs:
           artifacts/OctopusTools.Packages.linux-x64.${{ needs.build.outputs.version }}.zip
           artifacts/OctopusTools.Zips.${{ needs.build.outputs.version }}.zip
 
+    - name: Fetch Release Notes
+      id: fetch-release-notes
+      if: github.event_name == 'release'
+      run: |
+        echo "::debug::${{github.event_name}}"
+        OUTPUT_FILE="release_notes.txt"
+        jq --raw-output '.release.body' ${{ github.event_path }} | sed 's#\r#  #g' > $OUTPUT_FILE
+        echo "::set-output name=release-note-file::$OUTPUT_FILE"
+
     - name: Create a release in Octopus Deploy 🐙
       uses: OctopusDeploy/create-release-action@v1.1.3
       with:
@@ -252,5 +263,6 @@ jobs:
         project: 'Octopus CLI'
         package_version: ${{ needs.build.outputs.version }}
         packages: '*:NuGet.CommandLine:4.4.1'
-        git_ref: ${{ (github.ref_type == 'tag' && 'main' ) || (github.head_ref || github.ref) }}
+        release_notes_file: ${{ (github.event_name == 'release' && steps.fetch-release-notes.outputs.release-note-file) || ''}}
+        git_ref: ${{ (github.ref_type == 'tag' && github.event.repository.default_branch ) || (github.head_ref || github.ref) }}
         git_commit: ${{ github.event.after || github.event.pull_request.head.sha }}
