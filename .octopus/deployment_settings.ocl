@@ -1,10 +1,16 @@
+deployment_changes_template = <<-EOT
+        #{each release in Octopus.Deployment.Changes}
+        #{release.ReleaseNotes}
+        #{/each}
+    EOT
+
 connectivity_policy {
 }
 
 versioning_strategy {
 
     donor_package {
-        package = "PackageToUpload"
+        package = "f150a8fb-b150-49eb-9cc2-73ba630da381"
         step = "upload-octopustools-to-s3-public-with-hashes"
     }
 }
