@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.1.4](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.3...v9.1.4) (2022-08-18)
+
+
+### Bug Fixes
+
+* Correct the build process to push release notes through for the public website ([8fe03ba](https://github.com/OctopusDeploy/OctopusCLI/commit/8fe03bada346cfcedd9fd2f618fb41ac5f9ecddd))
+
 ## [9.1.3](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.2...v9.1.3) (2022-07-14)
 
 
