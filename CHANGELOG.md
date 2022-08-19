@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.1.5](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.4...v9.1.5) (2022-08-19)
+
+
+### Bug Fixes
+
+* update dependencies ([9452189](https://github.com/OctopusDeploy/OctopusCLI/commit/94521896a522dfcbc3b1a1cfc4e5537a7745d8f6))
+
 ## [9.1.4](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.3...v9.1.4) (2022-08-18)
 
 
