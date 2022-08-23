@@ -1,5 +1,23 @@
 # Changelog
 
+## [9.2.0](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.6...v9.2.0) (2022-08-23)
+
+
+### Features
+
+* added commands to delete a project and to disable a project ([#177](https://github.com/OctopusDeploy/OctopusCLI/issues/177)) ([2bdb94c](https://github.com/OctopusDeploy/OctopusCLI/commit/2bdb94c62ff89f2b220990069100a163da13249d))
+
+
+### Bug Fixes
+
+* [7660](OctopusDeploy/Issues[#7660](https://github.com/OctopusDeploy/OctopusCLI/issues/7660)) Fixed slug handling for projects with Config as Code  ([#208](https://github.com/OctopusDeploy/OctopusCLI/issues/208)) ([28dbe04](https://github.com/OctopusDeploy/OctopusCLI/commit/28dbe04c6c2718d95089314d49dc1b2d2bcdacbc))
+* Correct the build process to push release notes through for the public website ([8fe03ba](https://github.com/OctopusDeploy/OctopusCLI/commit/8fe03bada346cfcedd9fd2f618fb41ac5f9ecddd))
+* corrected a build trigger for the release please workflow ([#199](https://github.com/OctopusDeploy/OctopusCLI/issues/199)) ([e98e3c4](https://github.com/OctopusDeploy/OctopusCLI/commit/e98e3c49d3ee39617238a30ff7f09915250bcf4e))
+* Corrected the release-please setup for managing releases ([3707e96](https://github.com/OctopusDeploy/OctopusCLI/commit/3707e96fab360565c082ec8f13f0eda474f6a077))
+* update dependencies ([9452189](https://github.com/OctopusDeploy/OctopusCLI/commit/94521896a522dfcbc3b1a1cfc4e5537a7745d8f6))
+* Update deployment process to use different user for homebrew publish ([#212](https://github.com/OctopusDeploy/OctopusCLI/issues/212)) ([3707e96](https://github.com/OctopusDeploy/OctopusCLI/commit/3707e96fab360565c082ec8f13f0eda474f6a077))
+* Validate that the release version passed in does not contain whitespaces ([#227](https://github.com/OctopusDeploy/OctopusCLI/issues/227)) ([f92d2fe](https://github.com/OctopusDeploy/OctopusCLI/commit/f92d2fe6d3a75072ccb263fa19c6941d48d83e47))
+
 ## [9.1.6](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.5...v9.1.6) (2022-08-23)
 
 
