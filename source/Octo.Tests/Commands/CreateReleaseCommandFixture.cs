@@ -45,6 +45,27 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
+        public void ShouldThrowForBadReleaseVersion()
+        {
+            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory,
+                new OctopusPhysicalFileSystem(Log),
+                versionResolver,
+                releasePlanBuilder,
+                ClientFactory,
+                CommandOutputProvider,
+                ExecutionResourceWaiterFactory);
+
+            CommandLineArgs.Add("--server=https://test-server-url/api/");
+            CommandLineArgs.Add("--apikey=API-test");
+            CommandLineArgs.Add("--project=Test Project");
+            CommandLineArgs.Add("--releaseNumber=1.0.0 ");
+            CommandLineArgs.Add($"--deployto={ValidEnvironment}");
+
+            var ex = Assert.ThrowsAsync<CommandException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("The release number '1.0.0 ' does not appear to be a valid version number. The version must consist of between 1 and 4 number only parts before the optional pre-release part. e.g. 2, 2.1, 2.4.0.23, 2.4-beta and 1-beta.2");
+        }
+
+        [Test]
         public void ShouldThrowForBadTag()
         {
             createReleaseCommand = new CreateReleaseCommand(RepositoryFactory,
