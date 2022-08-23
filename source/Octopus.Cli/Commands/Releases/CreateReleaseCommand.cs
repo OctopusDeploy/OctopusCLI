@@ -79,6 +79,9 @@ namespace Octopus.Cli.Commands.Releases
 
         protected override async Task ValidateParameters()
         {
+            if (!string.IsNullOrWhiteSpace(VersionNumber) && (!SemanticVersion.TryParseStrict(VersionNumber, out var result) || result is null)) 
+                throw new CommandException($"The release number '{VersionNumber}' does not appear to be a valid version number. The version must consist of between 1 and 4 number only parts before the optional pre-release part. e.g. 2, 2.1, 2.4.0.23, 2.4-beta and 1-beta.2");
+
             if (!string.IsNullOrWhiteSpace(ChannelNameOrId) && !await Repository.SupportsChannels().ConfigureAwait(false))
                 throw new CommandException("Your Octopus Server does not support channels, which was introduced in Octopus 3.2. Please upgrade your Octopus Server, or remove the --channel argument.");
 
