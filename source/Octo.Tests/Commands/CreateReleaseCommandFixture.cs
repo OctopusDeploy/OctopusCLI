@@ -45,6 +45,27 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
+        public void ShouldThrowForBadReleaseVersion()
+        {
+            createReleaseCommand = new CreateReleaseCommand(RepositoryFactory,
+                new OctopusPhysicalFileSystem(Log),
+                versionResolver,
+                releasePlanBuilder,
+                ClientFactory,
+                CommandOutputProvider,
+                ExecutionResourceWaiterFactory);
+
+            CommandLineArgs.Add("--server=https://test-server-url/api/");
+            CommandLineArgs.Add("--apikey=API-test");
+            CommandLineArgs.Add("--project=Test Project");
+            CommandLineArgs.Add("--releaseNumber=1.0.0 ");
+            CommandLineArgs.Add($"--deployto={ValidEnvironment}");
+
+            var ex = Assert.ThrowsAsync<CommandException>(() => createReleaseCommand.Execute(CommandLineArgs.ToArray()));
+            ex.Message.Should().Be("Release version '1.0.0 ' is invalid, version cannot contain whitespace.");
+        }
+
+        [Test]
         public void ShouldThrowForBadTag()
         {
             createReleaseCommand = new CreateReleaseCommand(RepositoryFactory,
