@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.1.6](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.6...v9.1.6) (2022-08-24)
+
+
+### Bug Fixes
+
+* Validate that the release version passed in does not contain whitespaces ([#227](https://github.com/OctopusDeploy/OctopusCLI/issues/227)) ([f92d2fe](https://github.com/OctopusDeploy/OctopusCLI/commit/f92d2fe6d3a75072ccb263fa19c6941d48d83e47))
+
 ## [9.1.5](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.4...v9.1.5) (2022-08-19)
 
 
