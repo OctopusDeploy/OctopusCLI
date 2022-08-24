@@ -40,7 +40,7 @@ namespace Octo.Tests.Commands
             });
 
             Assert.AreEqual("Test Project", createReleaseCommand.ProjectNameOrId);
-            Assert.AreEqual("1.0.0", createReleaseCommand.VersionNumber);
+            Assert.AreEqual("1.0.0", createReleaseCommand.VersionNumberParameterValue);
             Assert.AreEqual("Test config file.", createReleaseCommand.ReleaseNotes);
         }
 

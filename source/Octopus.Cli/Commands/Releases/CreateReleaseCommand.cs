@@ -14,16 +14,18 @@ using Octopus.CommandLine;
 using Octopus.CommandLine.Commands;
 using Serilog.Events;
 
+#nullable enable
+
 namespace Octopus.Cli.Commands.Releases
 {
     [Command("create-release", Description = "Creates (and, optionally, deploys) a release.")]
     public class CreateReleaseCommand : DeploymentCommandBase, ISupportFormattedOutput
     {
         readonly IReleasePlanBuilder releasePlanBuilder;
-        ReleaseResource release;
-        ProjectResource project;
-        ReleasePlan plan;
-        string versionNumber;
+        ReleaseResource? release;
+        ProjectResource? project;
+        ReleasePlan? plan;
+        string? versionNumber;
 
         public CreateReleaseCommand(IOctopusAsyncRepositoryFactory repositoryFactory,
             IOctopusFileSystem fileSystem,
@@ -45,7 +47,7 @@ namespace Octopus.Cli.Commands.Releases
             options.Add<string>("defaultPackageVersion=|packageVersion=", "Default version number of all packages to use for this release. Override per-package using --package.", versionResolver.Default);
             options.Add<string>("gitCommit=", "[Optional] Git commit to use when creating the release. Use in conjunction with the --gitRef parameter to select any previous commit.", v => GitCommit = v);
             options.Add<string>("ref=|gitRef=", "[Optional] Git reference to use when creating the release.", v => GitReference = v);
-            options.Add<string>("version=|releaseNumber=", "[Optional] Release number to use for the new release.", v => VersionNumber = v);
+            options.Add<string>("version=|releaseNumber=", "[Optional] Release number to use for the new release.", v => VersionNumberParameterValue = v);
             options.Add<string>("channel=", "[Optional] Name or ID of the channel to use for the new release. Omit this argument to automatically select the best channel.", v => ChannelNameOrId = v);
             options.Add<string>("package=", "[Optional] Version number to use for a package in the release. Format: StepName:Version or PackageID:Version or StepName:PackageName:Version. StepName, PackageID, and PackageName can be replaced with an asterisk. An asterisk will be assumed for StepName, PackageID, or PackageName if they are omitted.", v => versionResolver.Add(v), allowsMultiple: true);
             options.Add<string>("packagesFolder=",
@@ -67,19 +69,19 @@ namespace Octopus.Cli.Commands.Releases
             options.Add<string>("deployTo=", "[Optional] Name or ID of the environment to automatically deploy to, e.g., 'Production' or 'Environments-1'; specify this argument multiple times to deploy to multiple environments.", v => DeployToEnvironmentNamesOrIds.Add(v), allowsMultiple: true);
         }
 
-        public string GitReference { get; set; }
-        public string GitCommit { get; set; }
-        public string ChannelNameOrId { get; set; }
-        public string VersionNumber { get; set; }
-        public string ReleaseNotes { get; set; }
+        public string? GitReference { get; set; }
+        public string? GitCommit { get; set; }
+        public string? ChannelNameOrId { get; set; }
+        public string? VersionNumberParameterValue { get; set; }
+        public string? ReleaseNotes { get; set; }
         public bool IgnoreIfAlreadyExists { get; set; }
         public bool IgnoreChannelRules { get; set; }
-        public string VersionPreReleaseTag { get; set; }
+        public string? VersionPreReleaseTag { get; set; }
         public bool WhatIf { get; set; }
 
         protected override async Task ValidateParameters()
         {
-            if (VersionNumber.Contains(' ')) throw new CommandException($"Release version '{VersionNumber}' is invalid, version cannot contain whitespace.");
+            if (VersionNumberParameterValue?.Contains(' ') == true) throw new CommandException($"Release version '{VersionNumberParameterValue}' is invalid, version cannot contain whitespace.");
             if (!string.IsNullOrWhiteSpace(ChannelNameOrId) && !await Repository.SupportsChannels().ConfigureAwait(false))
                 throw new CommandException("Your Octopus Server does not support channels, which was introduced in Octopus 3.2. Please upgrade your Octopus Server, or remove the --channel argument.");
 
@@ -97,9 +99,9 @@ namespace Octopus.Cli.Commands.Releases
 
             plan = await BuildReleasePlan().ConfigureAwait(false);
 
-            if (!string.IsNullOrWhiteSpace(VersionNumber))
+            if (!string.IsNullOrWhiteSpace(VersionNumberParameterValue))
             {
-                versionNumber = VersionNumber;
+                versionNumber = VersionNumberParameterValue;
                 commandOutputProvider.Debug("Using version number provided on command-line: {Version:l}", versionNumber);
             }
             else if (!string.IsNullOrWhiteSpace(plan.ReleaseTemplate.NextVersionIncrement))
@@ -312,10 +314,10 @@ namespace Octopus.Cli.Commands.Releases
 
             // Continue using deprecated property on DeploymentSettings that exposes project for older server backwards compatibility
 #pragma warning disable 618
-            var projectReleaseNotes = project.ReleaseNotesTemplate;
+            var projectReleaseNotes = project?.ReleaseNotesTemplate;
 #pragma warning restore 618
 
-            if (project.IsVersionControlled)
+            if (project?.IsVersionControlled == true)
             {
                 var deploymentSettings = await Repository.DeploymentSettings
                     .Get(project, GitCommit ?? GitReference)
@@ -350,6 +352,9 @@ namespace Octopus.Cli.Commands.Releases
 
         public void PrintJsonOutput()
         {
+            if (release is null) throw new CommandException("Release resource was not set");
+            if (project is null) throw new CommandException("Project resource was not set");
+            if (plan is null) throw new CommandException("Release plan was not set");
             commandOutputProvider.Json(new
             {
                 ReleaseId = release.Id,
@@ -371,12 +376,12 @@ namespace Octopus.Cli.Commands.Releases
         void ValidateProjectPersistenceRequirements()
         {
             var wasGitRefProvided = !string.IsNullOrEmpty(GitReference);
-            if (project.PersistenceSettings is GitPersistenceSettingsResource && !wasGitRefProvided)
+            if (project?.PersistenceSettings is GitPersistenceSettingsResource && !wasGitRefProvided)
             {
                 throw new CommandException("No gitRef value provided. Please provide the --gitRef argument passing the branch name or commit that contains the project details for this release.");
             }
 
-            if (!project.IsVersionControlled && wasGitRefProvided)
+            if (project?.IsVersionControlled == false && wasGitRefProvided)
                 throw new CommandException("Since the provided project is not a version controlled project,"
                     + " the --gitCommit and --gitRef arguments are not supported for this command.");
         }
