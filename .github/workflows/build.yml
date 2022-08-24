@@ -257,7 +257,7 @@ jobs:
     - name: Install Octopus CLI 🐙
       uses: OctopusDeploy/install-octopus-cli-action@v1
       with:
-        version: latest
+        version: 9.1.5
 
     - name: Push a package to Octopus Deploy 🐙
       uses: OctopusDeploy/push-package-action@v1.1.2
