@@ -230,18 +230,20 @@ jobs:
     - name: Generate sha256 checksums
       if: github.event_name == 'release'
       run: |
-        for filePath in $(find  artifacts/* -name '*.tar.gz' -or -name '*.zip')
+        releaseVersion=${{ needs.build.outputs.version }}
+        for filePath in $(find artifacts/* -name "OctopusTools.${releaseVersion}.*.tar.gz" -or -name "OctopusTools.${releaseVersion}.*.zip")
         do
           fileName="$(basename -- $filePath)"
           newSha=$(sha256sum "$filePath" | awk '{ print $1 }')
-          echo "$newSha $fileName" >> artifacts/OctopusTools.${{ needs.build.outputs.version }}.sha256sums
+          echo "$newSha $fileName" >> artifacts/OctopusTools.${releaseVersion}.SHA256SUMS
         done
 
     - name: Upload binaries and checksum file to release
       if: github.event_name == 'release'
       run: |
-        args=("v${{ needs.build.outputs.version }}")
-        for filePath in $(find  artifacts/* -name '*.tar.gz' -or -name '*.zip' -or -name '*.sha256sums')
+        releaseVersion=${{ needs.build.outputs.version }}
+        args=("v$releaseVersion")
+        for filePath in $(find artifacts/* -name "OctopusTools.${releaseVersion}.*.tar.gz" -or -name "OctopusTools.${releaseVersion}.*.zip" -or -name '*.SHA256SUMS')
         do 
           args+=($filePath)
         done
