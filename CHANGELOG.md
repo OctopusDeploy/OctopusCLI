@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.1.7](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.6...v9.1.7) (2022-08-24)
+
+
+### Bug Fixes
+
+* Corrected null reference exception when release version wasn't specified ([#239](https://github.com/OctopusDeploy/OctopusCLI/issues/239)) ([e8ca274](https://github.com/OctopusDeploy/OctopusCLI/commit/e8ca2749104c74c7750a98f0cd65c3cc915147d2))
+
 ## [9.1.6](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.6...v9.1.6) (2022-08-24)
 
 
