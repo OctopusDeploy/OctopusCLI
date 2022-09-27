@@ -23,7 +23,14 @@ namespace Octopus.Cli.Commands.Runbooks {
         public RunbookCommandBase(IOctopusAsyncRepositoryFactory repositoryFactory, IOctopusFileSystem fileSystem, IOctopusClientFactory clientFactory, ICommandOutputProvider commandOutputProvider)
             : base(clientFactory, repositoryFactory, fileSystem, commandOutputProvider) {
             var options = Options.For("Listing");
-            options.Add<string>("project=", "[Optional] Name of a project to filter by. Can be specified many times.", v => projects.Add(v), allowsMultiple: true);
+            options.Add<string>("project=", "Name of a project to filter by. Can be specified many times.", v => projects.Add(v), allowsMultiple: true);
+        }
+
+        protected override Task ValidateParameters() {
+            if(!projects.Any(p => !string.IsNullOrWhiteSpace(p)))
+                throw new CommandException("Please specify at least one project name or ID using the parameter: --project=XYZ");
+
+            return base.ValidateParameters();
         }
 
         public virtual async Task Request() {
@@ -42,11 +49,8 @@ namespace Octopus.Cli.Commands.Runbooks {
 
         private async Task<IDictionary<string, ProjectResource>> LoadProjects() {
             commandOutputProvider.Information("Loading projects...");
-            var projectQuery = projects.Any()
-                ? Repository.Projects.FindByNames(projects.ToArray())
-                : Repository.Projects.FindAll();
 
-            var projectResources = await projectQuery.ConfigureAwait(false);
+            var projectResources = await Repository.Projects.FindByNames(projects.ToArray()).ConfigureAwait(false);
 
             var missingProjects = projects.Except(projectResources.Select(e => e.Name), StringComparer.OrdinalIgnoreCase).ToArray();
 
