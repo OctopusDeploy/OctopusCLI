@@ -103,7 +103,7 @@ namespace Octopus.Cli.Commands.RunbooksRun
 
             outputProvider.Information("\tCreated: {$Date:l}", runbookRunItem.Created);
             if (!string.IsNullOrWhiteSpace(runbookRunItem.Comments)) outputProvider.Information("\tComments: {$Comments:l}", runbookRunItem.Comments);
-            outputProvider.Information("\tFaulure Encountered: {FailureEncountered:l}", runbookRunItem.FailureEncountered ? "Yes" : "No");
+            outputProvider.Information("\tFailure Encountered: {FailureEncountered:l}", runbookRunItem.FailureEncountered ? "Yes" : "No");
 
             outputProvider.Information(string.Empty);
         }
