@@ -2,24 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Octopus.Cli.Infrastructure;
+
 using Octopus.Cli.Repositories;
 using Octopus.Cli.Util;
 using Octopus.Client;
 using Octopus.Client.Model;
 using Octopus.CommandLine;
 using Octopus.CommandLine.Commands;
-using Octopus.Versioning.Octopus;
 
-namespace Octopus.Cli.Commands.RunbooksRun
-{
+namespace Octopus.Cli.Commands.RunbooksRun {
     [Command("delete-runbookruns", Description = "Deletes a range of runbook runs.")]
     public class DeleteRunbookRunsCommand : RunbookRunCommandBase, ISupportFormattedOutput
     {
         List<RunbookRunResource> toDelete = new List<RunbookRunResource>();
         List<RunbookRunResource> wouldDelete = new List<RunbookRunResource>();
-        DateTime minDate = new DateTime(1900, 1, 1);
-        DateTime maxDate = DateTime.MaxValue;
+        DateTime? minDate = null;
+        DateTime? maxDate = null;
 
         bool whatIf = false;
 
@@ -27,15 +25,24 @@ namespace Octopus.Cli.Commands.RunbooksRun
             : base(repositoryFactory, fileSystem, clientFactory, commandOutputProvider)
         {
             var options = Options.For("Deletion");
-            options.Add<DateTime>("minCreateDate=", "[Optional] Earliest (inclusive) create date for the range of runbook runs to delete.", v => minDate = v);
-            options.Add<DateTime>("maxCreateDate=", "[Optional] Latest (inclusive) create date for the range of runbooks to delete.", v => maxDate = v);
+            options.Add<DateTime>("minCreateDate=", "Earliest (inclusive) create date for the range of runbook runs to delete.", v => minDate = v);
+            options.Add<DateTime>("maxCreateDate=", "Latest (inclusive) create date for the range of runbooks to delete.", v => maxDate = v);
             options.Add<bool>("whatIf", "[Optional, Flag] if specified, releases won't actually be deleted, but will be listed as if simulating the command.", v => whatIf = true);
+        }
+
+        protected override Task ValidateParameters() {
+            if(!minDate.HasValue)
+                throw new CommandException("Please specify the earliest (inclusive) create date for the range of runbook runs to delete using the parameter: --minCreateData=2022-01-01");
+            if(!maxDate.HasValue)
+                throw new CommandException("Please specify the latest (inclusive) create date for the range of runbooks to delete using the parameter: --maxCreateDate=2022-01-01");
+
+            return base.ValidateParameters();
         }
 
         public override async Task Request()
         {
             await base.Request();
-            commandOutputProvider.Debug("Finding runbook runs...");
+            commandOutputProvider.Debug($"Finding runbook runs created between {minDate:yyyy-mm-dd} and {maxDate:yyyy-mm-dd} ...");
 
             await Repository.RunbookRuns
                 .Paginate(projectsFilter,
@@ -44,13 +51,13 @@ namespace Octopus.Cli.Commands.RunbooksRun
                     tenantsFilter,
                     page => {
                         foreach(var run in page.Items) {
-                            if(run.Created >= minDate && run.Created <= maxDate) {
+                            if(run.Created >= minDate.Value && run.Created <= maxDate.Value) {
                                 if(whatIf) {
-                                    commandOutputProvider.Information("[WhatIf] Run {RunId:l} would have been deleted", run.Id);
+                                    commandOutputProvider.Information("[WhatIf] Run {RunId:l} created on {CreatedOn:2} would have been deleted", run.Id, run.Created.ToString());
                                     wouldDelete.Add(run);
                                 } else {
                                     toDelete.Add(run);
-                                    commandOutputProvider.Information("Deleting Run {RunId:l}", run.Id);
+                                    commandOutputProvider.Information("Deleting Run {RunId:l} created on {CreatedOn:2}", run.Id, run.Created.ToString());
                                 }
                             }
                         }
@@ -61,8 +68,8 @@ namespace Octopus.Cli.Commands.RunbooksRun
             // Don't do anything else for WhatIf
             if (whatIf) return;
 
-            foreach (var run in toDelete)
-                await Repository.Client.Delete(run.Link("Self")).ConfigureAwait(false);
+            foreach(var run in toDelete)
+                await Repository.RunbookRuns.Delete(run);
         }
 
         public void PrintDefaultOutput()
