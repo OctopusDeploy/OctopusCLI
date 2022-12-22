@@ -271,8 +271,6 @@ jobs:
       id: fetch-release-notes
       if: github.event_name == 'release'
       run: |
-        echo "::debug::${{github.event_name}}"
-        OUTPUT_FILE="release_notes.txt"
         echo "name=release-notes::$(jq --raw-output '.release.body' ${{ github.event_path }} | sed 's#\r#  #g')" >> $GITHUB_OUTPUT
 
     - name: Create a release in Octopus Deploy 🐙
