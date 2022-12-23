@@ -271,7 +271,10 @@ jobs:
       id: fetch-release-notes
       if: github.event_name == 'release'
       run: |
-        echo "name=release-notes::$(jq --raw-output '.release.body' ${{ github.event_path }} | sed 's#\r#  #g')" >> $GITHUB_OUTPUT
+        echo "::debug::${{github.event_name}}"
+        OUTPUT_FILE="release_notes.txt"
+        jq --raw-output '.release.body' ${{ github.event_path }} | sed 's#\r#  #g' > $OUTPUT_FILE
+        echo "::set-output name=release-note-file::$OUTPUT_FILE"
 
     - name: Create a release in Octopus Deploy 🐙
       uses: OctopusDeploy/create-release-action@v3
@@ -280,6 +283,6 @@ jobs:
         project: 'Octopus CLI'
         package_version: ${{ needs.build.outputs.version }}
         packages: '*:NuGet.CommandLine:4.4.1'
-        release_notes: ${{ (github.event_name == 'release' && steps.fetch-release-notes.outputs.release-notes) || ''}}
+        release_notes_file: ${{ (github.event_name == 'release' && steps.fetch-release-notes.outputs.release-note-file) || ''}}
         git_ref: ${{ (github.ref_type == 'tag' && github.event.repository.default_branch ) || (github.head_ref || github.ref) }}
         git_commit: ${{ github.event.after || github.event.pull_request.head.sha }}
