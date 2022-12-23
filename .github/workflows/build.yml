@@ -207,8 +207,8 @@ jobs:
     needs: [build, docker-build, linux-distro-packages-test]
     runs-on: ubuntu-latest
     env:
-      OCTOPUS_CLI_SERVER: ${{ secrets.OCTOPUS_URL }}
-      OCTOPUS_CLI_API_KEY: ${{ secrets.OCTOPUS_API_KEY }}
+      OCTOPUS_URL: ${{ secrets.OCTOPUS_URL }}
+      OCTOPUS_API_KEY: ${{ secrets.OCTOPUS_API_KEY }}
       VERSION: ${{ needs.build.outputs.version }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -256,13 +256,8 @@ jobs:
         tar -xf OctopusTools.$VERSION.linux-x64.tar.gz
         zip OctopusTools.Zips.$VERSION.zip *.zip *.tar.gz
 
-    - name: Install Octopus CLI 🐙
-      uses: OctopusDeploy/install-octopus-cli-action@v1
-      with:
-        version: latest
-
     - name: Push a package to Octopus Deploy 🐙
-      uses: OctopusDeploy/push-package-action@v1.1.2
+      uses: OctopusDeploy/push-package-action@v3
       with:
         space: Integrations
         packages: |
@@ -282,7 +277,7 @@ jobs:
         echo "::set-output name=release-note-file::$OUTPUT_FILE"
 
     - name: Create a release in Octopus Deploy 🐙
-      uses: OctopusDeploy/create-release-action@v1.1.3
+      uses: OctopusDeploy/create-release-action@v3
       with:
         space: Integrations
         project: 'Octopus CLI'
