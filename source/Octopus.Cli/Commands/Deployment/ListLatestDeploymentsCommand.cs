@@ -17,6 +17,7 @@ namespace Octopus.Cli.Commands.Deployment
     {
         readonly HashSet<string> environments = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         readonly HashSet<string> projects = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private bool getLastSuccessfulDeployment = false;
         IDictionary<string, string> projectsById;
         string[] projectsFilter;
         IDictionary<string, string> environmentsById;
@@ -31,6 +32,7 @@ namespace Octopus.Cli.Commands.Deployment
             var options = Options.For("Listing");
             options.Add<string>("project=", "Name of a project to filter by. Can be specified many times.", v => projects.Add(v), allowsMultiple: true);
             options.Add<string>("environment=", "Name of an environment to filter by. Can be specified many times.", v => environments.Add(v), allowsMultiple: true);
+            options.Add<bool>("getLastSuccessful","Returns the latest successful deployments only.", v => getLastSuccessfulDeployment = true);
         }
 
         async Task<IDictionary<string, string>> LoadProjects()
@@ -114,7 +116,10 @@ namespace Octopus.Cli.Commands.Deployment
 
             commandOutputProvider.Debug("Loading dashboard...");
 
-            dashboard = await Repository.Dashboards.GetDynamicDashboard(projectsFilter, environmentsFilter).ConfigureAwait(false);
+            dashboard = await Repository.Dashboards.GetDynamicDashboard(projectsFilter, 
+                                                                        environmentsFilter, 
+                                                                        getLastSuccessfulDeployment ? DashboardItemsOptions.IncludeCurrentAndPreviousSuccessfulDeployment : DashboardItemsOptions.IncludeCurrentDeploymentOnly
+                                                                       ).ConfigureAwait(false);
             tenantsById = dashboard.Tenants.ToDictionary(t => t.Id, t => t.Name);
 
             dashboardRelatedResourceses = new Dictionary<DashboardItemResource, DeploymentRelatedResources>();
@@ -137,41 +142,61 @@ namespace Octopus.Cli.Commands.Deployment
 
             foreach (var dashboardItem in dashboardRelatedResourceses.Keys)
             {
-                LogDeploymentInfo(
-                    commandOutputProvider,
-                    dashboardItem,
-                    dashboardRelatedResourceses[dashboardItem].ReleaseResource,
-                    dashboardRelatedResourceses[dashboardItem].ChannelResource,
-                    environmentsById,
-                    projectsById,
-                    tenantsById);
+                if(getLastSuccessfulDeployment) {
+                    if(dashboardItem.State == TaskState.Success) {
+                        LogDeploymentInfo(
+                            commandOutputProvider,
+                            dashboardItem,
+                            dashboardRelatedResourceses[dashboardItem].ReleaseResource,
+                            dashboardRelatedResourceses[dashboardItem].ChannelResource,
+                            environmentsById,
+                            projectsById,
+                            tenantsById);
+                    }
+                } else {
+                        LogDeploymentInfo(
+                            commandOutputProvider,
+                            dashboardItem,
+                            dashboardRelatedResourceses[dashboardItem].ReleaseResource,
+                            dashboardRelatedResourceses[dashboardItem].ChannelResource,
+                            environmentsById,
+                            projectsById,
+                            tenantsById);
+                }
             }
         }
 
         public void PrintJsonOutput()
         {
-            commandOutputProvider.Json(dashboardRelatedResourceses.Keys.Select(dashboardItem => new
-                {
-                    dashboardItem,
-                    release = dashboardRelatedResourceses[dashboardItem].ReleaseResource,
-                    channel = dashboardRelatedResourceses[dashboardItem].ChannelResource
-                })
-                .Select(x => new
-                {
-                    Project = new { Id = x.dashboardItem.ProjectId, Name = projectsById[x.dashboardItem.ProjectId] },
-                    Environment = new { Id = x.dashboardItem.EnvironmentId, Name = environmentsById[x.dashboardItem.EnvironmentId] },
-                    Tenant = string.IsNullOrWhiteSpace(x.dashboardItem.TenantId)
-                        ? null
-                        : new { Id = x.dashboardItem.TenantId, Name = GetNameOfDeploymentTenant(tenantsById, x.dashboardItem.TenantId) },
-                    Channel = x.channel == null ? null : new { x.channel.Id, x.channel.Name },
-                    Date = x.dashboardItem.QueueTime,
-                    x.dashboardItem.Duration,
-                    State = x.dashboardItem.State.ToString(),
-                    x.release.Version,
-                    x.release.Assembled,
-                    PackageVersion = GetPackageVersionsAsString(x.release.SelectedPackages),
-                    ReleaseNotes = GetReleaseNotes(x.release)
-                }));
+            var items = dashboardRelatedResourceses.Keys.Select(dashboardItem => new
+            {
+                dashboardItem,
+                release = dashboardRelatedResourceses[dashboardItem].ReleaseResource,
+                channel = dashboardRelatedResourceses[dashboardItem].ChannelResource
+            })
+            .Select(x => new
+            {
+                Project = new { Id = x.dashboardItem.ProjectId, Name = projectsById[x.dashboardItem.ProjectId] },
+                Environment = new { Id = x.dashboardItem.EnvironmentId, Name = environmentsById[x.dashboardItem.EnvironmentId] },
+                Tenant = string.IsNullOrWhiteSpace(x.dashboardItem.TenantId)
+                    ? null
+                    : new { Id = x.dashboardItem.TenantId, Name = GetNameOfDeploymentTenant(tenantsById, x.dashboardItem.TenantId) },
+                Channel = x.channel == null ? null : new { x.channel.Id, x.channel.Name },
+                Date = x.dashboardItem.QueueTime,
+                x.dashboardItem.Duration,
+                State = x.dashboardItem.State.ToString(),
+                x.release.Version,
+                x.release.Assembled,
+                PackageVersion = GetPackageVersionsAsString(x.release.SelectedPackages),
+                ReleaseNotes = GetReleaseNotes(x.release)
+            });
+
+            if (getLastSuccessfulDeployment)
+            {
+                items = items.Where(x => x.State == "Success");
+            }
+
+            commandOutputProvider.Json(items);
         }
 
         static string GetNameOfDeploymentTenant(IDictionary<string, string> tenantsById, string tenantId)

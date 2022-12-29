@@ -29,14 +29,24 @@ namespace Octo.Tests.Commands
                         EnvironmentId = "environmentid1",
                         ProjectId = "projectaid",
                         TenantId = "tenantid1",
-                        ReleaseId = "Release1"
+                        ReleaseId = "Release1",
+                        State = TaskState.Success
                     },
                     new DashboardItemResource
                     {
                         EnvironmentId = "environmentid1",
                         ProjectId = "projectaid",
                         TenantId = "tenantid2",
-                        ReleaseId = "Release2"
+                        ReleaseId = "Release2",
+                        State = TaskState.Failed
+                    },
+                    new DashboardItemResource
+                    {
+                        EnvironmentId = "environmentid1",
+                        ProjectId = "projectaid",
+                        TenantId = "tenantid2",
+                        ReleaseId = "Release2",
+                        State = TaskState.Success
                     }
                 },
                 Tenants = new List<DashboardTenantResource>
@@ -94,6 +104,58 @@ namespace Octo.Tests.Commands
             logoutput.Should().Contain("tenant1");
             logoutput.Should().Contain("<Removed>");
             logoutput.Should().Contain("V1.0.0");
+        }
+
+        [Test]
+        public async Task ShouldIncludeFailedDeploymentsWhenGetLastSuccessfulDeploymentFlagNotSet()
+        {
+            CommandLineArgs.Add("--project=ProjectA");
+
+            await listLatestDeploymentsCommands.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
+            
+            LogLines.Should().Contain("   State: Success");
+            LogLines.Should().Contain("   State: Failed");
+        }
+
+        [Test]
+        public async Task ShouldNotIncludeFailedDeploymentsWhenGetLastSuccessfulDeploymentFlagSet()
+        {
+            CommandLineArgs.Add("--project=ProjectA");
+            CommandLineArgs.Add("--getLastSuccessful");
+
+            await listLatestDeploymentsCommands.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
+            
+            LogLines.Should().Contain("   State: Success");
+            LogLines.Should().NotContain("   State: Failed");
+        }
+
+        [Test]
+        public async Task JsonOutput_ShouldIncludeFailedDeploymentsWhenGetLastSuccessfulDeploymentFlagNotSet()
+        {
+            CommandLineArgs.Add("--project=ProjectA");
+            CommandLineArgs.Add("--outputFormat=json");
+
+            await listLatestDeploymentsCommands.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
+
+            var logoutput = LogOutput.ToString();
+            JsonConvert.DeserializeObject(logoutput);
+            logoutput.Should().Contain("Success");
+            logoutput.Should().Contain("Failed");
+        }
+
+        [Test]
+        public async Task JsonOutput_ShouldNotIncludeFailedDeploymentsWhenGetLastSuccessfulDeploymentFlagSet()
+        {
+            CommandLineArgs.Add("--project=ProjectA");
+            CommandLineArgs.Add("--outputFormat=json");
+            CommandLineArgs.Add("--getLastSuccessful");
+
+            await listLatestDeploymentsCommands.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
+
+            var logoutput = LogOutput.ToString();
+            JsonConvert.DeserializeObject(logoutput);
+            logoutput.Should().Contain("Success");
+            logoutput.Should().NotContain("Failed");
         }
     }
 }
