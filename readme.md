@@ -1,11 +1,20 @@
+## Notice
+
+Octopus CLI is no longer under feature development. All feature development of the Octopus CLI is being done in the updated [cli](https://github.com/OctopusDeploy/cli).
+This tool will continue to be supported for security patches until July 2023.
+
+---
+
 This repository contains the Octopus CLI (`octo`) for [Octopus][1], a user-friendly DevOps tool for developers that supports release management, deployment automation, and operations runbooks. You can use it to create and deploy releases, create and push packages, and manage environments.
 
 `octo` can be [downloaded from the Octopus downloads page][2].
 
 ## Documentation
+
 - [octo][3]
 
 ## Issues
+
 Please see [Contributing](CONTRIBUTING.md)
 
 ## Development
@@ -13,22 +22,25 @@ Please see [Contributing](CONTRIBUTING.md)
 ### Pre-requisites
 
 You need the following items installed on your system:
+
 - Rider, VSCode or Visual Studio 15.3
 - .NET Core SDK 6.x
 
 ### Build and Test
 
-Run the build script to build, test and package the project. 
+Run the build script to build, test and package the project.
 
 **Do this before pushing as it will run the surface area tests as well, which require approval on almost every change.**
 
 #### Unix-like systems
+
 ```
 # on Unix-like systems we don't generate the OctopusTools NuGet package as it calls `nuget.exe` to create the package.
 $ ./build.sh
 ```
 
 #### Windows
+
 ```
 > build.cmd
 ```
@@ -40,6 +52,7 @@ To release a new version, tag `main` with the next `<major>.<minor>.<patch>` ver
 Every successful GitHub Actions build for all branches will be pushed to Feedz.io.
 
 ## Compatibility
+
 See the [Compatibility][4] page in our docs
 
 [1]: https://octopus.com
