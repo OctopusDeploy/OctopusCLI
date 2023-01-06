@@ -1,15 +1,26 @@
+## Notice
+
+Octopus CLI is no longer under feature development. All feature development of the Octopus CLI is being done in the updated [cli](https://github.com/OctopusDeploy/cli).
+This tool will continue to be supported for security patches until July 2023.
+
+---
+
 This repository contains the Octopus CLI (`octo`) for [Octopus][1], a user-friendly DevOps tool for developers that supports release management, deployment automation, and operations runbooks. You can use it to create and deploy releases, create and push packages, and manage environments.
 
 `octo` can be [downloaded from the Octopus downloads page][2].
 
 ## Documentation
+
 - [octo][3]
 
 ## Issues
+
 Please see [Contributing](CONTRIBUTING.md)
 
 ## Development
+
 You need:
+
 - VSCode or Visual Studio 15.3 to compile the solution
 - dotnet core 2.1.302 SDK
 
@@ -21,6 +32,7 @@ To release to Nuget, tag `master` with the next major, minor or patch number, [T
 Every successful TeamCity build for all branches will be pushed to Feedz.io.
 
 ## Compatibility
+
 See the [Compatibility][4] page in our docs
 
 [1]: https://octopus.com
