@@ -15,6 +15,14 @@ if [[ "$OSRELID" == "rhel" && ( -z "$REDHAT_SUBSCRIPTION_USERNAME" || -z "$REDHA
   exit 1
 fi
 
+if [[ "$OSRELID" == "debian" ]]; then
+  OSRELVERSIONID="$(. /etc/os-release && echo $VERSION_ID)"
+  if [[ "$OSRELVERSIONID" == "9" ]]; then
+    # from https://unix.stackexchange.com/a/743865
+    echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.list
+  fi
+fi
+
 # Install the package (with any needed docker config, system registration, dependencies) using a script from 'linux-package-feeds'.
 
 bash ./install-linux-package.sh || exit
@@ -37,7 +45,6 @@ if [[ "$OSRELID" == "fedora" ]]; then
   mkdir dotnet-extraction-dir
   export DOTNET_BUNDLE_EXTRACT_BASE_DIR=$(pwd)/dotnet-extraction-dir
 fi
-
 
 echo Testing octo.
 octo version || exit
