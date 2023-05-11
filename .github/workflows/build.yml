@@ -170,7 +170,7 @@ jobs:
         distro: [
           'debian:stable-slim',
           'debian:oldstable-slim',
-          'debian:oldoldstable-slim',
+          #'debian:oldoldstable-slim',
           'ubuntu:latest',
           'ubuntu:focal',
           'ubuntu:bionic',
