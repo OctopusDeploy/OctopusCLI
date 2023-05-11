@@ -124,7 +124,11 @@ class Build : NukeBuild
 
             File.WriteAllText(octoVersionText, fullSemVer);
             Console.WriteLine($"##[notice]Release version number: {fullSemVer}");
-            Console.WriteLine($"::set-output name=version::{fullSemVer}");
+            var outputFile = Environment.GetEnvironmentVariable("GITHUB_OUTPUT");
+            if (outputFile != null) {
+                File.AppendAllLines(outputFile, new [] {$"version={fullSemVer}"});
+            }
+            
         });
 
     Target Compile => _ => _

@@ -64,7 +64,7 @@ jobs:
         TAG="octopusdeploy/octo-prerelease:${VERSION}-${PLATFORM}"
         LATEST="octopusdeploy/octo-prerelease:latest-${PLATFORM}"
 
-        echo "::set-output name=DOCKER_IMAGE_TAG::${TAG}"
+        echo "DOCKER_IMAGE_TAG=${TAG}" >> $GITHUB_OUTPUT
         
         docker build \
           --build-arg OCTO_TOOLS_VERSION=${VERSION} \
@@ -274,7 +274,7 @@ jobs:
         echo "::debug::${{github.event_name}}"
         OUTPUT_FILE="release_notes.txt"
         jq --raw-output '.release.body' ${{ github.event_path }} | sed 's#\r#  #g' > $OUTPUT_FILE
-        echo "::set-output name=release-note-file::$OUTPUT_FILE"
+        echo "release-note-file=$OUTPUT_FILE" >> $GITHUB_OUTPUT
 
     - name: Create a release in Octopus Deploy 🐙
       uses: OctopusDeploy/create-release-action@v3
