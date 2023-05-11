@@ -15,6 +15,7 @@ if [[ "$OSRELID" == "rhel" && ( -z "$REDHAT_SUBSCRIPTION_USERNAME" || -z "$REDHA
   exit 1
 fi
 
+
 # Install the package (with any needed docker config, system registration, dependencies) using a script from 'linux-package-feeds'.
 
 bash ./install-linux-package.sh || exit
@@ -37,7 +38,6 @@ if [[ "$OSRELID" == "fedora" ]]; then
   mkdir dotnet-extraction-dir
   export DOTNET_BUNDLE_EXTRACT_BASE_DIR=$(pwd)/dotnet-extraction-dir
 fi
-
 
 echo Testing octo.
 octo version || exit
