@@ -315,8 +315,8 @@ namespace Octopus.Cli.Commands.Deployment
                     .Select(tp => tp.Id)
                     .ToArray();
 
-                var tentats = await Repository.Tenants.Get(tenantPromotions).ConfigureAwait(false);
-                deployableTenants.AddRange(tentats);
+                var tenants = await Repository.Tenants.Get(tenantPromotions).ConfigureAwait(false);
+                deployableTenants.AddRange(tenants);
 
                 commandOutputProvider.Information("Found {NumberOfTenants} Tenants who can deploy {Project:l} {Version:l} to {Environment:l}",
                     deployableTenants.Count,
