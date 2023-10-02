@@ -28,7 +28,7 @@ fi
 
 if [[ "$OSRELID" == "fedora" ]]; then
   echo "Fedora detected. Setting DOTNET_BUNDLE_EXTRACT_BASE_DIR to $(pwd)/dotnet-extraction-dir"
-  # to workaround error
+  # to work around error
   #   realpath(): Operation not permitted
   #   Failure processing application bundle.
   #   Failed to determine location for extracting embedded files
