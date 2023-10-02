@@ -10,7 +10,7 @@ using Octopus.CommandLine.Commands;
 namespace Octopus.Cli.Commands
 {
     /// <summary>
-    /// This class exists to provide backwards compataility to the pre 3.4.0 changes to machine state.
+    /// This class exists to provide backwards compatibility to the pre 3.4.0 changes to machine state.
     /// As of 3.4.0 the <see cref="MachineModelStatus" /> enum has been marked as obselete to be replaced with <see cref="MachineModelHealthStatus" />
     /// </summary>
     public class HealthStatusProvider
