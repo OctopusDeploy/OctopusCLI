@@ -37,7 +37,7 @@ step "push-octopus-dotnet-cli-to-nuget-style-feed" {
                 
                 # nuget push
                 . $nugetExe push "$($OctopusParameters["Octopus.Action.Package[Octopus.DotNet.Cli].PackageFilePath"])"	-source $FeedUrl -apikey $FeedApiKey
-            EOT
+                EOT
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
@@ -89,7 +89,7 @@ step "push-octopustools-to-nuget-style-feed" {
                     }
                 }
                 exit 1
-            EOT
+                EOT
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
@@ -143,7 +143,7 @@ step "push-octopustools-to-chocolatey" {
                     }
                 }
                 exit 1
-            EOT
+                EOT
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
@@ -212,7 +212,7 @@ step "push-changes-to-homebrew-repo" {
                     && git push --repo $repoUrl --set-upstream origin $branchName \
                 )
                 
-            EOT
+                EOT
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "Bash"
             OctopusUseBundledTooling = "False"
@@ -289,7 +289,7 @@ step "publish-to-apt-repo" {
                   --env AWS_SECRET_ACCESS_KEY="$(get_octopusvariable "LinuxPackagePublisherAwsAccount.SecretKey")" \
                   octopusdeploy/publish-linux bash -c 'cd /working && bash publish-apt.sh' 2>&1 || exit
                 
-            EOT
+                EOT
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "Bash"
         }
@@ -327,7 +327,7 @@ step "publish-to-rpm-repo" {
                   --env AWS_SECRET_ACCESS_KEY="$(get_octopusvariable "LinuxPackagePublisherAwsAccount.SecretKey")" \
                   octopusdeploy/publish-linux bash -c 'cd /working && bash publish-rpm.sh' 2>&1 || exit
                 
-            EOT
+                EOT
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "Bash"
         }
@@ -438,7 +438,7 @@ step "push-docker-images-to-prod" {
                 
                 Run
                 
-            EOT
+                EOT
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
@@ -509,7 +509,7 @@ step "create-release-in-slipway" {
                 ReleaseToWeb "OctopusCli" $version $releaseNotes
                 
                 
-            EOT
+                EOT
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
