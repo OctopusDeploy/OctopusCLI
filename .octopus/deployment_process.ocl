@@ -8,7 +8,7 @@ step "upload-octopustools-to-s3-public-with-hashes" {
             PackageToUpload = "{\"PackageId\":\"OctopusTools.Zips\",\"FeedId\":\"octopus-server-built-in\"}"
             S3BucketPath = "#{AwsBucket}/octopus-tools/#{Octopus.Action.Package[PackageToUpload].PackageVersion}/"
         }
-        worker_pool = "hosted-windows-2019"
+        worker_pool = "hosted-windows"
 
         packages "PackageToUpload" {
             acquisition_location = "Server"
@@ -41,7 +41,7 @@ step "push-octopus-dotnet-cli-to-nuget-style-feed" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
-        worker_pool = "hosted-windows-2019"
+        worker_pool = "hosted-windows"
 
         packages "NuGet.CommandLine" {
             acquisition_location = "Server"
@@ -93,7 +93,7 @@ step "push-octopustools-to-nuget-style-feed" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
-        worker_pool = "hosted-windows-2019"
+        worker_pool = "hosted-windows"
 
         packages "NuGet.CommandLine" {
             acquisition_location = "Server"
@@ -147,7 +147,7 @@ step "push-octopustools-to-chocolatey" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
-        worker_pool = "hosted-windows-2019"
+        worker_pool = "hosted-windows"
 
         packages "OctopusTools" {
             acquisition_location = "Server"
@@ -254,7 +254,7 @@ step "publish-homebrew" {
             PubHomebrew-RepoName = "homebrew-taps"
             PubHomebrew-Username = "#{HomeBrewGitUsername}"
         }
-        worker_pool = "hosted-windows-2019"
+        worker_pool = "hosted-windows"
 
         packages "PackageToUpload" {
             acquisition_location = "Server"
@@ -513,7 +513,7 @@ step "create-release-in-slipway" {
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "PowerShell"
         }
-        worker_pool = "hosted-windows-2019"
+        worker_pool = "hosted-windows"
 
         packages "OctopusTools" {
             acquisition_location = "NotAcquired"
@@ -537,7 +537,7 @@ step "invalidate-cloudfront-cache" {
             Octopus.Action.Template.Id = "ActionTemplates-962"
             Octopus.Action.Template.Version = "1"
         }
-        worker_pool = "hosted-windows-2019"
+        worker_pool = "hosted-windows"
     }
 }
 
@@ -553,6 +553,6 @@ step "invalidate-cloudflare-cache-of-the-octopustools-manifest" {
             Octopus.Action.Template.Id = "ActionTemplates-963"
             Octopus.Action.Template.Version = "6"
         }
-        worker_pool = "hosted-windows-2019"
+        worker_pool = "hosted-windows"
     }
 }
