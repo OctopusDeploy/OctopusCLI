@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.1.8](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.7...v9.1.8) (2023-05-11)
+
+
+### Bug Fixes
+
+* Update to Octopus' GitHub v3 Actions  ([#246](https://github.com/OctopusDeploy/OctopusCLI/issues/246)) ([c5352d5](https://github.com/OctopusDeploy/OctopusCLI/commit/c5352d538d03f2c86e9aa3538d7bbce40076e067))
+
 ## [9.1.7](https://github.com/OctopusDeploy/OctopusCLI/compare/v9.1.6...v9.1.7) (2022-08-24)
 
 
