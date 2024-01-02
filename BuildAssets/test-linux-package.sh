@@ -20,6 +20,8 @@ fi
 
 bash ./install-linux-package.sh || exit
 
+echo Installation complete succesfully.
+
 if command -v dpkg > /dev/null; then
   echo Detected dpkg. Installing ca-certificates to support octo HTTPS communication.
   export DEBIAN_FRONTEND=noninteractive
