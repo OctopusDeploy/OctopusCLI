@@ -166,6 +166,7 @@ jobs:
     env:
       VERSION: ${{ needs.build.outputs.version }}
     strategy:
+      fail-fast: false
       matrix:
         distro: [
           'debian:stable-slim',
