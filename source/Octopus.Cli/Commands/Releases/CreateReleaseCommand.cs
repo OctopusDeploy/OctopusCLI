@@ -46,7 +46,7 @@ namespace Octopus.Cli.Commands.Releases
             options.Add<string>("project=", "Name or ID of the project.", v => ProjectNameOrId = v);
             options.Add<string>("defaultPackageVersion=|packageVersion=", "Default version number of all packages to use for this release. Override per-package using --package.", versionResolver.Default);
             options.Add<string>("gitCommit=", "[Optional] Git commit to use when creating the release. Use in conjunction with the --gitRef parameter to select any previous commit.", v => GitCommit = v);
-            options.Add<string>("ref=|gitRef=", "[Optional] Git reference to use when creating the release.", v => GitReference = v);
+            options.Add<string>("ref=|gitRef=", "Git reference to use when creating the release.", v => GitReference = v);
             options.Add<string>("version=|releaseNumber=", "[Optional] Release number to use for the new release.", v => VersionNumberParameterValue = v);
             options.Add<string>("channel=", "[Optional] Name or ID of the channel to use for the new release. Omit this argument to automatically select the best channel.", v => ChannelNameOrId = v);
             options.Add<string>("package=", "[Optional] Version number to use for a package in the release. Format: StepName:Version or PackageID:Version or StepName:PackageName:Version. StepName, PackageID, and PackageName can be replaced with an asterisk. An asterisk will be assumed for StepName, PackageID, or PackageName if they are omitted.", v => versionResolver.Add(v), allowsMultiple: true);
