@@ -1,15 +1,16 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.202
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{193F466A-BECE-4809-A369-7CC061C31C82}"
 	ProjectSection(SolutionItems) = preProject
+		..\.gitignore = ..\.gitignore
+		..\.github\workflows\build.yml = ..\.github\workflows\build.yml
+		..\BuildAssets\create-octopuscli-linux-packages.sh = ..\BuildAssets\create-octopuscli-linux-packages.sh
 		NuGet.Config = NuGet.Config
 		..\readme.md = ..\readme.md
-		..\.gitignore = ..\.gitignore
-		..\BuildAssets\create-octopuscli-linux-packages.sh = ..\BuildAssets\create-octopuscli-linux-packages.sh
 		..\BuildAssets\test-linux-package.sh = ..\BuildAssets\test-linux-package.sh
-		..\.github\workflows\build.yml = ..\.github\workflows\build.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Octo", "Octo\Octo.csproj", "{D1BFD88F-FB8E-49EC-968F-F4D9A8A52519}"
@@ -21,14 +22,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Octopus.Cli", "Octopus.Cli\Octopus.Cli.csproj", "{627462FB-2E70-4F9C-ACC9-8CF84BF6C196}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{994AA337-0E3B-44C3-83F8-0E6C5D3AA007}"
-ProjectSection(SolutionItems) = preProject
-	..\Dockerfiles\Readme.md = ..\Dockerfiles\Readme.md
-EndProjectSection
+	ProjectSection(SolutionItems) = preProject
+		..\Dockerfiles\Readme.md = ..\Dockerfiles\Readme.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Alpine", "Alpine", "{32A3C564-207A-43DB-9588-27AFAF846C1A}"
-ProjectSection(SolutionItems) = preProject
-	..\Dockerfiles\alpine\Dockerfile = ..\Dockerfiles\alpine\Dockerfile
-EndProjectSection
+	ProjectSection(SolutionItems) = preProject
+		..\Dockerfiles\alpine\Dockerfile = ..\Dockerfiles\alpine\Dockerfile
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "..\build\_build.csproj", "{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}"
 EndProject
@@ -42,10 +43,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{D1BFD88F-FB8E-49EC-968F-F4D9A8A52519}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D1BFD88F-FB8E-49EC-968F-F4D9A8A52519}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1BFD88F-FB8E-49EC-968F-F4D9A8A52519}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -92,14 +89,22 @@ Global
 		{627462FB-2E70-4F9C-ACC9-8CF84BF6C196}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{627462FB-2E70-4F9C-ACC9-8CF84BF6C196}.Release|x86.ActiveCfg = Release|Any CPU
 		{627462FB-2E70-4F9C-ACC9-8CF84BF6C196}.Release|x86.Build.0 = Release|Any CPU
+		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Debug|x86.Build.0 = Debug|Any CPU
+		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Release|x86.ActiveCfg = Release|Any CPU
+		{0B7F1B18-1DF1-4B74-A4D4-BED7FC82343E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {FD0E320F-79AC-4489-9508-C62497C629D3}
-	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{32A3C564-207A-43DB-9588-27AFAF846C1A} = {994AA337-0E3B-44C3-83F8-0E6C5D3AA007}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FD0E320F-79AC-4489-9508-C62497C629D3}
 	EndGlobalSection
 EndGlobal
