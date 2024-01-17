@@ -16,7 +16,7 @@ namespace Octo.Tests.Util
         }
 
         [Test]
-        public void ShouldRemoveAnyOverlapBetweenBaseAddresAndSuffix()
+        public void ShouldRemoveAnyOverlapBetweenBaseAddressAndSuffix()
         {
             var result = new Uri("http://www.mysite.com/virtual").EnsureEndsWith("/virtual/suffix");
 

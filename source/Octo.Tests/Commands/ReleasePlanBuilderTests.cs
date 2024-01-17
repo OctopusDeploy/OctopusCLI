@@ -131,7 +131,7 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void DisabledScriptSteps_ShouldNotBeAViablePlan()
+        public void DisabledScriptSteps_ShouldNotBeAvailablePlan()
         {
             // arrange
             var deploymentStepResource = ResourceBuilderHelpers.GetStep();
@@ -146,7 +146,7 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void SingleEnabledScriptStep_ShouldBeAViablePlan()
+        public void SingleEnabledScriptStep_ShouldBeAvailablePlan()
         {
             // arrange
             var deploymentStepResource = ResourceBuilderHelpers.GetStep();
@@ -161,7 +161,7 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void SingleEnabledScriptStepScopedToDifferentChannel_ShouldNotBeAViablePlan()
+        public void SingleEnabledScriptStepScopedToDifferentChannel_ShouldNotBeAvailablePlan()
         {
             // arrange
             var deploymentStepResource = ResourceBuilderHelpers.GetStep();

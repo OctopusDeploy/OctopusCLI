@@ -76,7 +76,7 @@ namespace Octopus.Cli.Commands.Channel
                     Name = channelName,
                     IsDefault = makeDefaultChannel ?? false,
                     Description = channelDescription ?? string.Empty,
-                    LifecycleId = lifecycle?.Id, // Allow for the default lifeycle by propagating null
+                    LifecycleId = lifecycle?.Id, // Allow for the default lifecycle by propagating null
                     Rules = new List<ChannelVersionRuleResource>()
                 };
 
