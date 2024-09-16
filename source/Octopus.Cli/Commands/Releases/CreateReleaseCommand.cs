@@ -185,7 +185,7 @@ namespace Octopus.Cli.Commands.Releases
                         {
                             ReleaseNotes = ReleaseNotes,
                             SelectedPackages = plan.GetSelections(),
-                            VersionControlReference = new GitReferenceResource
+                            GitReference = new SnapshotGitReferenceResource
                             {
                                 GitRef = GitReference,
                                 GitCommit = GitCommit
@@ -195,8 +195,8 @@ namespace Octopus.Cli.Commands.Releases
                     .ConfigureAwait(false);
 
                 commandOutputProvider.Information("Release {Version:l} created successfully!", release.Version);
-                if (!string.IsNullOrEmpty(release.VersionControlReference?.GitCommit))
-                    commandOutputProvider.Information("Release created from commit {Commit:l} of git reference {GitRef:l}.", release.VersionControlReference.GitCommit, release.VersionControlReference.GitRef);
+                if (!string.IsNullOrEmpty(release.GitReference?.GitCommit))
+                    commandOutputProvider.Information("Release created from commit {Commit:l} of git reference {GitRef:l}.", release.GitReference.GitCommit, release.GitReference.GitRef);
                 commandOutputProvider.ServiceMessage("setParameter", new { name = "octo.releaseNumber", value = release.Version });
                 commandOutputProvider.TfsServiceMessage(ServerBaseUrl, project, release);
 

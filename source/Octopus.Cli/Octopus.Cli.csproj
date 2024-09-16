@@ -18,6 +18,14 @@
     <NoWarn>NU5104</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <NoWarn>NU5104;CS0618</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <NoWarn>NU5104;CS0618</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.Analyzers.Compatibility" Version="0.2.12-alpha">
       <PrivateAssets>all</PrivateAssets>
@@ -31,7 +39,7 @@
     <PackageReference Include="NuGet.Packaging.Core.Types" Version="3.6.0-octopus-58692" />
     <PackageReference Include="NuGet.Versioning" Version="3.6.0-octopus-58692" />
     <PackageReference Include="Octopus.CommandLine" Version="0.0.112" />
-    <PackageReference Include="Octopus.Server.Client" Version="11.6.3644" />
+    <PackageReference Include="Octopus.Server.Client" Version="14.3.1579" />
     <PackageReference Include="Octopus.Versioning" Version="5.1.155" />
     <PackageReference Include="Octostache" Version="2.3.0" />
     <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="2.0.0" />

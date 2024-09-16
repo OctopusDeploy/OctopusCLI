@@ -270,10 +270,10 @@ namespace Octopus.Cli.Commands
                 "Package Versions: " + GetPackageVersionsAsString(release.SelectedPackages),
                 "Release Notes: " + GetReleaseNotes(release)
             };
-            if (!string.IsNullOrEmpty(release.VersionControlReference?.GitRef))
-                releaseProperties.Add("Git Reference: " + release.VersionControlReference.GitRef);
-            if (!string.IsNullOrEmpty(release.VersionControlReference?.GitCommit))
-                releaseProperties.Add("Git Commit: " + release.VersionControlReference.GitCommit);
+            if (!string.IsNullOrEmpty(release.GitReference?.GitRef))
+                releaseProperties.Add("Git Reference: " + release.GitReference.GitRef);
+            if (!string.IsNullOrEmpty(release.GitReference?.GitCommit))
+                releaseProperties.Add("Git Commit: " + release.GitReference.GitCommit);
 
             return releaseProperties;
         }

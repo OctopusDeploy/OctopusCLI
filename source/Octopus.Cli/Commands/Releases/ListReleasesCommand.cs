@@ -76,8 +76,8 @@ namespace Octopus.Cli.Commands.Releases
                         r.Assembled,
                         PackageVersions = GetPackageVersionsAsString(r.SelectedPackages),
                         ReleaseNotes = GetReleaseNotes(r),
-                        GitReference = r.VersionControlReference?.GitRef,
-                        r.VersionControlReference?.GitCommit
+                        GitReference = r.GitReference?.GitRef,
+                        r.GitReference?.GitCommit
                     })
             }));
         }

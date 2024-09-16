@@ -68,7 +68,7 @@ namespace Octo.Tests.Commands
                         Version = "1.2.3",
                         Assembled = DateTimeOffset.MaxValue,
                         ReleaseNotes = "Version controlled release notes",
-                        VersionControlReference = new GitReferenceResource
+                        GitReference = new SnapshotGitReferenceResource
                         {
                             GitCommit = "87a072ad2b4a2e9bf2d7ff84d8636a032786394d",
                             GitRef = "main"
@@ -124,7 +124,7 @@ namespace Octo.Tests.Commands
                         Version = "1.2.3",
                         Assembled = DateTimeOffset.MaxValue,
                         ReleaseNotes = "Version controlled release notes",
-                        VersionControlReference = new GitReferenceResource
+                        GitReference = new SnapshotGitReferenceResource
                         {
                             GitCommit = "87a072ad2b4a2e9bf2d7ff84d8636a032786394d",
                             GitRef = "main"
