@@ -113,30 +113,30 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void ShouldNotCleanEnvironmentWithMissingEnvironmentArgs()
+        public async Task ShouldNotCleanEnvironmentWithMissingEnvironmentArgs()
         {
             Func<Task> exec = () => listMachinesCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>()
+            await exec.Should().ThrowAsync<CommandException>()
                 .WithMessage("Please specify an environment name using the parameter: --environment=XYZ");
         }
 
         [Test]
-        public void ShouldNotCleanEnvironmentWithMissingStatusArgs()
+        public async Task ShouldNotCleanEnvironmentWithMissingStatusArgs()
         {
             CommandLineArgs.Add("-environment=Development");
             Func<Task> exec = () => listMachinesCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>()
+            await exec.Should().ThrowAsync<CommandException>()
                 .WithMessage("Please specify a status using the parameter: --status or --health-status");
         }
 
         [Test]
-        public void ShouldNotCleanTheEnvironmentIfEnvironmentNotFound()
+        public async Task ShouldNotCleanTheEnvironmentIfEnvironmentNotFound()
         {
             CommandLineArgs.Add("-environment=Development");
             CommandLineArgs.Add("-status=Offline");
 
             Func<Task> exec = () => listMachinesCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CouldNotFindException>()
+            await exec.Should().ThrowAsync<CouldNotFindException>()
                 .WithMessage("Could not find the specified environment; either it does not exist or you lack permissions to view it.");
         }
 

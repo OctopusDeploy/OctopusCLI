@@ -12,7 +12,7 @@ namespace Octo.Tests.Util
         {
             var result = new Uri("http://www.mysite.com").EnsureEndsWith("suffix");
 
-            Assert.AreEqual(result.ToString(), "http://www.mysite.com/suffix");
+            Assert.That(result.ToString(), Is.EqualTo("http://www.mysite.com/suffix"));
         }
 
         [Test]
@@ -20,7 +20,7 @@ namespace Octo.Tests.Util
         {
             var result = new Uri("http://www.mysite.com/virtual").EnsureEndsWith("/virtual/suffix");
 
-            Assert.AreEqual(result.ToString(), "http://www.mysite.com/virtual/suffix");
+            Assert.That(result.ToString(), Is.EqualTo("http://www.mysite.com/virtual/suffix"));
         }
     }
 }

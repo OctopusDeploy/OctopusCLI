@@ -52,11 +52,11 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void ShouldThrowIfInvalidCommandLineParametersArePassed()
+        public async Task ShouldThrowIfInvalidCommandLineParametersArePassed()
         {
             CommandLineArgs.Add("--fail=epic");
             Func<Task> exec = () => apiCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>();
+            await exec.Should().ThrowAsync<CommandException>();
         }
 
         [Test]
@@ -134,11 +134,11 @@ namespace Octo.Tests.Commands
                 }));
 
             await apiCommand.Execute(argsWithSpaceName.ToArray()).ConfigureAwait(false);
-            Assert.IsTrue(isInRightSpaceContext);
+            Assert.That(isInRightSpaceContext, Is.True);
         }
 
         [Test]
-        public void ShouldThrowWhenThereIsNoSpaceMatchTheProvidedName()
+        public async Task ShouldThrowWhenThereIsNoSpaceMatchTheProvidedName()
         {
             var client = Substitute.For<IOctopusAsyncClient>();
             ClientFactory.CreateAsyncClient(null).ReturnsForAnyArgs(client);
@@ -150,7 +150,7 @@ namespace Octo.Tests.Commands
             var argsWithSpaceName = CommandLineArgs.Concat(new[] { "--space=nonExistent" });
 
             Func<Task> action = async () => await apiCommand.Execute(argsWithSpaceName.ToArray()).ConfigureAwait(false);
-            action.ShouldThrow<CommandException>().WithMessage("Cannot find the space with name or id 'nonExistent'. Please check the spelling and that you have permissions to view it. Please use Configuration > Test Permissions to confirm.");
+            await action.Should().ThrowAsync<CommandException>().WithMessage("Cannot find the space with name or id 'nonExistent'. Please check the spelling and that you have permissions to view it. Please use Configuration > Test Permissions to confirm.");
         }
     }
 }

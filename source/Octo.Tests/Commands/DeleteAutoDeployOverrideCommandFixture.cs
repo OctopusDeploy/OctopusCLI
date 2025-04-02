@@ -84,7 +84,7 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain("Deleted auto deploy release override for the project OctoFx to the environment Production");
             await Repository.Projects.ReceivedWithAnyArgs().Modify(null).ConfigureAwait(false);
-            Assert.True(!savedProject.AutoDeployReleaseOverrides.Any());
+            Assert.That(!savedProject.AutoDeployReleaseOverrides.Any(), Is.True);
         }
 
         [Test]
@@ -100,7 +100,7 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain("Deleted auto deploy release override for the project OctoFx to the environment Production and tenant Octopus");
             await Repository.Projects.ReceivedWithAnyArgs().Modify(null).ConfigureAwait(false);
-            Assert.True(!savedProject.AutoDeployReleaseOverrides.Any());
+            Assert.That(!savedProject.AutoDeployReleaseOverrides.Any(), Is.True);
         }
 
         [Test]
@@ -116,7 +116,7 @@ namespace Octo.Tests.Commands
 
             LogLines.Should().Contain("Deleted auto deploy release override for the project OctoFx to the environment Production and tenant Octopus");
             await Repository.Projects.ReceivedWithAnyArgs().Modify(null).ConfigureAwait(false);
-            Assert.True(!savedProject.AutoDeployReleaseOverrides.Any());
+            Assert.That(!savedProject.AutoDeployReleaseOverrides.Any(), Is.True);
         }
 
         [Test]

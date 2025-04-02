@@ -59,7 +59,7 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void ShouldCancelDeploymentOnTimeoutIfRequested()
+        public async Task ShouldCancelDeploymentOnTimeoutIfRequested()
         {
             Repository.Tasks
                 .When(x => x.WaitForCompletion(Arg.Any<TaskResource[]>(), Arg.Any<int>(), TimeSpan.FromSeconds(1), Arg.Any<Func<TaskResource[], Task>>()))
@@ -73,13 +73,13 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--cancelontimeout");
 
             Func<Task> exec = () => deployReleaseCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>();
+            await exec.Should().ThrowAsync<CommandException>();
 
             Repository.Tasks.Received().Cancel(taskResource).GetAwaiter().GetResult();
         }
 
         [Test]
-        public void ShouldNotCancelDeploymentOnTimeoutIfNotRequested()
+        public async Task ShouldNotCancelDeploymentOnTimeoutIfNotRequested()
         {
             Repository.Tasks
                 .When(x => x.WaitForCompletion(Arg.Any<TaskResource[]>(), Arg.Any<int>(), TimeSpan.FromSeconds(1), Arg.Any<Func<TaskResource[], Task>>()))
@@ -92,14 +92,14 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--progress");
 
             Func<Task> exec = () => deployReleaseCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>();
+            await exec.Should().ThrowAsync<CommandException>();
 
-            Repository.Tasks.DidNotReceive().Cancel(Arg.Any<TaskResource>());
+            await Repository.Tasks.DidNotReceive().Cancel(Arg.Any<TaskResource>());
         }
 
         [TestCase("1.0.0")]
         [TestCase("somedockertag")]
-        public void ShouldRejectIfMultipleEnvironmentsAndTenanted(string version)
+        public async Task ShouldRejectIfMultipleEnvironmentsAndTenanted(string version)
         {
             CommandLineArgs.Add("--project=" + ProjectName);
             CommandLineArgs.Add("--deploymenttimeout=00:00:01");
@@ -111,10 +111,10 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--cancelontimeout");
 
             Func<Task> exec = () => deployReleaseCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>()
+            await exec.Should().ThrowAsync<CommandException>()
                 .WithMessage("Please specify only one environment at a time when deploying to tenants.");
 
-            Repository.Deployments.DidNotReceive().Create(Arg.Any<DeploymentResource>());
+            await Repository.Deployments.DidNotReceive().Create(Arg.Any<DeploymentResource>());
         }
 
         [TestCase("1.0.0")]

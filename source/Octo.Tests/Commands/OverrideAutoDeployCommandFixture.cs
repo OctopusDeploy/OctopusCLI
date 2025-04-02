@@ -91,10 +91,10 @@ namespace Octo.Tests.Commands
             LogLines.Should().Contain("Auto deploy will deploy version 1.2.0 of the project OctoFx to the environment Production");
             await Repository.Projects.ReceivedWithAnyArgs().Modify(null).ConfigureAwait(false);
             var autoDeployOverride = savedProject.AutoDeployReleaseOverrides.Single();
-            Assert.AreEqual(project.Id, savedProject.Id);
-            Assert.AreEqual(release.Id, autoDeployOverride.ReleaseId);
-            Assert.AreEqual(null, autoDeployOverride.TenantId);
-            Assert.AreEqual(environment.Id, autoDeployOverride.EnvironmentId);
+            Assert.That(project.Id, Is.EqualTo(savedProject.Id));
+            Assert.That(release.Id, Is.EqualTo(autoDeployOverride.ReleaseId));
+            Assert.That(null, Is.EqualTo(autoDeployOverride.TenantId));
+            Assert.That(environment.Id, Is.EqualTo(autoDeployOverride.EnvironmentId));
         }
 
         [Test]
@@ -109,10 +109,10 @@ namespace Octo.Tests.Commands
             LogLines.Should().Contain("Auto deploy will deploy version somedockertag of the project OctoFx to the environment Production");
             await Repository.Projects.ReceivedWithAnyArgs().Modify(null).ConfigureAwait(false);
             var autoDeployOverride = savedProject.AutoDeployReleaseOverrides.Single();
-            Assert.AreEqual(project.Id, savedProject.Id);
-            Assert.AreEqual(release2.Id, autoDeployOverride.ReleaseId);
-            Assert.AreEqual(null, autoDeployOverride.TenantId);
-            Assert.AreEqual(environment.Id, autoDeployOverride.EnvironmentId);
+            Assert.That(project.Id, Is.EqualTo(savedProject.Id));
+            Assert.That(release2.Id, Is.EqualTo(autoDeployOverride.ReleaseId));
+            Assert.That(null, Is.EqualTo(autoDeployOverride.TenantId));
+            Assert.That(environment.Id, Is.EqualTo(autoDeployOverride.EnvironmentId));
         }
 
         [Test]
@@ -128,10 +128,10 @@ namespace Octo.Tests.Commands
             LogLines.Should().Contain("Auto deploy will deploy version 1.2.0 of the project OctoFx to the environment Production for the tenant Octopus");
             await Repository.Projects.ReceivedWithAnyArgs().Modify(null).ConfigureAwait(false);
             var autoDeployOverride = savedProject.AutoDeployReleaseOverrides.Single();
-            Assert.AreEqual(project.Id, savedProject.Id);
-            Assert.AreEqual(release.Id, autoDeployOverride.ReleaseId);
-            Assert.AreEqual(octopusTenant.Id, autoDeployOverride.TenantId);
-            Assert.AreEqual(environment.Id, autoDeployOverride.EnvironmentId);
+            Assert.That(project.Id, Is.EqualTo(savedProject.Id));
+            Assert.That(release.Id, Is.EqualTo(autoDeployOverride.ReleaseId));
+            Assert.That(octopusTenant.Id, Is.EqualTo(autoDeployOverride.TenantId));
+            Assert.That(environment.Id, Is.EqualTo(autoDeployOverride.EnvironmentId));
         }
 
         [Test]
@@ -147,10 +147,10 @@ namespace Octo.Tests.Commands
             LogLines.Should().Contain("Auto deploy will deploy version 1.2.0 of the project OctoFx to the environment Production for the tenant Octopus");
             await Repository.Projects.ReceivedWithAnyArgs().Modify(null).ConfigureAwait(false);
             var autoDeployOverride = savedProject.AutoDeployReleaseOverrides.Single();
-            Assert.AreEqual(project.Id, savedProject.Id);
-            Assert.AreEqual(release.Id, autoDeployOverride.ReleaseId);
-            Assert.AreEqual(octopusTenant.Id, autoDeployOverride.TenantId);
-            Assert.AreEqual(environment.Id, autoDeployOverride.EnvironmentId);
+            Assert.That(project.Id, Is.EqualTo(savedProject.Id));
+            Assert.That(release.Id, Is.EqualTo(autoDeployOverride.ReleaseId));
+            Assert.That(octopusTenant.Id, Is.EqualTo(autoDeployOverride.TenantId));
+            Assert.That(environment.Id, Is.EqualTo(autoDeployOverride.EnvironmentId));
         }
 
         [Test]

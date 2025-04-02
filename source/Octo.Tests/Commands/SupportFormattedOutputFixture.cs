@@ -32,7 +32,7 @@ namespace Octo.Tests.Commands
 
             await command.Execute(CommandLineArgs.ToArray()).ConfigureAwait(false);
 
-            command.PrintJsonOutputCalled.ShouldBeEquivalentTo(true);
+            Assert.That(command.PrintJsonOutputCalled, Is.True);
         }
 
         [Test]

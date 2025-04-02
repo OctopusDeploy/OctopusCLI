@@ -45,7 +45,7 @@ class Build : NukeBuild
     [PackageExecutable(
         packageId: "OctoVersion.Tool",
         packageExecutable: "OctoVersion.Tool.dll",
-        Framework = "net6.0")]
+        Framework = "net8.0")]
     readonly Tool OctoVersion;
 
     [PackageExecutable(
@@ -167,7 +167,7 @@ class Build : NukeBuild
             var portablePublishDir = OctoPublishDirectory / "portable";
             DotNetPublish(_ => _
                 .SetProject(Solution.Octo)
-                .SetFramework("netcoreapp3.1")
+                .SetFramework("net8.0")
                 .SetConfiguration(Configuration)
                 .SetOutput(portablePublishDir)
                 .SetVersion(fullSemVer));
@@ -188,7 +188,7 @@ class Build : NukeBuild
                 DotNetPublish(_ => _
                     .SetProject(Solution.Octo)
                     .SetConfiguration(Configuration)
-                    .SetFramework("net6.0")
+                    .SetFramework("net8.0")
                     .SetRuntime(rid)
                     .EnableSelfContained()
                     .EnablePublishSingleFile()

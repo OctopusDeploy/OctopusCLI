@@ -90,30 +90,30 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void ShouldNotCleanPoolWithMissingPoolArgs()
+        public async Task ShouldNotCleanPoolWithMissingPoolArgs()
         {
             Func<Task> exec = () => cleanPoolCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>()
+            await exec.Should().ThrowAsync<CommandException>()
                 .WithMessage("Please specify a worker pool name using the parameter: --workerpool=XYZ");
         }
 
         [Test]
-        public void ShouldNotCleanPoolWithMissingStatusArgs()
+        public async Task ShouldNotCleanPoolWithMissingStatusArgs()
         {
             CommandLineArgs.Add("-workerpool=SomePool");
             Func<Task> exec = () => cleanPoolCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>()
+            await exec.Should().ThrowAsync<CommandException>()
                 .WithMessage("Please specify a status using the parameter: --health-status");
         }
 
         [Test]
-        public void ShouldNotCleanIfPoolNotFound()
+        public async Task ShouldNotCleanIfPoolNotFound()
         {
             CommandLineArgs.Add("-workerpool=SomePool");
             CommandLineArgs.Add("-health-status=Unhealthy");
 
             Func<Task> exec = () => cleanPoolCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CouldNotFindException>()
+            await exec.Should().ThrowAsync<CouldNotFindException>()
                 .WithMessage("Could not find the specified worker pool; either it does not exist or you lack permissions to view it.");
         }
 

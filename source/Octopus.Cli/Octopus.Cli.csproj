@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net6.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <Authors>Octopus Deploy</Authors>
     <Copyright>Octopus Deploy Pty Ltd</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -23,23 +23,23 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NuGet.Common" Version="3.6.0-octopus-58692" />
     <PackageReference Include="NuGet.Frameworks" Version="3.6.0-octopus-58692" />
     <PackageReference Include="NuGet.Packaging" Version="3.6.0-octopus-58692" />
     <PackageReference Include="NuGet.Packaging.Core" Version="3.6.0-octopus-58692" />
     <PackageReference Include="NuGet.Packaging.Core.Types" Version="3.6.0-octopus-58692" />
     <PackageReference Include="NuGet.Versioning" Version="3.6.0-octopus-58692" />
-    <PackageReference Include="Octopus.CommandLine" Version="0.0.112" />
+    <PackageReference Include="Octopus.CommandLine" Version="0.0.2802" />
     <PackageReference Include="Octopus.Server.Client" Version="11.6.3644" />
-    <PackageReference Include="Octopus.Versioning" Version="5.1.155" />
+    <PackageReference Include="Octopus.Versioning" Version="5.1.879" />
     <PackageReference Include="Octostache" Version="2.3.0" />
     <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="2.0.0" />
     <PackageReference Include="Serilog.Sinks.Trace" Version="2.0.0" />
-    <PackageReference Include="Sprache" Version="2.1.0" />
-    <PackageReference Include="Serilog" Version="2.3.0" />
+    <PackageReference Include="Sprache" Version="2.3.1" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="Autofac" Version="4.6.0" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.6.1" />
   </ItemGroup>
   <ItemGroup>
     <None Include="icon.png" Pack="true" PackagePath="\" />

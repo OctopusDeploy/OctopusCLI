@@ -20,7 +20,7 @@ namespace Octo.Tests.Util
         [TestCaseSource(nameof(GetTestCases))]
         public void ShouldGetCorrectCompletions(string[] words, string[] expectedItems)
         {
-            CommandSuggester.SuggestCommandsFor(words, testCompletionItems).ShouldBeEquivalentTo(expectedItems);
+            Assert.That(CommandSuggester.SuggestCommandsFor(words, testCompletionItems), Is.EquivalentTo(expectedItems));
         }
 
         static IEnumerable<TestCaseData> GetTestCases()

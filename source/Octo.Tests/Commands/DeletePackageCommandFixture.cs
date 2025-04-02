@@ -42,25 +42,25 @@ namespace Octo.Tests.Commands
             deletePackageCommand.PrintJsonOutput();
             
             var logOutput = LogOutput.ToString();
-            Assert.True(logOutput.Contains("\"Status\": \"Success\""));
-            Assert.True(logOutput.Contains($"\"PackageId\": \"{packageId}\""));
-            Assert.True(logOutput.Contains($"\"Version\": \"{packageVersion}\""));
+            logOutput.Should().Contain("\"Status\": \"Success\"");
+            logOutput.Should().Contain($"\"PackageId\": \"{packageId}\"");
+            logOutput.Should().Contain($"\"Version\": \"{packageVersion}\"");
         }
 
         [Test]
-        public void CommandException_ShouldNotSearchForPackageWhenThereIsNoPackageId()
+        public async Task CommandException_ShouldNotSearchForPackageWhenThereIsNoPackageId()
         {
             Func<Task> exec = () => deletePackageCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>()
+            await exec.Should().ThrowAsync<CommandException>()
                 .WithMessage("Please specify a package id using the parameter: --packageId=XYZ");
         }
         
         [Test]
-        public void CommandException_ShouldNotSearchForPackageWhenThereIsNoPackageVersion()
+        public async Task CommandException_ShouldNotSearchForPackageWhenThereIsNoPackageVersion()
         {
             deletePackageCommand.PackageId = "TestPackage";
             Func<Task> exec = () => deletePackageCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>()
+            await exec.Should().ThrowAsync<CommandException>()
                 .WithMessage("Please specify a package version using the parameter: --version=1.0.0");
         }
     }

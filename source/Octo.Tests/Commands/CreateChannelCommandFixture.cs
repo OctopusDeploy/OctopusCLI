@@ -22,14 +22,14 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void ShouldThrowBecauseOfMissingParameters()
+        public async Task ShouldThrowBecauseOfMissingParameters()
         {
             Func<Task> exec = () => createChannelCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>();
+            await exec.Should().ThrowAsync<CommandException>();
         }
 
         [Test]
-        public void ShouldThrowForOlderOctopusServers()
+        public async Task ShouldThrowForOlderOctopusServers()
         {
             Repository.LoadRootDocument()
                 .Returns(new RootResource
@@ -42,7 +42,7 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add($"--lifecycle={$"Lifecycle-{Guid.NewGuid()}"}");
 
             Func<Task> exec = () => createChannelCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>();
+            await exec.Should().ThrowAsync<CommandException>();
         }
 
         [Test]

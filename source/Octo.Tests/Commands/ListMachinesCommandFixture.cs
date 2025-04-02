@@ -418,7 +418,7 @@ namespace Octo.Tests.Commands
             (await Repository.LoadRootDocument()).Version = "3.1.0";
 
             Func<Task> exec = () => listMachinesCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>()
+            await exec.Should().ThrowAsync<CommandException>()
                 .WithMessage("The `--health-status` parameter is only available on Octopus Server instances from 3.4.0 onwards.");
         }
 

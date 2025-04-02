@@ -54,7 +54,7 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void ShouldCancelDeploymentOnTimeoutIfRequested()
+        public async Task ShouldCancelDeploymentOnTimeoutIfRequested()
         {
             AddRequiredArgs();
             CommandLineArgs.Add("--runTimeout=00:00:01");
@@ -62,77 +62,77 @@ namespace Octo.Tests.Commands
             CommandLineArgs.Add("--cancelontimeout");
 
             Func<Task> exec = () => runRunbookCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>();
+            await exec.Should().ThrowAsync<CommandException>();
 
             Repository.Tasks.Received().Cancel(taskResource).GetAwaiter().GetResult();
         }
 
         [Test]
-        public void ShouldNotCancelDeploymentOnTimeoutIfNotRequested()
+        public async Task ShouldNotCancelDeploymentOnTimeoutIfNotRequested()
         {
             AddRequiredArgs();
             CommandLineArgs.Add("--runTimeout=00:00:01");
             CommandLineArgs.Add("--progress");
 
             Func<Task> exec = () => runRunbookCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>();
+            await exec.Should().ThrowAsync<CommandException>();
 
-            Repository.Tasks.DidNotReceive().Cancel(Arg.Any<TaskResource>());
+            await Repository.Tasks.DidNotReceive().Cancel(Arg.Any<TaskResource>());
         }
 
         [Test]
         [TestCase("--project=" + ProjectName, "--environment=" + ValidEnvironment)]
         [TestCase("--runbook=" + RunbookName, "--environment=" + ValidEnvironment)]
         [TestCase("--project=" + ProjectName, "--runbook=" + RunbookName)]
-        public void WhenARequiredParameterIsNotSupplied_ShouldThrowException(params string[] arguments)
+        public async Task WhenARequiredParameterIsNotSupplied_ShouldThrowException(params string[] arguments)
         {
             foreach (var arg in arguments)
                 CommandLineArgs.Add(arg);
 
             Func<Task> exec = () => runRunbookCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>();
+            await exec.Should().ThrowAsync<CommandException>();
         }
 
         [Test]
-        public void WhenAllRequiredParametersAreSupplied_ShouldNotThrowException()
+        public async Task WhenAllRequiredParametersAreSupplied_ShouldNotThrowException()
         {
             AddRequiredArgs();
 
             Func<Task> exec = () => runRunbookCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldNotThrow<CommandException>();
+            await exec.Should().NotThrowAsync<CommandException>();
         }
 
         [Test]
-        public void WhenRunAtSuppliedIsAfterNotRunAfter_ShouldThrowException()
+        public async Task WhenRunAtSuppliedIsAfterNotRunAfter_ShouldThrowException()
         {
             AddRequiredArgs();
             CommandLineArgs.Add("--runAt=" + "2020-07-16T03:00:00Z");
             CommandLineArgs.Add("--notRunAfter=" + "2020-07-15T03:00:00Z");
 
             Func<Task> exec = () => runRunbookCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>();
+            await exec.Should().ThrowAsync<CommandException>();
         }
 
         [Test]
-        public void WhenIncludedMachinesIntersectsWithExcludedMachines_ShouldThrowException()
+        public async Task WhenIncludedMachinesIntersectsWithExcludedMachines_ShouldThrowException()
         {
             AddRequiredArgs();
             CommandLineArgs.Add("--specificMachines=" + "one,two");
             CommandLineArgs.Add("--excludeMachines=" + "two,three");
 
             Func<Task> exec = () => runRunbookCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>();
+            await exec.Should().ThrowAsync<CommandException>();
         }
 
         [Test]
-        public void WhenATentantWildcardIsSupplied_NoOtherTenantIdsOrTagsCanBeSupplied()
+        public async Task WhenATentantWildcardIsSupplied_NoOtherTenantIdsOrTagsCanBeSupplied()
         {
             AddRequiredArgs();
             CommandLineArgs.Add("--tenant=" + "*");
             CommandLineArgs.Add("--tenantTag=" + "beta,stable");
 
             Func<Task> exec = () => runRunbookCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>();
+            await exec.Should().ThrowAsync<CommandException>();
         }
     }
 }

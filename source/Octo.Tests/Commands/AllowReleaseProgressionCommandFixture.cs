@@ -74,38 +74,38 @@ namespace Octo.Tests.Commands
         [TestCase(null)]
         [TestCase("")]
         [TestCase("    ")]
-        public void ShouldValidateProjectIdOrNameParameterForMissing(string projectIdOrName)
+        public async Task ShouldValidateProjectIdOrNameParameterForMissing(string projectIdOrName)
         {
             CommandLineArgs.Add($"--project={projectIdOrName}");
             CommandLineArgs.Add($"--version={releaseResource.Version}");
 
             Func<Task> exec = () => allowReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>()
+            await exec.Should().ThrowAsync<CommandException>()
                 .WithMessage("Please specify a project name or ID using the parameter: --project=XYZ");
         }
 
         [TestCase(null)]
         [TestCase("")]
         [TestCase("    ")]
-        public void ShouldValidateReleaseVersionNumberParameterForMissing(string releaseVersionNumber)
+        public async Task ShouldValidateReleaseVersionNumberParameterForMissing(string releaseVersionNumber)
         {
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseVersionNumber}");
 
             Func<Task> exec = () => allowReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>()
+            await exec.Should().ThrowAsync<CommandException>()
                 .WithMessage("Please specify a release version number using the version parameter: --version=1.0.5");
         }
 
         [TestCase("9999999999999999999999999999999999999")]
         [Description("Version number larger than an int")]
-        public void ShouldValidateReleaseVersionNumberParameterForFormat(string releaseVersionNumber)
+        public async Task ShouldValidateReleaseVersionNumberParameterForFormat(string releaseVersionNumber)
         {
             CommandLineArgs.Add($"--project={projectResource.Name}");
             CommandLineArgs.Add($"--version={releaseVersionNumber}");
 
             Func<Task> exec = () => allowReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
-            exec.ShouldThrow<CommandException>()
+            await exec.Should().ThrowAsync<CommandException>()
                 .WithMessage("Please provide a valid release version format: --version=1.0.5");
         }
 
@@ -123,7 +123,7 @@ namespace Octo.Tests.Commands
         }
 
         [Test]
-        public void ShouldThrowCorrectException_WhenReleaseNotFound()
+        public async Task ShouldThrowCorrectException_WhenReleaseNotFound()
         {
             Repository.Projects.GetReleaseByVersion(projectResource, releaseResource.Version).Returns((ReleaseResource)null);
 
@@ -132,7 +132,7 @@ namespace Octo.Tests.Commands
 
             Func<Task> exec = () => allowReleaseProgressionCommand.Execute(CommandLineArgs.ToArray());
 
-            exec.ShouldThrow<OctopusResourceNotFoundException>();
+            await exec.Should().ThrowAsync<OctopusResourceNotFoundException>();
         }
 
         [Test]
